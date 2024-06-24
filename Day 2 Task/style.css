@@ -1,0 +1,54 @@
+body{
+    height: calc(100vh - 16px);
+    font-size: 1.6em;
+}
+
+/* just to center the text */
+.container>div{
+    display: grid;
+    place-items: center;
+}
+
+.container{
+    color: white;
+    height:100%;
+    display: grid;
+    gap:4px;
+    /* grid-template-columns: 1fr 1fr 1fr; */
+    /* grid-template-rows: 1fr 2fr 2fr 1fr; */
+
+    /* Trying out grid template areas*/
+    grid-template: 
+        "head head head" 1fr
+        "side c1 c1" 2fr
+        "side c2 c3" 2fr
+        "foot foot foot" 1fr / 1fr 1fr 1fr;
+}
+.header{
+    grid-area: head;
+    background: linear-gradient(135deg, #7054e6 0%, #907de3 100%);
+    /* grid-column: 1/4; */
+}
+.footer{
+    grid-area: foot;
+    background: linear-gradient(135deg, #7054e6 0%, #907de3 100%);
+    /* grid-column: 1/4; */
+}
+.sidebar{
+    grid-area: side;
+    background: linear-gradient(180deg, #3bd8d0 0%, #29a59e 100%);
+    /* grid-row: 2/4; */
+}
+.content-1{
+    grid-area: c1;
+    background: linear-gradient(125deg, #6148d1 0%, #3dece7 100%);
+    /* grid-column: 2/4; */
+}
+.content-2{
+    grid-area:c2;
+    background: linear-gradient(125deg, #6148d1 0%, #3dece7 100%);
+}
+.content-3{
+    grid-area:c3;
+    background: linear-gradient(125deg, #6148d1 0%, #3dece7 100%);
+}

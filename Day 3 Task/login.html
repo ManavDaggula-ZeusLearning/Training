@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="login.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0" >
+</head>
+<body>
+    <header>
+        <img src="https://www.zeuslearning.com/c/img/quantum/laptop-1366/Quantum%20Logo.svg" alt="Quantum Logo">
+    </header>
+
+    <main>
+        <form action="dashboard.html" method="get">
+            <h2 class="form-title-bar">
+                <a href="#"><span class="material-symbols-outlined">
+                    arrow_back
+                    </span></a>
+                <span>Log in with Quantum</span>
+            </h2>
+            <div class="school-type">
+                <label><input type="radio" name="school-type" value="District" required>District</label>
+                <label><input type="radio" name="school-type" value="Independent School" required>Independent School</label>
+            </div>
+            <label class="state">
+                State*
+                <select name="state" id="state" required>
+                    <option value="Alabama">Alabama</option>
+                </select>
+            </label>
+            <label class="district">
+                District*
+                <select name="district" id="district" required>
+                    <option value="Alabama School District">Alabama School District</option>
+                </select>
+            </label>
+            <label class="username">
+                <input type="text" placeholder="Username/Email ID*" required>
+                <a href="#">forgot username?</a>
+            </label>
+            <label class="password">
+                <input type="password" name="password" placeholder="Password*" required>
+                    <!-- <span class="material-symbols-outlined" id="eye">
+                    visibility
+                    </span> -->
+                    <img src="assets/icons/preview.svg" alt="preview password" id="eye" class="material-symbols-outlined">
+                <a href="#">forgot password?</a>
+            </label>
+            <label class="remember-me">
+                <input type="checkbox" name="remember-me" id="remember-me">Remember Me
+            </label>
+            <input type="submit" value="LOG IN">
+        </form>
+    </main>
+
+    <footer>
+        <div>About <span>&#124;</span> Contact Us</div>
+        <div>
+            <img src="assets/icons/logo used in footer.svg" alt="Quantum Logo">
+            <span>&#124;</span>
+            Copyright &copy; 2020-2021
+            <i>Zeus Systems Pvt. Ltd.</i>
+            All rights reserved.
+        </div>
+    </footer>
+    <script src="login.js"></script>
+</body>
+</html>
