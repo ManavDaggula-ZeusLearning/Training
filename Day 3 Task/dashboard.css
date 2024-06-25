@@ -346,12 +346,12 @@ hr{
 }
 .cards-container .card .card-img{
   grid-area: a;
-  padding-block: 2em;
-  padding-inline: 2em 0em;
+  padding-block: 1em;
+  padding-inline: 1em 0em;
   display: grid;
   place-items: center;
   width: 132px;
-  height: 150px;
+  height: calc(100% - 2em);
   place-self: center;
 }
 .cards-container .card .card-img img{
