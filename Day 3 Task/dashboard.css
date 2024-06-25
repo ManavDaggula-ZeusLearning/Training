@@ -287,10 +287,13 @@ nav ul li[data-current]::before{
   font-size: 12px;
   font-weight: 500;
   color: #686868;
+  flex-wrap: wrap-reverse;
+  gap: 1em;
 }
 .show-info .sorter{
   display: flex;
   align-items: center;
+  margin-left: auto;
 }
 .show-info select{
   font-size: 16px;

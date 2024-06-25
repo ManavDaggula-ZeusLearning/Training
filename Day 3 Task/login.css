@@ -137,6 +137,9 @@ form > label:not(.radio, .remember-me) {
   /* place-self: flex-start; */
   color: #222;
 }
+.school-type label:nth-child(2){
+  flex: 1;
+}
 .school-type label input,
 .remember-me input {
   margin-inline-end: 12px;
