@@ -9,7 +9,7 @@ body {
   display: grid;
   place-items: center;
   gap: 8px;
-  /* height: calc(100vh - 16px); */
+  height: calc(100vh - 16px);
 }
 
 .tweet-container {
