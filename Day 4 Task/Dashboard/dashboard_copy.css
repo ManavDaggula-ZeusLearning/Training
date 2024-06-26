@@ -2,7 +2,7 @@
 @import url("https://db.onlinewebfonts.com/c/16697a764b01cdcc691b05f001046bc3?family=MuseoSans-500");
 @font-face{
   font-family: "Quicksand";
-  src: url("assets/Quicksand\ font\ 1/Quicksand-VariableFont_wght.ttf");
+  src: url("./../assets/Quicksand\ font\ 1/Quicksand-VariableFont_wght.ttf");
 }
 body {
   margin: 0px;
@@ -62,8 +62,8 @@ footer i {
 
 /* navbar */
 nav{
-  /* background: url('assets/header\ pattern\ image.png') rgba(37, 49, 63,0.8); */
-  background: url('assets/header\ pattern\ image.png') rgba(37, 49, 63,1);
+  /* background: url('./../assets/header\ pattern\ image.png') rgba(37, 49, 63,0.8); */
+  background: url('./../assets/header\ pattern\ image.png') rgba(37, 49, 63,1);
   background-size: auto 100%;
   background-blend-mode: overlay;
   display: flex;
@@ -438,7 +438,7 @@ hr{
   color: #222222;
   background-color: transparent;
   appearance: none;
-  background-image: url("assets/icons/arrow-down.svg");
+  background-image: url("./../assets/icons/arrow-down.svg");
   background-repeat: no-repeat;
   background-position: 100%;
 }

@@ -1,0 +1,489 @@
+@import url("https://db.onlinewebfonts.com/c/16697a764b01cdcc691b05f001046bc3?family=MuseoSans-500");
+
+@font-face {
+  font-family: "Quicksand";
+  src: url("./../assets/Quicksand\ font\ 1/Quicksand-VariableFont_wght.ttf");
+}
+
+$font-quicksand: Quicksand;
+$background-color: #eeeeee;
+$header-background: url("./../assets/header\ pattern\ image.png")
+  rgba(37, 49, 63, 1);
+$primary-green: #1f7a54;
+$primary-light-green: #3fd28b;
+$blue-border: #31b9e4;
+$gray-61: #616161;
+$gray-66: #666;
+$gray-68: #686868;
+$black-2: #222;
+$black-3: #333;
+$notification-background-color: #2a7ff3;
+$tab-background: #8ddc97;
+
+@mixin fade-border-below {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+}
+@mixin flex-center($jc: center, $ai: center, $d: row) {
+  display: flex;
+  justify-content: $jc;
+  align-items: $ai;
+  flex-direction: $d;
+}
+@mixin grid-center($ji: center, $ai: center) {
+  display: grid;
+  justify-items: $ji;
+  align-items: $ai;
+}
+
+body {
+  margin: 0px;
+  font-family: Quicksand;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background-color: #eee;
+}
+
+footer {
+  text-align: center;
+  margin-block-start: 1em;
+  color: $primary-green;
+  font-weight: 500;
+  margin-top: auto;
+
+  div:first-child > span {
+    margin-inline: 1em;
+    color: $gray-61;
+    opacity: 0.31;
+  }
+  div:nth-child(2) {
+    background: #e0e1e1;
+    color: $gray-61;
+    @include flex-center();
+    gap: 1em;
+    font-size: 12px;
+    margin-top: 1em;
+    padding: 0.5em;
+
+    & span {
+      font-size: 24px;
+      font-weight: 100;
+      opacity: 0.31;
+    }
+  }
+  i {
+    font-weight: 700;
+    font-style: normal;
+  }
+}
+
+/* icon settings*/
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+nav {
+  /* background: url('./../assets/header\ pattern\ image.png') rgba(37, 49, 63,0.8); */
+  background: url("./../assets/header\ pattern\ image.png") rgba(37, 49, 63, 1);
+  background-size: auto 100%;
+  background-blend-mode: overlay;
+  gap: 2em;
+  @include flex-center($jc: flex-end);
+  padding: 1em 2em;
+  position: sticky;
+  top: 0px;
+  z-index: 100;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+
+  .material-symbols-outlined {
+    color: $primary-light-green;
+  }
+
+  & > img {
+    height: 40px;
+    margin-right: auto;
+  }
+
+  .nav-prompters {
+    @include flex-center();
+    gap: 2em;
+
+    span {
+      position: relative;
+
+      &::before {
+        display: inline-block;
+        font-size: 10px;
+        width: 1.5em;
+        height: 1.5em;
+        font-family: Quicksand;
+        position: absolute;
+        background-color: $notification-background-color;
+        color: white;
+        padding: 2px;
+        right: -8px;
+        border-radius: 50%;
+        @include grid-center();
+        top: -8px;
+      }
+
+      &.profile-icon::before {
+        color: $black-2;
+        background-color: white;
+      }
+
+      &[data-notification-count]::before {
+        content: attr(data-notification-count);
+      }
+      &[data-campaign-count]::before {
+        content: attr(data-campaign-count);
+      }
+      &[data-accronym]::before {
+        content: attr(data-accronym);
+      }
+    }
+
+    img {
+      width: 30px;
+      height: 30px;
+      object-fit: cover;
+    }
+  }
+
+  .menu-items {
+    list-style-type: none;
+    @include flex-center();
+    gap: 2em;
+    color: $primary-light-green;
+    margin: 0px;
+
+    li {
+      position: relative;
+      cursor: pointer;
+
+      &[data-current] {
+        color: white;
+
+        &::before {
+          width: 100%;
+          height: 5px;
+          display: block;
+          background-color: white;
+          position: absolute;
+          content: "";
+          bottom: calc(0px - 1.8em);
+          animation: menu-underline-animation 0.4s ease;
+        }
+      }
+    }
+    @media (width<=896px) {
+      display: none;
+    }
+  }
+  .menu {
+    position: relative;
+    span {
+      cursor: pointer;
+    }
+
+    .menu-container {
+      height: 100dvh;
+      position: absolute;
+      z-index: 1000;
+      background-color: #25313f;
+      top: 48px;
+      transition: width 0.4s ease;
+      right: -2em;
+      overflow: hidden;
+
+      ul {
+        @include flex-center($d: column);
+        padding: 1em 3em;
+
+        li {
+          height: 2px;
+          bottom: calc(-4px);
+        }
+      }
+    }
+
+    &[data-state="closed"] .menu-container {
+      width: 0px;
+    }
+    &[data-state="open"] .menu-container {
+      width: 100vw;
+    }
+
+    @media (width>896px) {
+      display: none;
+    }
+  }
+}
+
+.tab-selector {
+  margin-inline: auto;
+  margin-block: 1em;
+  width: calc(100% - 2em);
+  border-radius: 2px;
+  background: $tab-background;
+  @include flex-center();
+  color: $black-2;
+  font-size: 16px;
+  font-weight: 500;
+
+  & > span {
+    flex: 1;
+    @include flex-center();
+    padding: 1em 0em;
+    position: relative;
+    &::before {
+      position: absolute;
+      display: inline-block;
+      bottom: 0px;
+      height: 4px;
+      background-color: $black-2;
+      width: 0%;
+      transform-origin: 50% 0%;
+      content: "";
+      transition: width 0.4s ease;
+    }
+
+    &[data-tab-selected]::before {
+      width: 100%;
+    }
+  }
+
+  span b {
+    margin-inline: 0.4em;
+    font-size: 24px;
+  }
+}
+
+.show-info {
+  @include flex-center($jc: space-between);
+  flex-wrap: wrap-reverse;
+  gap: 1em;
+  margin-inline: 2em;
+  font-size: 12px;
+  font-weight: 500;
+  color: $gray-68;
+
+  .sorter {
+    @include flex-center();
+    margin-left: auto;
+  }
+
+  select {
+    color: #333333;
+    // width: 180px;
+    padding-right: 3em;
+    margin-inline: 1em;
+  }
+}
+
+hr {
+  width: calc(100% - 2em);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  margin-block: 1em;
+}
+
+.cards-container {
+  margin: 2em 1.2em;
+  @include grid-center();
+  grid-template-columns: repeat(auto-fill, minmax(476px, 1fr));
+  gap: 2em;
+
+  @media (width<=768px) {
+    @include flex-center($d: column);
+  }
+
+  .card {
+    display: grid;
+    grid-template:
+      "a b" 5fr
+      "c c" 0.1fr
+      "d d" 1fr/ 1fr 5fr;
+    background-color: white;
+    border-radius: 2px;
+    // ask if max-width is can be removed
+    max-width: 571px;
+    position: relative;
+    height: 100%;
+    min-height: 246px;
+
+    .card-img {
+      grid-area: a;
+      padding-block: 1em;
+      padding-inline: 1em 0em;
+      @include grid-center();
+      width: 132px;
+      height: 150px;
+      place-self: center;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 2px;
+      }
+    }
+
+    .card-content {
+      grid-area: b;
+      padding: 1em;
+      display: grid;
+      align-content: start;
+      gap: 0.7em;
+
+      h2 {
+        font-weight: 600;
+        color: $black-2;
+        font-size: 16px;
+        place-self: center flex-start;
+        margin: 0px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        grid-row: 1/1;
+        grid-column: 1/1;
+        padding-right: 2em;
+      }
+
+      .material-symbols-outlined {
+        place-self: flex-start flex-end;
+        color: $background-color;
+        filter: grayscale(1);
+        opacity: 0.4;
+        grid-row: 1/1;
+        grid-column: 1/1;
+      }
+
+      .subject-grade {
+        font-size: 12px;
+        font-weight: 500;
+        color: $gray-66;
+
+        span {
+          padding-inline: 0.5em;
+          color: rgba(0, 0, 0, 0.12);
+          font-weight: 500;
+
+          &.special {
+            color: $primary-green;
+          }
+        }
+      }
+
+      .index {
+        font-size: 12px;
+        font-weight: 500;
+        color: $gray-66;
+        display: flex;
+        gap: 0.4em;
+
+        b {
+          color: $black-2;
+          padding-right: 0.4em;
+        }
+      }
+
+      .class-selection {
+        color: $black-2;
+      }
+
+      .students-schedule{
+        font-size: 12px;
+        color: $gray-66;
+        // margin-top: 1em;
+        font-weight: 500;
+
+        span{
+            padding-inline: 0.5em;
+        }
+      }
+    }
+    
+    hr{
+        grid-area: c;
+        margin-block: 0.5em;
+    }
+
+    .interactables{
+        grid-area: d;
+        @include flex-center($jc:space-around);
+        color: $primary-green;
+
+        span{
+            @include grid-center();
+            opacity: 0.4;
+        }
+    }
+
+    &[data-starred] .card-content .material-symbols-outlined{
+        filter: grayscale(0);
+        opacity: 1;
+      }
+      &[data-visible] .interactables .visibility-icon{
+        opacity: 1;
+      }
+      &[data-calendar] .interactables .calendar-icon{
+        opacity: 1;
+      }
+      &[data-shop] .interactables .shop-icon{
+        opacity: 1;
+      }
+      &[data-chart] .interactables .chart-icon{
+        opacity: 1;
+      }
+      &[data-expired]::before{
+        content: "EXPIRED";
+        color: #D80000;
+        background-color: #FFE4E6;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        font-size: 10px;
+        font-family: "MuseoSans-500";
+        font-weight: 500;
+        padding: 4px;
+        border-radius: 2px;
+      }
+  }
+}
+
+// common select borders{
+select {
+  border: 2px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: Quicksand;
+  background-color: transparent;
+  appearance: none;
+  background-image: url("./../assets/icons/arrow-down.svg");
+  background-repeat: no-repeat;
+  background-position: 100%;
+  &:focus, &:focus-visible{
+    outline: none;
+  }
+}
+
+@keyframes menu-underline-animation {
+  from {
+    left: 50%;
+    width: 0%;
+  }
+  to {
+    left: 0%;
+    width: 100%;
+  }
+}

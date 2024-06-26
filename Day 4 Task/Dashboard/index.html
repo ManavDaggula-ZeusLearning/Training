@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <title>Dashboard</title>
+  </head>
+  <body>
+    <nav>
+      <img src="./../assets/icons/logo used in header.svg" alt="Quantum Logo" srcset="" />
+      <ul class="menu-items">
+        <li data-current>Dashboard</li>
+        <li>Content</li>
+        <li>Users</li>
+        <li>Reports</li>
+        <li>Admin</li>
+      </ul>
+      <span class="nav-prompters">
+        <span class="material-symbols-outlined" class="notifications" data-notification-count="2">
+          <img src="./../assets/icons/alerts.svg" alt="Notifications">
+        </span>
+        <span class="material-symbols-outlined" class="campaign" data-campaign-count="1">
+          <img src="./../assets/icons/announcements.svg" alt="Announcements" >
+        </span>
+        <span class="profile-icon" data-accronym="U">
+            <img
+              src="./../assets/icons/account_circle.svg"
+              alt="profle icon"
+              srcset=""
+              class="profile-icon"
+            />
+        </span>
+      </span>
+
+      <div class="menu" data-state="closed" id="menu-panel">
+        <span class="material-symbols-outlined menu-btn"><img src="./../assets/icons/hamburger-menu.svg" alt="menu button"></span>
+        <div class="menu-container">
+            <ul class="menu-items">
+                <li data-current>Dashboard</li>
+                <li>Content</li>
+                <li>Users</li>
+                <li>Reports</li>
+                <li>Admin</li>
+            </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main>
+    <div class="tab-selector">
+      <span data-tab-selected>
+        <span class="material-symbols-outlined"><img src="./../assets/icons/courses.svg" alt="courses"></span>
+        <b>4</b>
+        Courses
+      </span>
+      <span>
+        <span class="material-symbols-outlined"><img src="./../assets/icons/classes.svg" alt="classes"></span>
+        <b>4</b>
+        Classes
+      </span>
+    </div>
+
+    <div class="show-info">
+      <span class="display-count">Showing 4 of 4 courses</span>
+      <span class="sorter">
+        <label>
+          Sort by:
+          <select name="card-sorter" id="card-sorter">
+            <option value="Course Name">Course Name</option>
+          </select>
+        </label>
+        <span class="material-symbols-outlined"><img src="./../assets/icons/sort.svg" alt="Sort arrow" ></span>
+      </span>
+    </div>
+    
+    <hr>
+
+    <div class="cards-container">
+      <div class="card" data-starred data-visible data-calendar data-shop data-chart>
+        <span class="card-img"><img src="./../assets/images/imageMask.png" alt="Plasma Globe" srcset=""></span>
+        <div class="card-content">
+          <h2>Acceleration</h2>
+          <span class="material-symbols-outlined"><img src="./../assets/icons/favourite.svg" alt="favourite"></span>
+          <span class="subject-grade">
+            Physics
+            <span>&#124;</span>
+            Grade 7<span class="special">+2</span>
+          </span>
+          <span class="index">
+            <span><b>4</b>units</span>
+            <span><b>18</b>Lessons</span>
+            <span><b>24</b>Topics</span>
+          </span>
+          <select name="class-selection" class="class-selection">
+            <option value="Mr. Frank's Class B">Mr. Frank's Class B</option>
+          </select>
+          <span class="students-schedule">
+            50 students
+            <span>&#124;</span>
+            21-Jan-2020 - 21-Aug-2020
+          </span>
+        </div>
+        <hr>
+        <div class="interactables">
+          <span class="material-symbols-outlined visibility-icon"><img src="./../assets/icons/preview.svg" alt="preview"></span>
+          <span class="material-symbols-outlined calendar-icon"><img src="./../assets/icons/manage course.svg" alt="manage courses"></span>
+          <span class="material-symbols-outlined shop-icon"><img src="./../assets/icons/grade submissions.svg" alt="grades"></span>
+          <span class="material-symbols-outlined chart-icon"><img src="./../assets/icons/reports.svg" alt="reports"></span>
+        </div>
+      </div>
+      <div class="card" data-starred data-visible data-chart>
+        <span class="card-img"><img src="./../assets/images/imageMask-1.png" alt="Plasma Globe" srcset=""></span>
+        <div class="card-content">
+          <h2>Displacement, Velocity and Speed</h2>
+          <span class="material-symbols-outlined"><img src="./../assets/icons/favourite.svg" alt="favourite"></span>
+          <span class="subject-grade">
+            Physics
+            <span>&#124;</span>
+            Grade 6<span class="special">+3</span>
+          </span>
+          <span class="index">
+            <span><b>2</b>units</span>
+            <span><b>15</b>Lessons</span>
+            <span><b>20</b>Topics</span>
+          </span>
+          <select name="class-selection" class="class-selection" disabled>
+            <option value="">No Classes</option>
+          </select>
+          <!-- <span class="students-schedule">
+            50 students
+            <span>&#124;</span>
+            21-Jan-2020 - 21-Aug-2020
+          </span> -->
+        </div>
+        <hr>
+        <div class="interactables">
+          <span class="material-symbols-outlined visibility-icon"><img src="./../assets/icons/preview.svg" alt="preview"></span>
+          <span class="material-symbols-outlined calendar-icon"><img src="./../assets/icons/manage course.svg" alt="manage courses"></span>
+          <span class="material-symbols-outlined shop-icon"><img src="./../assets/icons/grade submissions.svg" alt="grades"></span>
+          <span class="material-symbols-outlined chart-icon"><img src="./../assets/icons/reports.svg" alt="reports"></span>
+        </div>
+      </div>
+      <div class="card" data-starred data-visible data-chart>
+        <span class="card-img"><img src="./../assets/images/imageMask-3.png" alt="Plasma Globe" srcset=""></span>
+        <div class="card-content">
+          <h2>Introduction to Biology: Micro organisms and how they affect our world</h2>
+          <span class="material-symbols-outlined"><img src="./../assets/icons/favourite.svg" alt="favourite"></span>
+          <span class="subject-grade">
+            Biology
+            <span>&#124;</span>
+            Grade 4 <span class="special">+1</span>
+          </span>
+          <span class="index">
+            <span><b>5</b>units</span>
+            <span><b>16</b>Lessons</span>
+            <span><b>22</b>Topics</span>
+          </span>
+          <select name="class-selection" class="class-selection">
+            <option value="All Classes">All Classes</option>
+          </select>
+          <span class="students-schedule">
+            300 students
+            <!-- <span>&#124;</span>
+            21-Jan-2020 - 21-Aug-2020 -->
+          </span>
+        </div>
+        <hr>
+        <div class="interactables">
+          <span class="material-symbols-outlined visibility-icon"><img src="./../assets/icons/preview.svg" alt="preview"></span>
+          <span class="material-symbols-outlined calendar-icon"><img src="./../assets/icons/manage course.svg" alt="manage courses"></span>
+          <span class="material-symbols-outlined shop-icon"><img src="./../assets/icons/grade submissions.svg" alt="grades"></span>
+          <span class="material-symbols-outlined chart-icon"><img src="./../assets/icons/reports.svg" alt="reports"></span>
+        </div>
+      </div>
+      <div class="card" data-visible data-calendar data-shop data-chart data-expired>
+        <span class="card-img"><img src="./../assets/images/imageMask-2.png" alt="Plasma Globe" srcset=""></span>
+        <div class="card-content">
+          <h2>Introduction to High School Mathematics</h2>
+          <span class="material-symbols-outlined"><img src="./../assets/icons/favourite.svg" alt="favourite"></span>
+          <span class="subject-grade">
+            Mathematics
+            <span>&#124;</span>
+            Grade 8 <span class="special">+3</span>
+          </span>
+          <!-- <span class="index">
+            <span><b>4</b>units</span>
+            <span><b>18</b>Lessons</span>
+            <span><b>24</b>Topics</span>
+          </span> -->
+          <select name="class-selection" class="class-selection">
+            <option value="Mr. Frank's Class A">Mr. Frank's Class A</option>
+          </select>
+          <span class="students-schedule">
+            44 students
+            <span>&#124;</span>
+            14-Oct-2019 - 20-Oct-2020
+          </span>
+        </div>
+        <hr>
+        <div class="interactables">
+          <span class="material-symbols-outlined visibility-icon"><img src="./../assets/icons/preview.svg" alt="preview"></span>
+          <span class="material-symbols-outlined calendar-icon"><img src="./../assets/icons/manage course.svg" alt="manage courses"></span>
+          <span class="material-symbols-outlined shop-icon"><img src="./../assets/icons/grade submissions.svg" alt="grades"></span>
+          <span class="material-symbols-outlined chart-icon"><img src="./../assets/icons/reports.svg" alt="reports"></span>
+        </div>
+      </div>
+    </div>
+
+    </main>
+    <footer>
+      <div>About <span>&#124;</span> Contact Us</div>
+      <div>
+        <img
+          src="./../assets/icons/logo used in footer.svg"
+          alt="Quantum Logo"
+          class="logo"
+        />
+        <span>&#124;</span>
+        Copyright &copy; 2020-2021
+        <i>Zeus Systems Pvt. Ltd.</i>
+        All rights reserved.
+      </div>
+    </footer>
+
+    <script src="./dashboard.js"></script>
+  </body>
+</html>
