@@ -1,0 +1,240 @@
+@font-face {
+  font-family: "Quicksand";
+  src: url("./../assets/Quicksand font 1/Quicksand-VariableFont_wght.ttf");
+}
+body {
+  background: #eeeeee;
+  font-family: Quicksand;
+  margin: 0px;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  background: url("./../assets/header pattern image.png") rgb(37, 49, 63);
+  background-size: auto 100%;
+  background-blend-mode: overlay;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-top: 2px solid #31b9e4;
+}
+header img {
+  height: 40px;
+  padding: 1em 1em;
+}
+
+footer {
+  text-align: center;
+  margin-block-start: 1em;
+  color: #1f7a54;
+  font-weight: 500;
+  margin-top: auto;
+}
+footer div:first-child > span {
+  margin-inline: 1em;
+  color: #616161;
+  opacity: 0.31;
+}
+footer div:nth-child(2) {
+  background: #e0e1e1;
+  color: #616161;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1em;
+  font-size: 12px;
+  margin-top: 1em;
+  padding: 0.5em;
+}
+footer div:nth-child(2) span {
+  font-size: 24px;
+  font-weight: 100;
+  opacity: 0.31;
+}
+footer i {
+  font-weight: 700;
+  font-style: normal;
+}
+
+main {
+  display: grid;
+  place-items: center;
+}
+
+form {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-top: 4px solid #31b9e4;
+  border-radius: 2px;
+  margin: 2em auto;
+  display: grid;
+  padding: 2em;
+  font-weight: 600;
+  font-size: 16px;
+  gap: 2.5em;
+  width: min(100% - 6em, 488px);
+  background-color: white;
+}
+form input[type=text],
+form select,
+form input[type=password] {
+  color: #222;
+  grid-column: 1/1;
+  background-color: white;
+}
+form input[type=password] {
+  grid-row: 1/1;
+}
+form .form-title-bar {
+  font-weight: bold;
+  font-size: 24px;
+  display: grid;
+  place-items: center;
+  grid-template-columns: 1fr 5fr 1fr;
+  text-align: center;
+}
+form .form-title-bar a {
+  text-decoration: none;
+  color: #1f7a54;
+  font-size: 14px;
+  place-self: center start;
+  display: grid;
+  place-items: center;
+}
+form label {
+  color: #666;
+  display: grid;
+  gap: 0.5em;
+}
+form label a {
+  place-self: flex-end;
+  text-transform: uppercase;
+  color: #1f7a54;
+  text-decoration: none;
+  font-size: 14px;
+}
+form input[type=radio], form input[type=checkbox] {
+  width: 20px;
+  height: 20px;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  border: none;
+  position: relative;
+  flex: 0 0 25px;
+}
+form select, form input {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-size: 16px;
+  font-weight: 600;
+  font-family: Quicksand;
+}
+form input[type=text]:focus-visible, form input[type=text]:focus, form input[type=password]:focus-visible, form input[type=password]:focus, form select:focus, form select:focus-visible {
+  outline: none;
+}
+form input[type=text]::-moz-placeholder {
+  color: #666;
+}
+form input[type=text]::placeholder {
+  color: #666;
+}
+form input[type=submit] {
+  background-color: #3FD28B;
+  box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2392156863);
+  width: 216px;
+  height: 40px;
+  font-size: 14px;
+  color: #1f2834;
+  place-self: center;
+  border: none;
+  border-radius: 2px;
+}
+form select {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background-image: url("./../assets/icons/arrow-down.svg");
+  background-repeat: no-repeat;
+  background-position: 100%;
+}
+
+.school-type {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-content: start;
+  gap: 2em;
+  color: #333;
+}
+.school-type label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-content: start;
+  color: #222;
+}
+.school-type label:nth-child(2) {
+  flex: 1;
+}
+.school-type label input {
+  margin-inline-end: 12px;
+  margin-top: 0px;
+}
+.school-type input[type=radio] {
+  background-image: url("./../assets/icons/radio-button-off.svg");
+  background-repeat: no-repeat;
+  background-position: -2px -2px;
+}
+.school-type input[type=radio]:checked {
+  background-image: url("./../assets/icons/radio-button-on.svg");
+}
+
+.remember-me {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  justify-content: start;
+  color: #222;
+}
+.remember-me input {
+  margin-inline-end: 12px;
+  margin-top: 0px;
+}
+.remember-me input[type=checkbox] {
+  background-image: url("./../assets/icons/checkbox-unchecked.svg");
+  background-position: -1px;
+  background-repeat: no-repeat;
+}
+.remember-me input[type=checkbox]:checked {
+  background-image: url("./../assets/icons/checkbox-checked.svg");
+}
+
+.state, .district {
+  font-size: 12px;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+  color: #1f7a54;
+  grid-column: 1/1;
+  grid-row: 1/1;
+  place-self: flex-end;
+}
+
+.password input {
+  grid-row: 1/1;
+}
+
+.username {
+  margin-top: 1em;
+}/*# sourceMappingURL=login.css.map */
