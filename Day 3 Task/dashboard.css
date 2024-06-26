@@ -34,7 +34,7 @@ footer div:nth-child(2) {
   gap: 1em;
   font-size: 12px;
   margin-top: 1em;
-  padding: 1em;
+  padding: 0.6em;
 }
 footer div:nth-child(2) span {
   font-size: 24px;
@@ -67,7 +67,7 @@ nav{
   background-size: auto 100%;
   background-blend-mode: overlay;
   display: flex;
-  gap: 1.2em;
+  gap: 2em;
   justify-content: flex-end;
   align-items: center;
   padding: 1em 2em;
@@ -90,7 +90,7 @@ nav>img{
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 1.2em;;
+  gap: 2em;;
   
 }
 .nav-prompters span{
@@ -140,7 +140,7 @@ nav>img{
 nav .menu-items{
   list-style-type: none;
   display: flex;
-  gap: 1.2em;
+  gap: 2em;
   color: #3FD28B;
   margin: 0px;
 }
@@ -232,13 +232,13 @@ nav ul li[data-current]::before{
   bottom: calc(-4px);
 }
 
-@media only screen and (width<=768px){
+@media only screen and (width<=896px){
   nav>.menu-items{
     display: none;
   }
 }
 
-@media only screen and (width>768px){
+@media only screen and (width>896px){
   nav .menu{
     display: none;
   }
@@ -366,16 +366,18 @@ hr{
   grid-area: b;
   padding: 1em;
   display: grid;
-  grid-template: 
+  align-content: start;
+  gap: 0.5em;
+  /* grid-template: 
     "a b" 1fr
     "c c" 0.6fr
     "d d" 1fr
     "e e" 1fr
     "f f" 1fr
-  ;
+  ; */
 }
 .cards-container .card .card-content h2{
-  grid-area: a;
+  /* grid-area: a; */
   font-weight: 600;
   color: #222;
   font-size: 16px;
@@ -385,16 +387,20 @@ hr{
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  grid-row: 1/1;
+  grid-column: 1/1;
 }
 .cards-container .card .card-content .material-symbols-outlined{
-  grid-area: b;
+  /* grid-area: b; */
   place-self: center flex-end;
   color: #eee;
   filter: grayscale(1);
   opacity: 0.4;
+  grid-row: 1/1;
+  grid-column: 1/1;
 }
 .cards-container .card .card-content .subject-grade{
-  grid-area: c;
+  /* grid-area: c; */
   font-size: 12px;
   font-weight: 500;
   color: #666;
@@ -408,7 +414,7 @@ hr{
   color: #1F7A54;
 }
 .cards-container .card .card-content .index{
-  grid-area: d;
+  /* grid-area: d; */
   font-size: 12px;
   font-weight: 500;
   color: #666;
@@ -421,7 +427,7 @@ hr{
 }
 .cards-container .card .card-content .class-selection{
   /* grid-area: e; */
-  grid-column: 1/3;
+  /* grid-column: 1/3; */
   font-size: 16px;
   border: 2px solid rgba(0, 0, 0, 0.12);
   border-top: none;
