@@ -123,7 +123,7 @@ nav .nav-prompters img {
   -o-object-fit: cover;
      object-fit: cover;
 }
-nav .menu-items {
+nav > .menu-items {
   list-style-type: none;
   display: flex;
   justify-content: center;
@@ -133,14 +133,14 @@ nav .menu-items {
   color: #3fd28b;
   margin: 0px;
 }
-nav .menu-items li {
+nav > .menu-items li {
   position: relative;
   cursor: pointer;
 }
-nav .menu-items li[data-current] {
+nav > .menu-items li[data-current] {
   color: white;
 }
-nav .menu-items li[data-current]::before {
+nav > .menu-items li[data-current]::before {
   width: 100%;
   height: 5px;
   display: block;
@@ -151,7 +151,7 @@ nav .menu-items li[data-current]::before {
   animation: menu-underline-animation 0.4s ease;
 }
 @media (width <= 896px) {
-  nav .menu-items {
+  nav > .menu-items {
     display: none;
   }
 }
@@ -162,31 +162,74 @@ nav .menu span {
   cursor: pointer;
 }
 nav .menu .menu-container {
-  height: 100dvh;
   position: absolute;
   z-index: 1000;
-  background-color: #25313f;
+  background-color: white;
   top: 48px;
-  transition: width 0.4s ease;
+  transition: width 0.5s ease, right 0.5s ease, opacity 0.5s ease, filter 0.5s ease;
+  width: 0px;
   right: -2em;
+  opacity: 0;
+  filter: blur(4px);
   overflow: hidden;
+  box-shadow: 0px 13px 20px rgba(0, 0, 0, 0.2392156863);
 }
 nav .menu .menu-container ul {
   display: flex;
   justify-content: center;
   align-items: center;
   flex-direction: column;
-  padding: 1em 3em;
+  padding: 0px;
+  align-items: stretch;
+  list-style-type: none;
+  margin-block: 0px;
 }
 nav .menu .menu-container ul li {
-  height: 2px;
   bottom: -4px;
+  color: #1f7a54;
+  font-weight: 600;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding-inline-start: 1em;
+  padding-block: 1em;
+  position: relative;
+}
+nav .menu .menu-container ul li ul {
+  height: 0px;
+  box-sizing: border-box;
+  overflow: hidden;
+  transition: height 0.4s ease;
+}
+nav .menu .menu-container ul li ul::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border: 2px solid #1f7a54;
+  position: absolute;
+  top: 20px;
+  right: 1em;
+  rotate: -45deg;
+  border-top: none;
+  border-right: none;
+}
+nav .menu .menu-container ul li[data-current] {
+  background-color: #f3f3f3;
+}
+nav .menu .menu-container ul li[data-current] ul::before {
+  rotate: 135deg;
 }
 nav .menu[data-state=closed] .menu-container {
   width: 0px;
+  right: -2em;
+  opacity: 0;
+  filter: blur(4px);
 }
-nav .menu[data-state=open] .menu-container {
-  width: 100vw;
+nav .menu[data-state=open] .menu-container, nav .menu[data-state=clicked] .menu-container {
+  width: 280px;
+  right: 0em;
+  opacity: 1;
+  filter: blur(0px);
 }
 @media (width > 896px) {
   nav .menu {
@@ -411,8 +454,8 @@ hr {
 }
 .cards-container .card[data-expired]::before {
   content: "EXPIRED";
-  color: #D80000;
-  background-color: #FFE4E6;
+  color: #d80000;
+  background-color: #ffe4e6;
   position: absolute;
   top: 0px;
   left: 0px;
