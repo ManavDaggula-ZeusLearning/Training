@@ -18,24 +18,6 @@ menuBtn.addEventListener("mouseleave", (e)=>{
 })
 
 
-
-// var menuItems = document.querySelectorAll(".menu-items")
-// console.log(menuItems);
-
-// menuItems.forEach(element => {
-    
-//     // console.log(element)
-//     let elementListItems = element.querySelectorAll("li");
-//     elementListItems.forEach(x => {
-//         // console.log(x)
-//         x.addEventListener("click",(e)=>{
-//             // elementListItems.forEach(l=>l.removeAttribute("data-current"))
-//             element.querySelector("[data-current]").removeAttribute("data-current")
-//             x.setAttribute("data-current","")
-//         })
-//     })
-// });
-
 let menuItems = document.querySelector(".menu-items")
 let liLists = menuItems.querySelectorAll("&>li")
 // console.log(liLists)
@@ -48,36 +30,38 @@ liLists.forEach(l => {
 
 
 let smallMenuContainer = document.querySelector("nav .menu .menu-items")
-console.log(smallMenuContainer)
-let subMenus = smallMenuContainer.querySelectorAll("ul")
-subMenus.forEach(sm=>{
-    console.log(sm, sm.scrollHeight)
-})
 
 let smallLis = smallMenuContainer.querySelectorAll("&>li")
-// console.log(smallLis)
+
 smallLis.forEach(li => {
     li.addEventListener("click", (e) => {
-        if(e.target.dataset["current"]){
-            // e.target.removeAttribute("data-current");
-            // e.target.querySelector("ul")?.style.height = "0px";
+        // console.log(li)
+        if(li.dataset["current"]){
+            
+            li.removeAttribute("data-current");
+            let innerUl = li.querySelector("&>ul")
+            if(innerUl){
+                innerUl.style.height = "0px"
+            }
             return;
         }
         // console.log(e.target)
         smallLis.forEach(x => {
             x.removeAttribute("data-current");
-            // console.log("removed datacurrent")
             let y = x.querySelector("ul")
             if(y){
                 y.style.height = "0px";
-                // console.log("ul collapsed")
             }
         })
-        let child = e.target.querySelector("ul");
+        let child = li.querySelector("ul");
         if(child){
-            // console.log(e.target.dataset["current"]);
-            child.style.height = (child.scrollHeight * 2) + "px";
+            child.style.height = (child.scrollHeight) + "px";
         }
-        e.target.setAttribute("data-current","true");
+        li.setAttribute("data-current","true");
     })
+
+    console.log(li)
+    li.addEventListener("focusout",()=>{console.log("lost focus");})
 })
+
+smallMenuContainer.addEventListener("blur",(e)=>{console.log("lost focus from",e.target)})
