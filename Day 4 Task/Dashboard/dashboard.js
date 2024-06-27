@@ -60,8 +60,24 @@ smallLis.forEach(li => {
         li.setAttribute("data-current","true");
     })
 
-    console.log(li)
-    li.addEventListener("focusout",()=>{console.log("lost focus");})
+    // console.log(li)
+    // li.addEventListener("focusout",()=>{console.log("lost focus");})
 })
 
-smallMenuContainer.addEventListener("blur",(e)=>{console.log("lost focus from",e.target)})
+
+// console.log(smallMenuContainer.parentElement);
+smallMenuContainer.parentElement.addEventListener("blur",(e)=>{
+    // console.log("lost focus from",e.target)
+    console.log(e.target);
+    smallLis.forEach(l => {
+        if(l.dataset["current"]){
+            console.log(l)
+            l.removeAttribute("data-current")
+            let childUl = l.querySelector("ul")
+            if(childUl){
+                childUl.style.height = "0px";
+            }
+        }
+    })
+    e.target.parentElement.dataset["state"] = "closed";
+})
