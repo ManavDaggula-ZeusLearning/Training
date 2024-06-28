@@ -542,6 +542,8 @@ select:focus, select:focus-visible {
   padding: 1em;
   font-size: 12px;
   color: #6e6e6e;
+  gap: 1em;
+  font-weight: 600;
 }
 .campaign .announcement-list .announcement:not(:nth-child(1)) {
   border-top: 1px solid rgba(34, 34, 34, 0.1215686275);
@@ -570,7 +572,10 @@ select:focus, select:focus-visible {
   width: 20px;
   height: 20px;
 }
-.campaign .announcement-list .announcement > div:nth-child(3) span:nth-child(1)::before {
+.campaign .announcement-list .announcement > div:last-child span.timestamp {
+  margin-left: auto;
+}
+.campaign .announcement-list .announcement > div:last-child span.attachments::before {
   all: unset;
   content: "";
   background-image: url("./../assets/icons/attachment.svg");
@@ -582,6 +587,7 @@ select:focus, select:focus-visible {
   font-size: 14px;
   color: #222;
   font-weight: 700;
+  margin-block: 0px;
 }
 .campaign .announcement-list .announcement[data-new] {
   background-color: white;
