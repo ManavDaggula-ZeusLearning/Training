@@ -703,6 +703,63 @@ select {
   }
 }
 
+.notifications-panel{
+
+  position: absolute;
+  right: 0px;
+  top: 50px;
+  width: 315px;
+  font-family: $font-quicksand;
+  font-size: 12px;
+  color:#6e6e6e;
+  .notification-list{
+
+    .notification{
+      width:312px;
+      background-color: #ffffee;
+      font-size:12px;
+      padding: 1em;
+      display:flex;
+      flex-direction: column;
+      color:#6E6E6E;
+      gap:1em;
+      font-weight:600;
+      &>div{
+        display:flex;
+        justify-content: space-between;
+        &>p{
+          white-space: wrap;
+          display:-webkit-box;
+          -webkit-line-clamp: 2;
+          overflow: hidden;
+          -webkit-box-orient: vertical;
+          margin:0px;
+          margin-right:1em;
+          color: #222;
+          font-weight:700;
+          font-size:14px;
+        }
+        .icon{
+          background-image: url("https://static.thenounproject.com/png/4213462-200.png");
+          display:inline-block;
+          width: 20px;
+          height:20px;
+          background-size:100%;
+          flex-shrink: 0;
+          
+        }
+        .timestamp{
+          margin-left:auto;
+        }
+      }
+      .course span{
+        color:#222;
+      }
+    }
+  }
+  
+}
+
 @keyframes menu-underline-animation {
   from {
     left: 50%;
