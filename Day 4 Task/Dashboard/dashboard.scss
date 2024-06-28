@@ -133,7 +133,7 @@ nav {
         top: -8px;
       }
 
-      &.profile-icon::before {
+      &.profile-icon::after {
         color: $black-2;
         background-color: white;
       }
@@ -606,6 +606,7 @@ select {
         font-size: 14px;
         font-weight: 600;
         text-transform: uppercase;
+        font-family: $font-quicksand;
       }
     }
 
@@ -671,6 +672,7 @@ select {
         color: $black-2;
         font-weight: 700;
         margin-block: 0px;
+        text-wrap: wrap;
       }
     }
     .announcement[data-new]{

@@ -100,7 +100,7 @@ nav .nav-prompters span::after {
   align-items: center;
   top: -8px;
 }
-nav .nav-prompters span.profile-icon::before {
+nav .nav-prompters span.profile-icon::after {
   color: #222;
   background-color: white;
 }
@@ -533,6 +533,7 @@ select:focus, select:focus-visible {
   font-size: 14px;
   font-weight: 600;
   text-transform: uppercase;
+  font-family: Quicksand;
 }
 .campaign .announcement-list .announcement {
   display: flex;
@@ -588,6 +589,7 @@ select:focus, select:focus-visible {
   color: #222;
   font-weight: 700;
   margin-block: 0px;
+  text-wrap: wrap;
 }
 .campaign .announcement-list .announcement[data-new] {
   background-color: white;
