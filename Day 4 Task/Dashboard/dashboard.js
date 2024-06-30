@@ -5,6 +5,7 @@ let liLists = menuItems.querySelectorAll("&>li");
 let smallMenuContainer = document.querySelector("nav .menu .menu-items");
 let smallLis = smallMenuContainer.querySelectorAll("&>li");
 let campaignBtn = document.querySelector("#campaign-icon");
+let notificationBtn = document.querySelector("#notification-icon")
 // console.log(menuBtn)
 menuBtn.addEventListener("click", (e) => {
   menuPanel.dataset["state"] =
@@ -95,6 +96,23 @@ campaignBtn.addEventListener("mouseover", () => {
 campaignBtn.addEventListener("mouseleave", () => {
   if (campaignBtn.parentElement.dataset["campaignState"] === "open") {
     campaignBtn.parentElement.dataset["campaignState"] = "closed";
+  }
+});
+
+notificationBtn.addEventListener("click",()=>{
+  notificationBtn.parentElement.dataset["notificationState"] =
+    notificationBtn.parentElement.dataset["notificationState"] !== "clicked"
+      ? "clicked"
+      : "closed";
+})
+notificationBtn.addEventListener("mouseover", () => {
+  if (notificationBtn.parentElement.dataset["notificationState"] === "closed") {
+    notificationBtn.parentElement.dataset["notificationState"] = "open";
+  }
+});
+notificationBtn.addEventListener("mouseleave", () => {
+  if (notificationBtn.parentElement.dataset["notificationState"] === "open") {
+    notificationBtn.parentElement.dataset["notificationState"] = "closed";
   }
 });
 
@@ -231,6 +249,13 @@ function createAnnouncementCard(c) {
   return temp.querySelector("div");
 }
 
+function createAlertElement(a){
+  var alert = `<div class="notification" ${a.new ? "data-new" : ""}><div><p>${a.message}</p><span class="icon"></span></div>${a.course ? "<span class='course'>Course: <span>Advanced Mathematics</span></span>" : ""}<div><span class="timestamp">${a.timestamp}</span></div></div>`
+  let alertElement = document.createElement("div")
+  alertElement.innerHTML = alert;
+  return alertElement.querySelector(".notification")
+}
+
 fetch("./../data.json")
   .then((d) => d.json())
   .then((response) => {
@@ -250,6 +275,14 @@ fetch("./../data.json")
       // console.log(a)
       announcementList.appendChild(createAnnouncementCard(a));
     });
+    let alerts = response.alerts;
+    // console.log(alerts)
+    let alertsList = notificationBtn.parentElement.querySelector(".notification-list")
+    console.log(alertsList)
+    alerts.forEach(a=>{
+      console.log(a)
+      alertsList.appendChild(createAlertElement(a))
+    })
   })
   .catch((err) => {
     window.alert("An error occurred whil fetching courses.");
