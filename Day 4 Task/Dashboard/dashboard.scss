@@ -110,6 +110,8 @@ nav {
 
   &>img {
     height: 40px;
+    max-width: 145px;
+    width: 20%;
     margin-right: auto;
   }
 
@@ -581,6 +583,9 @@ select {
     font-family: $font-quicksand;
     position: absolute;
     right: 0px;
+    @media (width<596px){
+      right: -130px;
+    }
     width: 0px;
     top: 51px;
     opacity: 0;
@@ -746,6 +751,9 @@ select {
     font-family: $font-quicksand;
     position: absolute;
     right: 0px;
+    @media (width<596px){
+      right: -180px;
+    }
     width: 0px;
     top: 51px;
     opacity: 0;
