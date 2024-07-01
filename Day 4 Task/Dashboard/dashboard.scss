@@ -582,6 +582,9 @@ select {
   &[data-campaign-state="clicked"] #campaign-icon, &[data-campaign-state="open"] #campaign-icon{
     filter: brightness(10);
   }
+  &[data-campaign-state="clicked"]::after, &[data-campaign-state="open"]::after{
+    display: none;
+  }
   .announcement-list {
     font-family: $font-quicksand;
     position: absolute;
@@ -750,6 +753,9 @@ select {
 .alerts {
   &[data-notification-state="clicked"] #notification-icon, &[data-notification-state="open"] #notification-icon{
     filter: brightness(10);
+  }
+  &[data-notification-state="clicked"]::after, &[data-notification-state="open"]::after{
+    display: none;
   }
 
   .notifications {

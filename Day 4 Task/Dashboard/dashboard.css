@@ -491,6 +491,9 @@ select:focus, select:focus-visible {
 .campaign[data-campaign-state=clicked] #campaign-icon, .campaign[data-campaign-state=open] #campaign-icon {
   filter: brightness(10);
 }
+.campaign[data-campaign-state=clicked]::after, .campaign[data-campaign-state=open]::after {
+  display: none;
+}
 .campaign .announcement-list {
   font-family: Quicksand;
   position: absolute;
@@ -624,6 +627,9 @@ select:focus, select:focus-visible {
 
 .alerts[data-notification-state=clicked] #notification-icon, .alerts[data-notification-state=open] #notification-icon {
   filter: brightness(10);
+}
+.alerts[data-notification-state=clicked]::after, .alerts[data-notification-state=open]::after {
+  display: none;
 }
 .alerts .notifications {
   font-family: Quicksand;
