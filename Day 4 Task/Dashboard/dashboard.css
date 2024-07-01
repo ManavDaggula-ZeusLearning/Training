@@ -488,6 +488,9 @@ select:focus, select:focus-visible {
   outline: none;
 }
 
+.campaign[data-campaign-state=clicked] #campaign-icon, .campaign[data-campaign-state=open] #campaign-icon {
+  filter: brightness(10);
+}
 .campaign .announcement-list {
   font-family: Quicksand;
   position: absolute;
@@ -619,6 +622,9 @@ select:focus, select:focus-visible {
   filter: blur(0px);
 }
 
+.alerts[data-notification-state=clicked] #notification-icon, .alerts[data-notification-state=open] #notification-icon {
+  filter: brightness(10);
+}
 .alerts .notifications {
   font-family: Quicksand;
   position: absolute;
