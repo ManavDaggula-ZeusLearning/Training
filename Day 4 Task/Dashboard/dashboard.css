@@ -588,7 +588,7 @@ select:focus, select:focus-visible {
 .campaign .announcement-list .announcement p {
   font-size: 14px;
   color: #222;
-  font-weight: 700;
+  font-weight: 600;
   margin-block: 0px;
   text-wrap: wrap;
 }
@@ -650,6 +650,9 @@ select:focus, select:focus-visible {
   gap: 1em;
   font-weight: 600;
 }
+.alerts .notifications .notification-list .notification:not(:nth-child(1)) {
+  border-top: 1px solid rgba(34, 34, 34, 0.1215686275);
+}
 .alerts .notifications .notification-list .notification > div {
   display: flex;
   justify-content: space-between;
@@ -663,7 +666,7 @@ select:focus, select:focus-visible {
   margin: 0px;
   margin-right: 1em;
   color: #222;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
 }
 .alerts .notifications .notification-list .notification > div .icon {

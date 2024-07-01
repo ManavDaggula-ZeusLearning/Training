@@ -26,7 +26,6 @@ menuBtn.addEventListener("mouseleave", (e) => {
   }
 });
 
-// console.log(liLists)
 liLists.forEach((l) => {
   l.addEventListener("click", () => {
     liLists.forEach((x) => x.removeAttribute("data-current"));
@@ -36,7 +35,6 @@ liLists.forEach((l) => {
 
 smallLis.forEach((li) => {
   li.addEventListener("click", (e) => {
-    // console.log(li)
     if (li.dataset["current"]) {
       li.removeAttribute("data-current");
       let innerUl = li.querySelector("&>ul");
@@ -45,7 +43,7 @@ smallLis.forEach((li) => {
       }
       return;
     }
-    // console.log(e.target)
+    
     smallLis.forEach((x) => {
       x.removeAttribute("data-current");
       let y = x.querySelector("ul");
@@ -60,28 +58,14 @@ smallLis.forEach((li) => {
     li.setAttribute("data-current", "true");
   });
 
-  // console.log(li)
-  // li.addEventListener("focusout",()=>{console.log("lost focus");})
 });
 
-// console.log(smallMenuContainer.parentElement);
+
 smallMenuContainer.parentElement.addEventListener("blur", (e) => {
-  // console.log("lost focus from",e.target)
   console.log(e.target);
-  // smallLis.forEach(l => {
-  //     if(l.dataset["current"]){
-  //         console.log(l)
-  //         l.removeAttribute("data-current")
-  //         let childUl = l.querySelector("ul")
-  //         if(childUl){
-  //             childUl.style.height = "0px";
-  //         }
-  //     }
-  // })
   e.target.parentElement.dataset["state"] = "closed";
 });
 
-// console.log(campaignBtn);
 campaignBtn.addEventListener("click", () => {
   campaignBtn.parentElement.dataset["campaignState"] =
     campaignBtn.parentElement.dataset["campaignState"] !== "clicked"
@@ -118,7 +102,6 @@ notificationBtn.addEventListener("mouseleave", () => {
 
 // dynamically adding courses
 function createCourse(c) {
-  // let card = `<div class="card" ${c.favourite ? "data-starred" : ""} ${c.preview ? "data-visible" : ""} ${c.manage ? "data-calendar" : ""} ${c.grade : "data-shop" : ""}  ${ c.report ? "data-chart" : ""}>`;
   let card = document.createElement("div");
   card.classList.add("card");
   if (c.favourite) {
@@ -165,9 +148,6 @@ function createCourse(c) {
 
   let subjectGradeSpan = document.createElement("span");
   subjectGradeSpan.classList.add("subject-grade");
-  // subjectGradeSpan.innerHtml = subjectGradeSpan.innerHtml + c.subject
-  // subjectGradeSpan.innerHTML = subjectGradeSpan.innerHTML + "<span>&#124;</span>"
-  // subjectGradeSpan.innerHTML = subjectGradeSpan.innerHTML + `Grade ${c.classGrade}`
   subjectGradeSpan.innerHTML = `${c.subject}<span>&#124;</span>Grade ${c.classGrade}<span class="special">+${c.specialGrade}</span>`;
   cardContent.appendChild(subjectGradeSpan);
   if (c.units || c.lessons || c.topics) {
@@ -227,6 +207,7 @@ function createCourse(c) {
   card.appendChild(interactables);
   return card;
 }
+
 function createAnnouncementCard(c) {
   let container = `
     <div class="announcement" ${c.new ? "data-new" : ""}><div><span>${
@@ -260,10 +241,8 @@ fetch("./../data.json")
   .then((d) => d.json())
   .then((response) => {
     let courses = response.courses;
-    // console.log(courses);
     let cardsContainer = document.querySelector(".cards-container");
     courses.forEach((c) => {
-      // console.log(c)
       cardsContainer.appendChild(createCourse(c));
     });
 
@@ -272,13 +251,10 @@ fetch("./../data.json")
       ".announcement-list .announcements"
     );
     announcements.forEach((a) => {
-      // console.log(a)
       announcementList.appendChild(createAnnouncementCard(a));
     });
     let alerts = response.alerts;
-    // console.log(alerts)
     let alertsList = notificationBtn.parentElement.querySelector(".notification-list")
-    console.log(alertsList)
     alerts.forEach(a=>{
       console.log(a)
       alertsList.appendChild(createAlertElement(a))
