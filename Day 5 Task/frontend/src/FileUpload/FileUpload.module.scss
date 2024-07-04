@@ -1,0 +1,27 @@
+.fileUploadDiv{
+    background: grey;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+
+    &[data-dragover]{
+        opacity: 0.3;
+    }
+}
+
+.fileUploadForm{
+    display: grid;
+    // max-width: 350px;
+    // margin: auto;
+    // margin-top: 40%;
+    gap: 2em;
+    background-color: rgba($color: rgb(62, 175, 175), $alpha: 0.4);
+    padding: 1em;
+    border-radius: 6px;
+    place-items: center;
+
+    // input[type="file"]{
+    //     display: none;
+    // }
+    
+}
