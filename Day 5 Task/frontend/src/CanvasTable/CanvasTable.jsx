@@ -134,6 +134,7 @@ const rows = [
 
 const CanvasTable = () => {
   const canvasRef = useRef();
+  const inputRef = useRef();
   var canvasContext;
   const fontSize = 18;
   const font = "Arial";
@@ -145,7 +146,7 @@ const CanvasTable = () => {
   const rowHeight = 50 + 2 * fontPadding;
 
   async function draw(selectedCell=null) {
-    canvasContext.restore();
+    // canvasContext.restore();
     // console.log("drawing again");
     //clearing the canvas
     canvasContext.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
@@ -202,20 +203,30 @@ const CanvasTable = () => {
         canvasContext.clip();
     
         canvasContext.font = `${fontSize}px ${font}`;
-        // canvasContext.fillStyle = `${(selectedCell && selectedCell.x==i && selectedCell.y==i) ? fontSelectedColor : fontColor}`;
-        canvasContext.fillText(
-            rows[j][dataColumns[i]],
-            i * columnWidth + fontPadding,
-            (j + 2) * rowHeight - fontPadding
-        );
-        
+        canvasContext.fillStyle = `${fontColor}`
+        if(selectedCell && selectedCell.selectedCell.row===j && selectedCell.selectedCell.col===i){
+          // console.log(selectedCell.selectedCell)
+          // console.log(rows[selectedCell.selectedCell.row][dataColumns[selectedCell.selectedCell.col]])
+          // canvasContext.fillStyle = `${fontSelectedColor}`
+          inputRef.current.style.display = "inline-block";
+          inputRef.current.style.left = `${i*columnWidth + fontPadding/2}px`
+          inputRef.current.style.top = `${(j+1)*rowHeight + fontPadding/2}px`
+          inputRef.current.value = rows[j][dataColumns[i]];
+          inputRef.current.style.height = `${rowHeight - 2*fontPadding}px`
+          inputRef.current.style.width = `${columnWidth - 2*fontPadding}px`
+        }
+        else{
+          canvasContext.fillText(
+              rows[j][dataColumns[i]],
+              i * columnWidth + fontPadding,
+              (j + 2) * rowHeight - fontPadding
+          );
+        }
         canvasContext.restore();
         // await new Promise(r => setTimeout(r, 100));
       }
     }
-    canvasContext.save();
-    console.log(selectedCell);
-
+    
     // window.requestAnimationFrame(()=>{
     //     draw()
     // })
@@ -227,11 +238,15 @@ const CanvasTable = () => {
     let j = Math.floor(e.clientY/rowHeight)
     if(j>0){
         j--;
-        console.log("cell pressed : " + j + " " + i)
-        console.log("Cell value : ", rows[j][dataColumns[i]])
+        // console.log("cell pressed : " + j + " " + i)
+        // console.log("Cell value : ", rows[j][dataColumns[i]])
         draw({selectedCell:{row:j,col:i}});
         // draw();
     }
+  }
+
+  function handleInputEnter(e,row,col){
+    console.log(e,row,col);
   }
 
   useEffect(() => {
@@ -246,6 +261,7 @@ const CanvasTable = () => {
   return (
     <div className={styles.canvasContainer}>
       <canvas id="sheet" ref={canvasRef} onClick={handleClick}></canvas>
+      <input type="text" ref={inputRef}/>
     </div>
   );
 };
