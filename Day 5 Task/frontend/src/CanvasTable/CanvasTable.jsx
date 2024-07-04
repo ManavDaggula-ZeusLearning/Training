@@ -145,6 +145,7 @@ const CanvasTable = () => {
   const rowHeight = 50 + 2 * fontPadding;
 
   async function draw(selectedCell=null) {
+    canvasContext.restore();
     // console.log("drawing again");
     //clearing the canvas
     canvasContext.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
@@ -171,6 +172,7 @@ const CanvasTable = () => {
 
     //drawing headers
     for (let i = 0; i < dataColumns.length; i++) {
+        canvasContext.beginPath()
       canvasContext.save();
       canvasContext.rect(i * columnWidth, 0, columnWidth, rowHeight);
       canvasContext.clip();
@@ -182,13 +184,14 @@ const CanvasTable = () => {
           rowHeight - fontPadding
         );
       canvasContext.restore();
-      await new Promise(r => setTimeout(r, 100));
+    //   await new Promise(r => setTimeout(r, 100));
     }
 
     // for data cells
     for (let i = 0; i < dataColumns.length; i++) {
       for (let j = 0; j < rows.length; j++) {
         // console.log(i,j,rows[j][dataColumns[i]]);
+        canvasContext.beginPath()
         canvasContext.save();
         canvasContext.rect(
           i * columnWidth,
@@ -199,7 +202,7 @@ const CanvasTable = () => {
         canvasContext.clip();
     
         canvasContext.font = `${fontSize}px ${font}`;
-        canvasContext.fillStyle = `${fontColor}`;
+        // canvasContext.fillStyle = `${(selectedCell && selectedCell.x==i && selectedCell.y==i) ? fontSelectedColor : fontColor}`;
         canvasContext.fillText(
             rows[j][dataColumns[i]],
             i * columnWidth + fontPadding,
@@ -207,9 +210,10 @@ const CanvasTable = () => {
         );
         
         canvasContext.restore();
-        await new Promise(r => setTimeout(r, 100));
+        // await new Promise(r => setTimeout(r, 100));
       }
     }
+    canvasContext.save();
     console.log(selectedCell);
 
     // window.requestAnimationFrame(()=>{
@@ -225,8 +229,8 @@ const CanvasTable = () => {
         j--;
         console.log("cell pressed : " + j + " " + i)
         console.log("Cell value : ", rows[j][dataColumns[i]])
-        // draw({selectedCell:{row:j,col:i}});
-        draw();
+        draw({selectedCell:{row:j,col:i}});
+        // draw();
     }
   }
 
