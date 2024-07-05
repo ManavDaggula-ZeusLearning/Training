@@ -226,7 +226,7 @@ const CanvasTable = () => {
             columnWidth,
             rowHeight
           );
-          // canvasContext.fillStyle = `${fontSelectedColor}`;
+          canvasContext.fillStyle = `${fontSelectedColor}`;
           canvasContext.fillText(
             // rows[j][dataColumns[i]],
             `R${j},C${i}`,
@@ -238,7 +238,7 @@ const CanvasTable = () => {
           selectedCell.row === j &&
           selectedCell.col === i
         ) {
-          console.log(selectedCell)
+          // console.log(selectedCell)
           // console.log(rows[selectedCell.row][dataColumns[selectedCell.col]])
           // canvasContext.fillStyle = `${fontSelectedColor}`
           canvasContext.fillText(
@@ -267,9 +267,9 @@ const CanvasTable = () => {
       }
     }
 
-    // window.requestAnimationFrame(()=>{
-    //     draw()
-    // })
+    window.requestAnimationFrame(()=>{
+        draw()
+    })
     // console.log("Finished painting");
     // console.log("Took : " + (new Date() - startTime));
   }
@@ -307,7 +307,7 @@ const CanvasTable = () => {
           selectedRangeEnd = null;
         }
       }
-      draw();
+      // draw();
     }
   }
 
@@ -319,7 +319,7 @@ const CanvasTable = () => {
       rows[selectedCell.row][dataColumns[selectedCell.col]] = newValue;
       e.target.style.display = "none";
       selectedCell = null;
-      draw();
+      // draw();
     } else if (e.key == "Escape") {
       inputRef.current.style.display = "none";
     }
@@ -327,33 +327,60 @@ const CanvasTable = () => {
 
   function mouseDownHandler(e) {
     e = e.nativeEvent;
-    console.log("mouse downed")
+    // console.log("mouse downed")
     let i = Math.floor(e.offsetX / columnWidth);
     let j = Math.floor(e.offsetY / rowHeight);
     if(j<=0){j=1};
     j--;
-    console.log(j,i)
+    // console.log(j,i)
     
     if(!e.shiftKey){
       // selectedCell = {row:j, col:i};
       selectedRangeStart = {row:j, col:i};
+      selectedCell = null;
+      selectedRangeEnd = null;
+
+      function mouseMoveHandler(eMove){
+        let iMove = Math.floor(eMove.offsetX / columnWidth);
+        let jMove = Math.floor(eMove.offsetY / rowHeight);
+        if(jMove<=0){jMove=1};
+        jMove--;
+        selectedRangeEnd = {row:jMove, col:iMove};
+      }
+
+      e.target.addEventListener("mousemove",mouseMoveHandler);
 
       e.target.addEventListener("mouseup",(eUp)=>{
-        console.log("mouseUp")
+        // console.log("mouseUp")
+
+        e.target.removeEventListener("mousemove",mouseMoveHandler);
 
         let iUp = Math.floor(eUp.offsetX / columnWidth);
         let jUp = Math.floor(eUp.offsetY / rowHeight);
         if(jUp<=0){jUp=1};
         jUp--;
-        if(i==iUp && j==jUp){
+        if(selectedRangeStart.col==iUp && selectedRangeStart.row==jUp){
           selectedRangeEnd = null;
-          selectedRangeStart = null;
+          // selectedRangeStart = {row: j, col: i};
           selectedCell = {row: j, col: i};
-          draw();
+          console.log("clicked")
+          // draw();
         }
       })
-    }else{
 
+    }else{
+      console.log("clicked with shift")
+      if(selectedRangeStart){
+        selectedRangeEnd = {row: j, col: i};
+        selectedCell = null;
+      }
+      else{
+        selectedRangeEnd = null;
+        selectedRangeStart = {row: j, col: i};
+        selectedCell = {row: j, col: i};
+      }
+      // draw();
+      console.log(selectedCell, selectedRangeStart, selectedRangeEnd)
     }
 
     
@@ -366,7 +393,7 @@ const CanvasTable = () => {
       selectedCell=null;
       selectedRangeStart = null;
       selectedRangeEnd = null;
-      draw();
+      // draw();
     }
   }
 
