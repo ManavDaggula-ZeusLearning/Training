@@ -258,14 +258,16 @@ const CanvasTable = () => {
 
 
   function handleClick(e){
+    e = e.nativeEvent;
     // console.log(e);
-    let i = Math.floor(e.clientX/columnWidth)
-    let j = Math.floor(e.clientY/rowHeight)
+    // console.log(e.clientX, e.offsetX);
+    let i = Math.floor(e.offsetX/columnWidth)
+    let j = Math.floor(e.offsetY/rowHeight)
     if(j>0){
       j--;
       if(!e.shiftKey){
-        console.log("cell pressed : " + j + " " + i)
-        console.log("Cell value : ", rows[j][dataColumns[i]])
+        // console.log("cell pressed : " + j + " " + i)
+        // console.log("Cell value : ", rows[j][dataColumns[i]])
         selectedCell = {row:j,col:i};
         selectedRangeStart = {row:j,col:i}
         selectedRangeEnd = null;
@@ -285,8 +287,8 @@ const CanvasTable = () => {
           
         }
         else{
-          console.log("cell pressed : " + j + " " + i)
-          console.log("Cell value : ", rows[j][dataColumns[i]])
+          // console.log("cell pressed : " + j + " " + i)
+          // console.log("Cell value : ", rows[j][dataColumns[i]])
           selectedCell = {row:j,col:i};
           selectedRangeStart = {row:j,col:i}
           selectedRangeEnd = null
@@ -309,8 +311,8 @@ const CanvasTable = () => {
 
   function mouseDownHandler(e){
     console.log(e)
-    let i = Math.floor(e.clientX/columnWidth)
-    let j = Math.floor(e.clientY/rowHeight)
+    let i = Math.floor(e.offsetX/columnWidth)
+    let j = Math.floor(e.offsetY/rowHeight)
     if(j>0){
       j--;
       // console.log("cell pressed : " + j + " " + i)
@@ -322,8 +324,8 @@ const CanvasTable = () => {
 
   function mouseUpHandler(e){
     console.log(e)
-    let i = Math.floor(e.clientX/columnWidth)
-    let j = Math.floor(e.clientY/rowHeight)
+    let i = Math.floor(e.offsetX/columnWidth)
+    let j = Math.floor(e.offsetY/rowHeight)
     if(j>0){
       j--;
       // console.log("cell pressed : " + j + " " + i)
