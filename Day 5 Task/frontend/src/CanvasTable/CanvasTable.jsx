@@ -138,16 +138,22 @@ const CanvasTable = () => {
   var canvasContext;
   const fontSize = 18;
   const font = "Arial";
-  const fontColor = "blue";
+  const fontColor = "#222";
   const fontSelectedColor = "red";
   const fontSelectedBackgroundColor = "yellow";
   const fontPadding = 6;
   const columnWidth = 100 + 2 * fontPadding;
   const rowHeight = 50 + 2 * fontPadding;
 
-  async function draw(selectedCell=null) {
-    // canvasContext.restore();
-    // console.log("drawing again");
+  var selectedCell = null;
+  var selectedRangeStart = null;
+  var selectedRangeEnd = null;
+
+  async function draw() {
+
+    // console.log("Started painting");
+    // let startTime = new Date();
+    
     //clearing the canvas
     canvasContext.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
     // await new Promise(r => setTimeout(r, 2000));
@@ -189,8 +195,8 @@ const CanvasTable = () => {
     }
 
     // for data cells
-    for (let i = 0; i < dataColumns.length; i++) {
-      for (let j = 0; j < rows.length; j++) {
+    for (let j = 0; j < rows.length; j++) {
+      for (let i = 0; i < dataColumns.length; i++) {
         // console.log(i,j,rows[j][dataColumns[i]]);
         canvasContext.beginPath()
         canvasContext.save();
@@ -204,16 +210,32 @@ const CanvasTable = () => {
     
         canvasContext.font = `${fontSize}px ${font}`;
         canvasContext.fillStyle = `${fontColor}`
-        if(selectedCell && selectedCell.selectedCell.row===j && selectedCell.selectedCell.col===i){
-          // console.log(selectedCell.selectedCell)
-          // console.log(rows[selectedCell.selectedCell.row][dataColumns[selectedCell.selectedCell.col]])
+        if(selectedCell && selectedCell.row===j && selectedCell.col===i){
+          // console.log(selectedCell)
+          // console.log(rows[selectedCell.row][dataColumns[selectedCell.col]])
           // canvasContext.fillStyle = `${fontSelectedColor}`
+          // canvasContext.fillText(
+          //   rows[j][dataColumns[i]],
+          //   i * columnWidth + fontPadding,
+          //   (j + 2) * rowHeight - fontPadding
+          // );
           inputRef.current.style.display = "inline-block";
-          inputRef.current.style.left = `${i*columnWidth + fontPadding/2}px`
-          inputRef.current.style.top = `${(j+1)*rowHeight + fontPadding/2}px`
+          inputRef.current.style.left = `${i*columnWidth}px`
+          inputRef.current.style.top = `${(j+1)*rowHeight}px`
           inputRef.current.value = rows[j][dataColumns[i]];
-          inputRef.current.style.height = `${rowHeight - 2*fontPadding}px`
-          inputRef.current.style.width = `${columnWidth - 2*fontPadding}px`
+          inputRef.current.style.height = `${rowHeight}px`
+          inputRef.current.style.width = `${columnWidth}px`
+        }
+        else if(selectedRangeStart && selectedRangeEnd && selectedRangeStart.row<=j && j<=selectedRangeEnd.row && selectedRangeStart.col<=i && i<=selectedRangeEnd.col){
+          // enters here when there is a range of selection
+          canvasContext.fillStyle = `${"#12126767"}`
+          canvasContext.fillRect(i*columnWidth, (j+1)*rowHeight, columnWidth, rowHeight);
+          canvasContext.fillStyle = `${fontSelectedColor}`
+          canvasContext.fillText(
+            rows[j][dataColumns[i]],
+            i * columnWidth + fontPadding,
+            (j + 2) * rowHeight - fontPadding
+          );
         }
         else{
           canvasContext.fillText(
@@ -223,30 +245,92 @@ const CanvasTable = () => {
           );
         }
         canvasContext.restore();
-        // await new Promise(r => setTimeout(r, 100));
+        // await new Promise(r => setTimeout(r, 10));
       }
     }
     
     // window.requestAnimationFrame(()=>{
     //     draw()
     // })
+    // console.log("Finished painting");
+    // console.log("Took : " + (new Date() - startTime));
   }
 
 
   function handleClick(e){
+    // console.log(e);
     let i = Math.floor(e.clientX/columnWidth)
     let j = Math.floor(e.clientY/rowHeight)
     if(j>0){
-        j--;
-        // console.log("cell pressed : " + j + " " + i)
-        // console.log("Cell value : ", rows[j][dataColumns[i]])
-        draw({selectedCell:{row:j,col:i}});
-        // draw();
+      j--;
+      if(!e.shiftKey){
+        console.log("cell pressed : " + j + " " + i)
+        console.log("Cell value : ", rows[j][dataColumns[i]])
+        selectedCell = {row:j,col:i};
+        selectedRangeStart = {row:j,col:i}
+        selectedRangeEnd = null;
+      }
+      else{
+        if(selectedRangeStart!=null){
+          let rowStart = Math.min(selectedRangeStart.row, j)
+          let rowEnd = Math.max(selectedRangeStart.row, j)
+          let colStart = Math.min(selectedRangeStart.col, i)
+          let colEnd = Math.max(selectedRangeStart.col, i)
+          selectedRangeStart = {row: rowStart, col: colStart}
+          selectedRangeEnd = {row: rowEnd, col: colEnd}
+          console.log("selectedRangeStart",selectedRangeStart);
+          console.log("selectedRangeEnd",selectedRangeEnd);
+          selectedCell = null;
+          inputRef.current.style.display = "none";
+          
+        }
+        else{
+          console.log("cell pressed : " + j + " " + i)
+          console.log("Cell value : ", rows[j][dataColumns[i]])
+          selectedCell = {row:j,col:i};
+          selectedRangeStart = {row:j,col:i}
+          selectedRangeEnd = null
+        }
+      }
+      draw();
     }
   }
 
-  function handleInputEnter(e,row,col){
-    console.log(e,row,col);
+  function handleKeyInputEnter(e){
+    // console.log(e.target, e.key);
+    if(e.key=="Enter"){
+      let newValue = e.target.value;
+      rows[selectedCell.row][dataColumns[selectedCell.col]] = newValue;
+      e.target.style.display="none";
+      selectedCell = null;
+      draw();
+    }    
+  }
+
+  function mouseDownHandler(e){
+    console.log(e)
+    let i = Math.floor(e.clientX/columnWidth)
+    let j = Math.floor(e.clientY/rowHeight)
+    if(j>0){
+      j--;
+      // console.log("cell pressed : " + j + " " + i)
+      // console.log("Cell value : ", rows[j][dataColumns[i]])
+      selectedRangeStart = {row:j,col:i};
+      draw();
+  }
+  }
+
+  function mouseUpHandler(e){
+    console.log(e)
+    let i = Math.floor(e.clientX/columnWidth)
+    let j = Math.floor(e.clientY/rowHeight)
+    if(j>0){
+      j--;
+      // console.log("cell pressed : " + j + " " + i)
+      // console.log("Cell value : ", rows[j][dataColumns[i]])
+      selectedRangeStart = {row:j,col:i};
+      draw();
+  }
   }
 
   useEffect(() => {
@@ -260,8 +344,12 @@ const CanvasTable = () => {
 
   return (
     <div className={styles.canvasContainer}>
-      <canvas id="sheet" ref={canvasRef} onClick={handleClick}></canvas>
-      <input type="text" ref={inputRef}/>
+      <canvas id="sheet" ref={canvasRef} 
+      onClick={handleClick} 
+      // onMouseDown={mouseDownHandler}
+      // onMouseUp={mouseUpHandler}
+      ></canvas>
+      <input type="text" ref={inputRef} onKeyDown={(e)=>handleKeyInputEnter(e,)}/>
     </div>
   );
 };
