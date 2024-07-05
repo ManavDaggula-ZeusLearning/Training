@@ -150,18 +150,17 @@ const CanvasTable = () => {
   var selectedRangeEnd = null;
 
   async function draw() {
-
     // console.log("Started painting");
     // let startTime = new Date();
-    
+
     //clearing the canvas
-    canvasContext.clearRect(0,0,canvasRef.current.width, canvasRef.current.height);
+    canvasContext.clearRect(0,0,canvasRef.current.width,canvasRef.current.height);
     // await new Promise(r => setTimeout(r, 2000));
     // console.log("timed out")
 
     // for drawing column gutters
     for (let i = 0; i < dataColumns.length; i++) {
-    canvasContext.save();
+      canvasContext.save();
       canvasContext.moveTo(i * columnWidth, 0);
       canvasContext.lineTo(i * columnWidth, canvasRef.current.height);
       canvasContext.stroke();
@@ -170,7 +169,7 @@ const CanvasTable = () => {
 
     // for drawing row gutters
     for (let i = 0; i < rows.length + 1; i++) {
-        canvasContext.save();
+      canvasContext.save();
       canvasContext.moveTo(0, i * rowHeight);
       canvasContext.lineTo(canvasRef.current.width, i * rowHeight);
       canvasContext.stroke();
@@ -179,26 +178,26 @@ const CanvasTable = () => {
 
     //drawing headers
     for (let i = 0; i < dataColumns.length; i++) {
-        canvasContext.beginPath()
+      canvasContext.beginPath();
       canvasContext.save();
       canvasContext.rect(i * columnWidth, 0, columnWidth, rowHeight);
       canvasContext.clip();
       canvasContext.font = `bold ${fontSize}px ${font}`;
       canvasContext.fillStyle = `${fontColor}`;
       canvasContext.fillText(
-          dataColumns[i].toUpperCase(),
-          i * columnWidth + fontPadding,
-          rowHeight - fontPadding
-        );
+        dataColumns[i].toUpperCase(),
+        i * columnWidth + fontPadding,
+        rowHeight - fontPadding
+      );
       canvasContext.restore();
-    //   await new Promise(r => setTimeout(r, 100));
+      //   await new Promise(r => setTimeout(r, 100));
     }
 
     // for data cells
     for (let j = 0; j < rows.length; j++) {
       for (let i = 0; i < dataColumns.length; i++) {
         // console.log(i,j,rows[j][dataColumns[i]]);
-        canvasContext.beginPath()
+        canvasContext.beginPath();
         canvasContext.save();
         canvasContext.rect(
           i * columnWidth,
@@ -207,48 +206,67 @@ const CanvasTable = () => {
           rowHeight
         );
         canvasContext.clip();
-    
+
         canvasContext.font = `${fontSize}px ${font}`;
-        canvasContext.fillStyle = `${fontColor}`
-        if(selectedCell && selectedCell.row===j && selectedCell.col===i){
-          // console.log(selectedCell)
+        canvasContext.fillStyle = `${fontColor}`;
+
+        if (
+          selectedRangeStart &&
+          selectedRangeEnd &&
+          Math.min(selectedRangeStart.row, selectedRangeEnd.row) <= j &&
+          j <= Math.max(selectedRangeStart.row, selectedRangeEnd.row) &&
+          Math.min(selectedRangeStart.col, selectedRangeEnd.col) <= i &&
+          i <= Math.max(selectedRangeStart.col, selectedRangeEnd.col)
+        ) {
+          // enters here when there is a range of selection
+          canvasContext.fillStyle = `${"#12126737"}`;
+          canvasContext.fillRect(
+            i * columnWidth,
+            (j + 1) * rowHeight,
+            columnWidth,
+            rowHeight
+          );
+          // canvasContext.fillStyle = `${fontSelectedColor}`;
+          canvasContext.fillText(
+            // rows[j][dataColumns[i]],
+            `R${j},C${i}`,
+            i * columnWidth + fontPadding,
+            (j + 2) * rowHeight - fontPadding
+          );
+        } else if (
+          selectedCell &&
+          selectedCell.row === j &&
+          selectedCell.col === i
+        ) {
+          console.log(selectedCell)
           // console.log(rows[selectedCell.row][dataColumns[selectedCell.col]])
           // canvasContext.fillStyle = `${fontSelectedColor}`
-          // canvasContext.fillText(
-          //   rows[j][dataColumns[i]],
-          //   i * columnWidth + fontPadding,
-          //   (j + 2) * rowHeight - fontPadding
-          // );
-          inputRef.current.style.display = "inline-block";
-          inputRef.current.style.left = `${i*columnWidth}px`
-          inputRef.current.style.top = `${(j+1)*rowHeight}px`
-          inputRef.current.value = rows[j][dataColumns[i]];
-          inputRef.current.style.height = `${rowHeight}px`
-          inputRef.current.style.width = `${columnWidth}px`
-        }
-        else if(selectedRangeStart && selectedRangeEnd && selectedRangeStart.row<=j && j<=selectedRangeEnd.row && selectedRangeStart.col<=i && i<=selectedRangeEnd.col){
-          // enters here when there is a range of selection
-          canvasContext.fillStyle = `${"#12126767"}`
-          canvasContext.fillRect(i*columnWidth, (j+1)*rowHeight, columnWidth, rowHeight);
-          canvasContext.fillStyle = `${fontSelectedColor}`
           canvasContext.fillText(
-            rows[j][dataColumns[i]],
+            // rows[j][dataColumns[i]],
+            `R${j},C${i}`,
+            i * columnWidth + fontPadding,
+            (j + 2) * rowHeight - fontPadding
+          );
+          inputRef.current.style.display = "inline-block";
+          inputRef.current.style.left = `${i * columnWidth}px`;
+          inputRef.current.style.top = `${(j + 1) * rowHeight}px`;
+          inputRef.current.value = rows[j][dataColumns[i]];
+          inputRef.current.style.height = `${rowHeight}px`;
+          inputRef.current.style.width = `${columnWidth}px`;
+          inputRef.current.focus();
+        } else {
+          canvasContext.fillText(
+            // rows[j][dataColumns[i]],
+            `R${j},C${i}`,
             i * columnWidth + fontPadding,
             (j + 2) * rowHeight - fontPadding
           );
         }
-        else{
-          canvasContext.fillText(
-              rows[j][dataColumns[i]],
-              i * columnWidth + fontPadding,
-              (j + 2) * rowHeight - fontPadding
-          );
-        }
         canvasContext.restore();
-        // await new Promise(r => setTimeout(r, 10));
+        // await new Promise(r => setTimeout(r, 100));
       }
     }
-    
+
     // window.requestAnimationFrame(()=>{
     //     draw()
     // })
@@ -256,102 +274,126 @@ const CanvasTable = () => {
     // console.log("Took : " + (new Date() - startTime));
   }
 
-
-  function handleClick(e){
+  function handleClick(e) {
     e = e.nativeEvent;
-    // console.log(e);
+    // console.log("clicked");
     // console.log(e.clientX, e.offsetX);
-    let i = Math.floor(e.offsetX/columnWidth)
-    let j = Math.floor(e.offsetY/rowHeight)
-    if(j>0){
+    let i = Math.floor(e.offsetX / columnWidth);
+    let j = Math.floor(e.offsetY / rowHeight);
+    if (j > 0) {
       j--;
-      if(!e.shiftKey){
+      if (!e.shiftKey) {
         // console.log("cell pressed : " + j + " " + i)
         // console.log("Cell value : ", rows[j][dataColumns[i]])
-        selectedCell = {row:j,col:i};
-        selectedRangeStart = {row:j,col:i}
+        selectedCell = { row: j, col: i };
+        selectedRangeStart = { row: j, col: i };
         selectedRangeEnd = null;
-      }
-      else{
-        if(selectedRangeStart!=null){
-          let rowStart = Math.min(selectedRangeStart.row, j)
-          let rowEnd = Math.max(selectedRangeStart.row, j)
-          let colStart = Math.min(selectedRangeStart.col, i)
-          let colEnd = Math.max(selectedRangeStart.col, i)
-          selectedRangeStart = {row: rowStart, col: colStart}
-          selectedRangeEnd = {row: rowEnd, col: colEnd}
-          console.log("selectedRangeStart",selectedRangeStart);
-          console.log("selectedRangeEnd",selectedRangeEnd);
+      } else {
+        if (selectedRangeStart != null) {
+          // let rowStart = Math.min(selectedRangeStart.row, j)
+          // let rowEnd = Math.max(selectedRangeStart.row, j)
+          // let colStart = Math.min(selectedRangeStart.col, i)
+          // let colEnd = Math.max(selectedRangeStart.col, i)
+          // selectedRangeStart = {row: rowStart, col: colStart}
+          selectedRangeEnd = { row: j, col: i };
+          // console.log(`row:${j}\ncol:${i}\nselectedRangeStart:${JSON.stringify(selectedRangeStart)}\nselectedRangeEnd:${JSON.stringify(selectedRangeEnd)}`)
           selectedCell = null;
           inputRef.current.style.display = "none";
-          
-        }
-        else{
+        } else {
           // console.log("cell pressed : " + j + " " + i)
           // console.log("Cell value : ", rows[j][dataColumns[i]])
-          selectedCell = {row:j,col:i};
-          selectedRangeStart = {row:j,col:i}
-          selectedRangeEnd = null
+          selectedCell = { row: j, col: i };
+          selectedRangeStart = { row: j, col: i };
+          selectedRangeEnd = null;
         }
       }
       draw();
     }
   }
 
-  function handleKeyInputEnter(e){
+  function handleKeyInputEnter(e) {
     // console.log(e.target, e.key);
-    if(e.key=="Enter"){
+    if (e.key == "Enter") {
+      // console.log("entering new data")
       let newValue = e.target.value;
       rows[selectedCell.row][dataColumns[selectedCell.col]] = newValue;
-      e.target.style.display="none";
+      e.target.style.display = "none";
       selectedCell = null;
       draw();
-    }    
+    } else if (e.key == "Escape") {
+      inputRef.current.style.display = "none";
+    }
   }
 
-  function mouseDownHandler(e){
-    console.log(e)
-    let i = Math.floor(e.offsetX/columnWidth)
-    let j = Math.floor(e.offsetY/rowHeight)
-    if(j>0){
-      j--;
-      // console.log("cell pressed : " + j + " " + i)
-      // console.log("Cell value : ", rows[j][dataColumns[i]])
-      selectedRangeStart = {row:j,col:i};
-      draw();
-  }
+  function mouseDownHandler(e) {
+    e = e.nativeEvent;
+    console.log("mouse downed")
+    let i = Math.floor(e.offsetX / columnWidth);
+    let j = Math.floor(e.offsetY / rowHeight);
+    if(j<=0){j=1};
+    j--;
+    console.log(j,i)
+    
+    if(!e.shiftKey){
+      // selectedCell = {row:j, col:i};
+      selectedRangeStart = {row:j, col:i};
+
+      e.target.addEventListener("mouseup",(eUp)=>{
+        console.log("mouseUp")
+
+        let iUp = Math.floor(eUp.offsetX / columnWidth);
+        let jUp = Math.floor(eUp.offsetY / rowHeight);
+        if(jUp<=0){jUp=1};
+        jUp--;
+        if(i==iUp && j==jUp){
+          selectedRangeEnd = null;
+          selectedRangeStart = null;
+          selectedCell = {row: j, col: i};
+          draw();
+        }
+      })
+    }else{
+
+    }
+
+    
+    
   }
 
-  function mouseUpHandler(e){
-    console.log(e)
-    let i = Math.floor(e.offsetX/columnWidth)
-    let j = Math.floor(e.offsetY/rowHeight)
-    if(j>0){
-      j--;
-      // console.log("cell pressed : " + j + " " + i)
-      // console.log("Cell value : ", rows[j][dataColumns[i]])
-      selectedRangeStart = {row:j,col:i};
+  function canvasKeyHandler(e){
+    // console.log(e.key)
+    if(e.key=="Escape"){
+      selectedCell=null;
+      selectedRangeStart = null;
+      selectedRangeEnd = null;
       draw();
-  }
+    }
   }
 
   useEffect(() => {
     // console.log(canvasRef.current.parentElement.clientWidth, canvasRef.current.parentElement.clientHeight)
+    console.clear();
     canvasContext = canvasRef.current.getContext("2d");
     canvasRef.current.width = dataColumns.length * columnWidth;
     canvasRef.current.height = (rows.length + 1) * rowHeight;
     draw();
-
+    window.addEventListener("keydown",canvasKeyHandler);
   }, []);
 
   return (
     <div className={styles.canvasContainer}>
-      <canvas id="sheet" ref={canvasRef} 
-      onClick={handleClick} 
-      // onMouseDown={mouseDownHandler}
-      // onMouseUp={mouseUpHandler}
+      <canvas
+        id="sheet"
+        ref={canvasRef}
+        // onClick={handleClick}
+        onMouseDown={mouseDownHandler}
       ></canvas>
-      <input type="text" ref={inputRef} onKeyDown={(e)=>handleKeyInputEnter(e,)}/>
+      <input
+        type="text"
+        ref={inputRef}
+        onKeyDown={(e) => handleKeyInputEnter(e)}
+        onBlur={(e) => (e.target.style.display = "none")}
+      />
     </div>
   );
 };
