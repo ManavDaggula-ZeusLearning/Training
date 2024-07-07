@@ -1,0 +1,56 @@
+// @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap');
+
+*{
+    margin:0px;
+    padding:0px;
+}
+
+.fileUploadDiv{
+    font-family: "Silkscreen";
+    font-size: 1.5em;
+    color: #222;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    form{
+        background-color: rgb(66, 201, 66);
+        max-width: 320px;
+        padding: 2em;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        border-radius: 0.4em;
+        border: 6px dotted green;
+        text-align: center;
+        font-size: 18px;
+
+        input{
+            visibility: hidden;
+            // display: none;
+        }
+        
+        button{
+            border-radius: 0.4em;
+            padding: 0.5em 2em;
+            background-color: #fff2;
+            color: #222;
+            border: #fff2;
+            background-color: #fff4;
+            &:hover{
+                background-color: #fff8;
+            }
+        }
+
+        span{
+            font-size: 0.5em;
+        }
+
+        &.draggedover{
+            // background-color: red;
+            opacity: 0.8;
+        }
+
+    }
+}

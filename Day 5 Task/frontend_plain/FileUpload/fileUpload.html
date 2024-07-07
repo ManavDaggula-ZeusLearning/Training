@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="fileUpload.css">
+</head>
+<body>
+    <div class="fileUploadDiv">
+      <form class="fileUploadForm" action="http://localhost:3000" method="post">
+        <label for="file">Upload a csv file here.</label>
+        <small>or drag and drop your file</small>
+        <input type="file" name="file" id="file" accept=".csv" />
+        <span></span>
+        <button>Upload</button>
+      </form>
+    </div>
+    <script src="fileUpload.js"></script>
+</body>
+</html>

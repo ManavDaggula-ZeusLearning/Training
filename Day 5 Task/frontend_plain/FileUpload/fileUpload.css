@@ -1,0 +1,47 @@
+@import url("https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&display=swap");
+* {
+  margin: 0px;
+  padding: 0px;
+}
+
+.fileUploadDiv {
+  font-family: "Silkscreen";
+  font-size: 1.5em;
+  color: #222;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+}
+.fileUploadDiv form {
+  background-color: rgb(66, 201, 66);
+  max-width: 320px;
+  padding: 2em;
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  border-radius: 0.4em;
+  border: 6px dotted green;
+  text-align: center;
+  font-size: 18px;
+}
+.fileUploadDiv form input {
+  visibility: hidden;
+}
+.fileUploadDiv form button {
+  border-radius: 0.4em;
+  padding: 0.5em 2em;
+  background-color: rgba(255, 255, 255, 0.1333333333);
+  color: #222;
+  border: rgba(255, 255, 255, 0.1333333333);
+  background-color: rgba(255, 255, 255, 0.2666666667);
+}
+.fileUploadDiv form button:hover {
+  background-color: rgba(255, 255, 255, 0.5333333333);
+}
+.fileUploadDiv form span {
+  font-size: 0.5em;
+}
+.fileUploadDiv form.draggedover {
+  opacity: 0.8;
+}/*# sourceMappingURL=fileUpload.css.map */

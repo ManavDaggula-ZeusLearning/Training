@@ -1,0 +1,18 @@
+.canvasContainer {
+  width: 100%;
+  overflow: scroll;
+  position: relative;
+  resize: both;
+}
+.canvasContainer canvas {
+  outline: 1px solid black;
+  background: rgba(181, 218, 209, 0.7215686275);
+}
+.canvasContainer input {
+  display: none;
+  position: absolute;
+  border: none;
+  box-sizing: border-box;
+  padding: 4px;
+  color: red;
+}/*# sourceMappingURL=CanvasTable.module.css.map */
