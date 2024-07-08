@@ -1,3 +1,7 @@
+* {
+  margin: 0px;
+}
+
 .canvasContainer {
   width: 100%;
   overflow: scroll;
@@ -14,5 +18,10 @@
   border: none;
   box-sizing: border-box;
   padding: 4px;
-  color: red;
+  color: green;
+  text-indent: 0.2em;
+}
+.canvasContainer table thead th {
+  resize: horizontal;
+  width: 112px;
 }/*# sourceMappingURL=canvas.css.map */
