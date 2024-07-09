@@ -4736,7 +4736,7 @@ function fixCanvasSize(){
   canvasHeaderElement.height = rowHeight
 }
 
-async function draw() {
+function draw() {
 
   //init
   // fixCanvasSize();
@@ -4970,12 +4970,13 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
     }
   }
   function pointerUpHandler(eUp){
-    let xUp = eUp.offsetX;
+    // let xUp = eUp.offsetX;
     // console.log(xUp - e.offsetX);
-    if(colSizes[colIndex] + (xUp - e.offsetX) >= 20){
-      drawHeader();
-      draw();
-    }
+    // if(colSizes[colIndex] + (xUp - e.offsetX) >= 20){
+    // }
+    fixCanvasSize();
+    drawHeader();
+    draw();
     eUp.target.removeEventListener("pointerup",pointerUpHandler)
     eUp.target.removeEventListener("pointermove",pointerMoveColSizeHandler);
     // eUp.target.addEventListener("pointermove",headerPointerMove)
@@ -4984,6 +4985,9 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
   canvasHeaderElement.addEventListener("pointermove",pointerMoveColSizeHandler);
   canvasHeaderElement.addEventListener("pointerup",pointerUpHandler);
   canvasHeaderElement.addEventListener("pointerleave", function pointerLeaveHandler(eL){
+    fixCanvasSize();
+    drawHeader();
+    draw();
     eL.target.removeEventListener("pointerup",pointerUpHandler);
     eL.target.removeEventListener("pointerleave",pointerLeaveHandler)
     console.log();
