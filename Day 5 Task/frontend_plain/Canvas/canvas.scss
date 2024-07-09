@@ -12,14 +12,14 @@
     // resize: both;
     canvas{
         // outline: 1px solid black;
-        background: rgba(255, 255, 255, 0.722);
+        background: rgba(255, 255, 255, 1);
         &#sheet{
             cursor: cell;
             margin-block: -4px;
         }
         &#headers{
             position: sticky;
-
+            top:0px;
         }
     }
     input{

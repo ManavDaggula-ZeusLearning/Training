@@ -4662,6 +4662,7 @@ function mouseDownHandler(e) {
         temp1=jMove;
         temp2 = iMove;
         selectedRangeEnd = { row: jMove, col: iMove };
+        console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
         draw();
       }
     }
@@ -4701,6 +4702,7 @@ function mouseDownHandler(e) {
     // console.log("clicked with shift");
     if (selectedRangeStart) {
       selectedRangeEnd = { row: j, col: i };
+      console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
       selectedCell = null;
     } else {
       selectedRangeEnd = null;
@@ -4989,6 +4991,19 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
     // eL.target.addEventListener("pointermove",headerPointerMove)
   })
 })
+
+function calculateMean(startingRange, endingRange){
+  if(startingRange.col !== endingRange.col){
+    return null;
+  }
+  // console.log(rows.length)
+  // console.log(startingRange.row, endingRange.row)
+  let tempArr = rows.slice(startingRange.row,endingRange.row+1).map(m=>m[dataColumns[startingRange.col]]);
+  let mean = tempArr.reduce((prev,curr)=>prev+curr,0)/tempArr.length
+  let min = Math.min(...tempArr)
+  let max = Math.min(...tempArr)
+  return [min,mean,max];
+}
 
 fixCanvasSize();
 draw();
