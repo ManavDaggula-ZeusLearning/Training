@@ -33,9 +33,10 @@ body{
     canvas{
         // outline: 1px solid black;
         background: rgba(255, 255, 255, 1);
+        display: block;
         &#sheet{
             cursor: cell;
-            margin-block: -4px;
+            // margin-block: -4px;
         }
         &#headers{
             position: sticky;

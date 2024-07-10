@@ -30,10 +30,10 @@ body {
 }
 .canvasContainer canvas {
   background: rgb(255, 255, 255);
+  display: block;
 }
 .canvasContainer canvas#sheet {
   cursor: cell;
-  margin-block: -4px;
 }
 .canvasContainer canvas#headers {
   position: sticky;

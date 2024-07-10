@@ -20,7 +20,8 @@ var selectedCell = null;
 var selectedRangeStart = null;
 var selectedRangeEnd = null;
 
-var colResizerGutter = null;
+var dashOffset=null;
+let [posX,posY,rectWidth, rectHeight] = [0,0,0,0];
 
 const dataColumns = [
   "Email ID",
@@ -2456,22 +2457,6 @@ const rows = [
     "FY2023-24": 5500,
   },
   {
-    "Email ID": "user1@example.com",
-    Name: "John Doe",
-    Country: "USA",
-    State: "California",
-    City: "Los Angeles",
-    "Telephone number": "+1-123-456-7890",
-    "Address line 1": "123 Main St",
-    "Address line 2": "Apt 101",
-    "Date of Birth": "1990-01-01",
-    "FY2019-20": 1500,
-    "FY2020-21": 2500,
-    "FY2021-22": 3500,
-    "FY2022-23": 4500,
-    "FY2023-24": 5500,
-  },
-  {
     "Email ID": "user2@example.com",
     Name: "Jane Smith",
     Country: "Canada",
@@ -4598,39 +4583,287 @@ const rows = [
     "FY2021-22": 3500,
     "FY2022-23": 4500,
     "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "USA",
+    State: "California",
+    City: "Los Angeles",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "USA",
+    State: "California",
+    City: "Los Angeles",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user2@example.com",
+    Name: "Jane Smith",
+    Country: "Canada",
+    State: "Ontario",
+    City: "Toronto",
+    "Telephone number": "+1-987-654-3210",
+    "Address line 1": "456 Elm St",
+    "Address line 2": "Unit 202",
+    "Date of Birth": "1985-05-15",
+    "FY2019-20": 1700,
+    "FY2020-21": 2700,
+    "FY2021-22": 3700,
+    "FY2022-23": 4700,
+    "FY2023-24": 5700,
+  },
+  {
+    "Email ID": "user3@example.com",
+    Name: "Alice Johnson",
+    Country: "UK",
+    State: "England",
+    City: "London",
+    "Telephone number": "+44-20-1234-5678",
+    "Address line 1": "789 Oak St",
+    "Address line 2": "Flat 3",
+    "Date of Birth": "1982-11-30",
+    "FY2019-20": 1900,
+    "FY2020-21": 2900,
+    "FY2021-22": 3900,
+    "FY2022-23": 4900,
+    "FY2023-24": 5900,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "India",
+    State: "Maharashtra",
+    City: "Mumbai",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user2@example.com",
+    Name: "Jane Smith",
+    Country: "Canada",
+    State: "Ontario",
+    City: "Toronto",
+    "Telephone number": "+1-987-654-3210",
+    "Address line 1": "456 Elm St",
+    "Address line 2": "Unit 202",
+    "Date of Birth": "1985-05-15",
+    "FY2019-20": 1700,
+    "FY2020-21": 2700,
+    "FY2021-22": 3700,
+    "FY2022-23": 4700,
+    "FY2023-24": 5700,
+  },
+  {
+    "Email ID": "user3@example.com",
+    Name: "Last Human",
+    Country: "UK",
+    State: "England",
+    City: "London",
+    "Telephone number": "+44-20-1234-5678",
+    "Address line 1": "789 Oak St",
+    "Address line 2": "Flat 3",
+    "Date of Birth": "1982-11-30",
+    "FY2019-20": 1900,
+    "FY2020-21": 2900,
+    "FY2021-22": 3900,
+    "FY2022-23": 4900,
+    "FY2023-24": 5900,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "USA",
+    State: "California",
+    City: "Los Angeles",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "USA",
+    State: "California",
+    City: "Los Angeles",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user2@example.com",
+    Name: "Jane Smith",
+    Country: "Canada",
+    State: "Ontario",
+    City: "Toronto",
+    "Telephone number": "+1-987-654-3210",
+    "Address line 1": "456 Elm St",
+    "Address line 2": "Unit 202",
+    "Date of Birth": "1985-05-15",
+    "FY2019-20": 1700,
+    "FY2020-21": 2700,
+    "FY2021-22": 3700,
+    "FY2022-23": 4700,
+    "FY2023-24": 5700,
+  },
+  {
+    "Email ID": "user3@example.com",
+    Name: "Alice Johnson",
+    Country: "UK",
+    State: "England",
+    City: "London",
+    "Telephone number": "+44-20-1234-5678",
+    "Address line 1": "789 Oak St",
+    "Address line 2": "Flat 3",
+    "Date of Birth": "1982-11-30",
+    "FY2019-20": 1900,
+    "FY2020-21": 2900,
+    "FY2021-22": 3900,
+    "FY2022-23": 4900,
+    "FY2023-24": 5900,
+  },
+  {
+    "Email ID": "user1@example.com",
+    Name: "John Doe",
+    Country: "India",
+    State: "Maharashtra",
+    City: "Mumbai",
+    "Telephone number": "+1-123-456-7890",
+    "Address line 1": "123 Main St",
+    "Address line 2": "Apt 101",
+    "Date of Birth": "1990-01-01",
+    "FY2019-20": 1500,
+    "FY2020-21": 2500,
+    "FY2021-22": 3500,
+    "FY2022-23": 4500,
+    "FY2023-24": 5500,
+  },
+  {
+    "Email ID": "user2@example.com",
+    Name: "Jane Smith",
+    Country: "Canada",
+    State: "Ontario",
+    City: "Toronto",
+    "Telephone number": "+1-987-654-3210",
+    "Address line 1": "456 Elm St",
+    "Address line 2": "Unit 202",
+    "Date of Birth": "1985-05-15",
+    "FY2019-20": 1700,
+    "FY2020-21": 2700,
+    "FY2021-22": 3700,
+    "FY2022-23": 4700,
+    "FY2023-24": 5700,
+  },
+  {
+    "Email ID": "user3@example.com",
+    Name: "Last Human",
+    Country: "UK",
+    State: "England",
+    City: "London",
+    "Telephone number": "+44-20-1234-5678",
+    "Address line 1": "789 Oak St",
+    "Address line 2": "Flat 3",
+    "Date of Birth": "1982-11-30",
+    "FY2019-20": 1900,
+    "FY2020-21": 2900,
+    "FY2021-22": 3900,
+    "FY2022-23": 4900,
+    "FY2023-24": 5900,
   },
 ];
 
 var colSizes = [180, 120, 120, 120, 120, 174, 120, 120, 120, 120, 100, 100, 100, 100]
 
 function canvasKeyHandler(e) {
-  console.log(e)
+  // console.log(e)
   if (e.key == "Escape") {
-    selectedCell = null;
-    selectedRangeStart = null;
-    selectedRangeEnd = null;
+    if(dashOffset===null){
+      selectedCell = null;
+      selectedRangeStart = null;
+      selectedRangeEnd = null;
+    }
+    else{
+      dashOffset=null;
+    }
+    
     calculateMean();
-    draw();
+    // draw();
   }
   else if(e.key=="c" && e.ctrlKey){
     if(e.target!==inputElement){
+      dashOffset=0;
       copyRangeDataToClipboard();
     }
   }
 }
 
+// function getCellIndexFromCoordinates(offsetX, offsetY){
+//   let xIndex = Math.floor(offsetY/rowHeight);
+//   let yIndex;
+//   for(yIndex = 0; yIndex<dataColumns.length-1; yIndex++){
+//     offsetX = offsetX - colSizes[yIndex];
+//     if(offsetX <= 0){
+//       break;
+//     }
+//   }
+//   // xIndex = xIndex<=0 ? 0 : xIndex-1;
+//   // console.log(xIndex, yIndex);
+//   return [xIndex,yIndex]
+// }
+
 function getCellIndexFromCoordinates(offsetX, offsetY){
+  let sum=0;
   let xIndex = Math.floor(offsetY/rowHeight);
   let yIndex;
   for(yIndex = 0; yIndex<dataColumns.length-1; yIndex++){
-    offsetX = offsetX - colSizes[yIndex];
-    if(offsetX <= 0){
+    sum += colSizes[yIndex]
+    if(offsetX<sum){
+      sum-=colSizes[yIndex]
+      // console.log(sum);
       break;
     }
   }
   // xIndex = xIndex<=0 ? 0 : xIndex-1;
   // console.log(xIndex, yIndex);
-  return [xIndex,yIndex]
+  return [xIndex,yIndex,sum]
 }
 
 function mouseDownHandler(e) {
@@ -4645,12 +4878,13 @@ function mouseDownHandler(e) {
   //   j = 1;
   // }
   // j--;
-  let [j,i] = getCellIndexFromCoordinates(e.offsetX,e.offsetY)
+  let [j,i, startX] = getCellIndexFromCoordinates(e.offsetX,e.offsetY)
+  dashOffset=null;
   // console.log(j,i)
 
   if (!e.shiftKey) {
     // selectedCell = {row:j, col:i};
-    selectedRangeStart = { row: j, col: i };
+    selectedRangeStart = { row: j, col: i, startX: startX };
     selectedCell = null;
     selectedRangeEnd = null;
 
@@ -4662,14 +4896,14 @@ function mouseDownHandler(e) {
       //   jMove = 1;
       // }
       // jMove--;
-      let [jMove, iMove] = getCellIndexFromCoordinates(eMove.offsetX, eMove.offsetY)
+      let [jMove, iMove, endX] = getCellIndexFromCoordinates(eMove.offsetX, eMove.offsetY)
       // console.log(jMove, iMove);
       if(temp1!==jMove || temp2!==iMove){
         temp1=jMove;
         temp2 = iMove;
-        selectedRangeEnd = { row: jMove, col: iMove };
+        selectedRangeEnd = { row: jMove, col: iMove , startX:endX};
         // console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
-        draw();
+        // draw();
       }
     }
     function mouseUpHandler(eUp){
@@ -4683,16 +4917,35 @@ function mouseDownHandler(e) {
       //   jUp = 1;
       // }
       // jUp--;
-      let [jUp, iUp] = getCellIndexFromCoordinates(eUp.offsetX, eUp.offsetY)
+      let [jUp, iUp, sum] = getCellIndexFromCoordinates(eUp.offsetX, eUp.offsetY)
       if (selectedRangeStart.col == iUp && selectedRangeStart.row == jUp) {
         selectedRangeEnd = null;
         // selectedRangeStart = {row: j, col: i};
         selectedCell = { row: j, col: i };
         // console.log("clicked");
-        draw();
+        inputElement.style.display = "inline-block";
+        inputElement.style.left = `${sum}px`;
+        inputElement.style.top = `${(j + 1) * rowHeight}px`;
+        inputElement.value = rows[j][dataColumns[i]];
+        inputElement.style.height = `${rowHeight}px`;
+        inputElement.style.width = `${colSizes[i]}px`;
+        inputElement.focus();
+        // draw();
       }
       else{
-        console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
+        calculateMean(selectedRangeStart, selectedRangeEnd)
+        // let i = 0;
+        // while (i < Math.min(selectedRangeStart.col, selectedRangeEnd.col)) {
+        //   posX += colSizes[i];
+        //   i++;
+        // }
+        // while (i < Math.max(selectedRangeStart.col + 1, selectedRangeEnd.col + 1)) {
+        //   rectWidth += colSizes[i];
+        //   i++;
+        // }
+        // // i = 0;
+        // posY = rowHeight * Math.min(selectedRangeStart.row, selectedRangeEnd.row);
+        // rectHeight = (Math.abs(selectedRangeEnd.row - selectedRangeStart.row)+1)*rowHeight;
       }
       e.target.removeEventListener("mouseup",mouseUpHandler);
     }
@@ -4718,7 +4971,7 @@ function mouseDownHandler(e) {
       selectedRangeStart = { row: j, col: i };
       selectedCell = { row: j, col: i };
     }
-    draw();
+    // draw();
     //   console.log(selectedCell, selectedRangeStart, selectedRangeEnd)
   }
 }
@@ -4731,7 +4984,7 @@ function handleKeyInputEnter(e) {
     rows[selectedCell.row][dataColumns[selectedCell.col]] = newValue;
     e.target.style.display = "none";
     selectedCell = null;
-    draw();
+    // draw();
   } else if (e.key == "Escape") {
     inputElement.style.display = "none";
   }
@@ -4750,7 +5003,7 @@ function draw() {
   //init
   // fixCanvasSize();
 
-  // console.log("Started painting");
+  console.log("Started painting");
   // let startTime = new Date();
 
   //clearing the canvas
@@ -4873,17 +5126,17 @@ function draw() {
           sum + fontPadding,
           (j + 1) * rowHeight - fontPadding
         );
-        inputElement.style.display = "inline-block";
-        inputElement.style.left = `${sum}px`;
-        inputElement.style.top = `${(j + 1) * rowHeight}px`;
-        inputElement.value = rows[j][dataColumns[i]];
-        inputElement.style.height = `${rowHeight}px`;
-        inputElement.style.width = `${colSizes[i]}px`;
-        inputElement.focus();
+        // inputElement.style.display = "inline-block";
+        // inputElement.style.left = `${sum}px`;
+        // inputElement.style.top = `${(j + 1) * rowHeight}px`;
+        // inputElement.value = rows[j][dataColumns[i]];
+        // inputElement.style.height = `${rowHeight}px`;
+        // inputElement.style.width = `${colSizes[i]}px`;
+        // inputElement.focus();
       } else {
         canvasContext.fillText(
-          rows[j][dataColumns[i]],
-          // `R${j},C${i}`,
+          // rows[j][dataColumns[i]],
+          `R${j},C${i}`,
           sum + fontPadding,
           (j + 1) * rowHeight - fontPadding
         );
@@ -4894,14 +5147,41 @@ function draw() {
     }
   }
 
-  // window.requestAnimationFrame(() => {
-  //   draw();
-  // });
+  if(selectedRangeStart && selectedRangeEnd && dashOffset!==null){
+    // console.log("march ants")
+    canvasContext.save();
+    canvasContext.setLineDash([4, 4]);
+    canvasContext.lineDashOffset = dashOffset;
+    let [posX,posY,rectWidth, rectHeight] = [0,0,0,0];
+    let i=0;
+    while(i<Math.min(selectedRangeStart.col, selectedRangeEnd.col)){
+      posX+=colSizes[i];
+      i++;
+    }
+    while(i<Math.max(selectedRangeStart.col+1, selectedRangeEnd.col+1)){
+      rectWidth+=colSizes[i];
+      i++;
+    }
+    // i=0;
+    posY = rowHeight*(Math.min(selectedRangeStart.row, selectedRangeEnd.row));
+    rectHeight = (Math.abs(selectedRangeEnd.row - selectedRangeStart.row)+1)*rowHeight;
+
+    canvasContext.strokeRect(posX, posY, rectWidth, rectHeight);
+    canvasContext.restore();
+    dashOffset+=1;
+    if(dashOffset>8){dashOffset=0;}
+  }
+  // await new Promise(r => setTimeout(r, 100));
+
+  window.requestAnimationFrame(() => {
+    draw();
+  });
   // console.log("Finished painting");
   // console.log("Took : " + (new Date() - startTime));
 }
 
 function drawHeader(){
+  // console.log("drawing header")
   canvasHeaderContext.clearRect(0,0,canvasHeaderElement.width,canvasHeaderElement.height);
   colSizes.reduce((prev,curr,currIndex)=>{
     canvasHeaderContext.beginPath();
@@ -4915,14 +5195,10 @@ function drawHeader(){
     canvasHeaderContext.restore();
     return prev + curr ;
   },0)
-  if(colResizerGutter){
-    canvasHeaderContext.save();
-    canvasHeaderContext.moveTo(colResizerGutter,0);
-    canvasHeaderContext.lineTo(colResizerGutter,canvasHeaderElement.height);
-    canvasHeaderContext.strokeStyle = "red";
-    canvasHeaderContext.stroke();
-    canvasHeaderContext.restore();
-  }
+
+  window.requestAnimationFrame(()=>{
+    drawHeader();
+  })
 }
 
 // canvasElement.width = dataColumns.length * columnWidth;
@@ -4975,7 +5251,7 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
   function pointerMoveColSizeHandler(eMove){
     if(colSizes[colIndex] + eMove.movementX >= 20){
       colSizes[colIndex] = colSizes[colIndex] + eMove.movementX;
-      drawHeader();
+      // drawHeader();
     }
   }
   function pointerUpHandler(eUp){
@@ -4984,8 +5260,8 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
     // if(colSizes[colIndex] + (xUp - e.offsetX) >= 20){
     // }
     fixCanvasSize();
-    drawHeader();
-    draw();
+    // drawHeader();
+    // draw();
     eUp.target.removeEventListener("pointerup",pointerUpHandler)
     eUp.target.removeEventListener("pointermove",pointerMoveColSizeHandler);
     // eUp.target.addEventListener("pointermove",headerPointerMove)
@@ -4995,8 +5271,8 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
   canvasHeaderElement.addEventListener("pointerup",pointerUpHandler);
   canvasHeaderElement.addEventListener("pointerleave", function pointerLeaveHandler(eL){
     fixCanvasSize();
-    drawHeader();
-    draw();
+    // drawHeader();
+    // draw();
     eL.target.removeEventListener("pointerup",pointerUpHandler);
     eL.target.removeEventListener("pointerleave",pointerLeaveHandler)
     console.log();
@@ -5033,7 +5309,7 @@ function copyRangeDataToClipboard(){
     for(let i=Math.min(selectedRangeStart.row, selectedRangeEnd.row);i<=Math.max(selectedRangeStart.row, selectedRangeEnd.row);i++){
       let j;
       for(j=Math.min(selectedRangeStart.col, selectedRangeEnd.col);j<Math.max(selectedRangeStart.col, selectedRangeEnd.col);j++){
-        text += `${rows[i][dataColumns[j]]}\t`
+        text += `${rows[i][dataColumns[j]]}, `
       }
       text += `${rows[i][dataColumns[j]]}\n`;
     }
