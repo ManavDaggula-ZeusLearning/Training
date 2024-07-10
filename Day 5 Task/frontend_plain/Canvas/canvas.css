@@ -3,11 +3,30 @@
   margin: 0px;
 }
 
+body {
+  font-family: "Titillium Web";
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: rgba(50, 50, 50, 0.1411764706);
+}
+.status-bar > span {
+  padding: 0.5em;
+  border: 1px solid green;
+  margin: 1em;
+}
+.status-bar > span span {
+  text-decoration: underline;
+}
+
 .canvasContainer {
   width: 100%;
   overflow: scroll;
   position: relative;
-  height: 100dvh;
+  height: 85dvh;
 }
 .canvasContainer canvas {
   background: rgb(255, 255, 255);

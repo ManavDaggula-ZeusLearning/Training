@@ -4601,15 +4601,21 @@ const rows = [
   },
 ];
 
-var colSizes = [180,120,120,120,120,140,120,120,120,120,100,100,100,100]
+var colSizes = [180, 120, 120, 120, 120, 174, 120, 120, 120, 120, 100, 100, 100, 100]
 
 function canvasKeyHandler(e) {
-  // console.log(e.key)
+  console.log(e)
   if (e.key == "Escape") {
     selectedCell = null;
     selectedRangeStart = null;
     selectedRangeEnd = null;
+    calculateMean();
     draw();
+  }
+  else if(e.key=="c" && e.ctrlKey){
+    if(e.target!==inputElement){
+      copyRangeDataToClipboard();
+    }
   }
 }
 
@@ -4662,7 +4668,7 @@ function mouseDownHandler(e) {
         temp1=jMove;
         temp2 = iMove;
         selectedRangeEnd = { row: jMove, col: iMove };
-        console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
+        // console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
         draw();
       }
     }
@@ -4684,6 +4690,9 @@ function mouseDownHandler(e) {
         selectedCell = { row: j, col: i };
         // console.log("clicked");
         draw();
+      }
+      else{
+        console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
       }
       e.target.removeEventListener("mouseup",mouseUpHandler);
     }
@@ -4997,18 +5006,44 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
 })
 
 function calculateMean(startingRange, endingRange){
-  if(startingRange.col !== endingRange.col){
+  
+  let spanArray = document.querySelectorAll(".status-bar>span>span")
+  if(!startingRange || !endingRange || startingRange.col !== endingRange.col){
+    spanArray.forEach(s=>s.textContent="N.A.")
     return null;
   }
   // console.log(rows.length)
   // console.log(startingRange.row, endingRange.row)
-  let tempArr = rows.slice(startingRange.row,endingRange.row+1).map(m=>m[dataColumns[startingRange.col]]);
+  let start = Math.min(startingRange.row, endingRange.row)
+  let end = Math.max(startingRange.row, endingRange.row)
+  let tempArr = rows.slice(start,end+1).map(m=>m[dataColumns[startingRange.col]]);
   let mean = tempArr.reduce((prev,curr)=>prev+curr,0)/tempArr.length
   let min = Math.min(...tempArr)
-  let max = Math.min(...tempArr)
+  let max = Math.max(...tempArr)
+  spanArray[0].textContent = min;
+  spanArray[1].textContent = Number(mean.toFixed(4)).valueOf();
+  spanArray[2].textContent = max;
   return [min,mean,max];
 }
 
-fixCanvasSize();
-draw();
-drawHeader();
+function copyRangeDataToClipboard(){
+  // to convert text
+  if(selectedRangeStart && selectedRangeEnd){
+    let text="";
+    for(let i=Math.min(selectedRangeStart.row, selectedRangeEnd.row);i<=Math.max(selectedRangeStart.row, selectedRangeEnd.row);i++){
+      let j;
+      for(j=Math.min(selectedRangeStart.col, selectedRangeEnd.col);j<Math.max(selectedRangeStart.col, selectedRangeEnd.col);j++){
+        text += `${rows[i][dataColumns[j]]}\t`
+      }
+      text += `${rows[i][dataColumns[j]]}\n`;
+    }
+    navigator.clipboard.writeText(text)
+  }
+}
+
+window.addEventListener("load",()=>{
+  // console.log("loaded")
+  fixCanvasSize();
+  drawHeader();
+  draw();
+})
