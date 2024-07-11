@@ -1,5 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,600;1,700&display=swap');
 
+// $text: #0a0f0a;
+// $background: #f6faf5;
+// $primary: #51b84b;
+// $secondary: #9ee19a;
+// $accent: #63dc5c;
+
+$text: #050508;
+$background: #FFF8F3;
+$primary: #405D72;
+$secondary: #758694;
+$accent: #F7E7DC;
+
+
 *{
     margin:0px;
 }
@@ -8,17 +21,81 @@ body{
     font-family: "Titillium Web";
 }
 
+header{
+    background-color: $background;
+    display: flex;
+    padding: 1em 0.5em;
+    align-items: center;
+    &>span:first-child{
+        color: $primary;
+        font-weight: bold;
+        font-size: 2em;
+    }
+    &>.fileUploadDiv{
+        // margin-left: auto;
+        label{
+            background-color: $primary;
+            padding: 0.4em;
+            border-radius: 0.2em;
+            color: $background;
+
+            &.draggedover{
+                background-color: $secondary;
+            }
+        }
+        
+        input[type="file"]{
+            display: none;
+        }
+
+    }
+    .searchbar{
+        margin-left: auto;
+        background-color: $primary;
+        padding: 0.5em;
+        border-radius: 1em;
+        display: flex;
+        align-items: center;
+        font-size: 1.2em;
+        input[type="text"]{
+            width: 0px;
+            border: none;
+            padding: 0px;
+            outline: none;
+            transition: width 0.4s ease, margin 0.4s ease;
+            height: 2em;
+            border-radius: calc(1em - 0.5em);
+            text-indent: 0.2em;
+            &:focus{
+                outline: none;
+            }
+        }
+        &:hover, &:has(:hover, :active, :focus){
+            input[type="text"]{
+                width: 100px;
+                margin-right: 4px;
+                padding-inline: 4px;
+            }
+        }
+    }
+
+}
+
 .status-bar{
     display: flex;
     justify-content: space-around;
     align-items: center;
-    background-color: #32323224;
+    background-color: $background;
     &>span{
         padding: 0.5em;
-        border: 1px solid green;
-        margin:1em;
+        // border: 1px solid green;
+        border-radius: 4px;
+        margin:0.5em;
+        background-color: $secondary;
+        color: $background;
         span{
-            text-decoration: underline;
+            // text-decoration: underline;
+            font-weight: bolder;
         }
     }
 }
@@ -28,7 +105,7 @@ body{
     // height: 200px;
     overflow: scroll;
     position: relative;
-    height: 85dvh;
+    max-height: 85dvh;
     // resize: both;
     canvas{
         // outline: 1px solid black;

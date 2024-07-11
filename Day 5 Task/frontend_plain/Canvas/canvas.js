@@ -21,7 +21,8 @@ var selectedRangeStart = null;
 var selectedRangeEnd = null;
 
 var dashOffset=null;
-let [posX,posY,rectWidth, rectHeight] = [0,0,0,0];
+var [posX,posY,rectWidth, rectHeight] = [0,0,0,0];
+var drawLoopId = null;
 
 const dataColumns = [
   "Email ID",
@@ -39,7 +40,7 @@ const dataColumns = [
   "FY2022-23",
   "FY2023-24",
 ];
-const rows = [
+const rowsDummy = [
   {
     "Email ID": "user1@example.com",
     Name: "John Doe",
@@ -4809,7 +4810,8 @@ const rows = [
     "FY2023-24": 5900,
   },
 ];
-
+var rows=[];
+rows = rowsDummy
 var colSizes = [180, 120, 120, 120, 120, 174, 120, 120, 120, 120, 100, 100, 100, 100]
 
 function canvasKeyHandler(e) {
@@ -4822,14 +4824,16 @@ function canvasKeyHandler(e) {
     }
     else{
       dashOffset=null;
+      window.cancelAnimationFrame(drawLoopId);
     }
     
     calculateMean();
-    // draw();
+    draw();
   }
   else if(e.key=="c" && e.ctrlKey){
     if(e.target!==inputElement){
       dashOffset=0;
+      draw();
       copyRangeDataToClipboard();
     }
   }
@@ -4903,7 +4907,7 @@ function mouseDownHandler(e) {
         temp2 = iMove;
         selectedRangeEnd = { row: jMove, col: iMove , startX:endX};
         // console.log(calculateMean(selectedRangeStart, selectedRangeEnd))
-        // draw();
+        draw();
       }
     }
     function mouseUpHandler(eUp){
@@ -4930,7 +4934,7 @@ function mouseDownHandler(e) {
         inputElement.style.height = `${rowHeight}px`;
         inputElement.style.width = `${colSizes[i]}px`;
         inputElement.focus();
-        // draw();
+        draw();
       }
       else{
         calculateMean(selectedRangeStart, selectedRangeEnd)
@@ -4971,7 +4975,7 @@ function mouseDownHandler(e) {
       selectedRangeStart = { row: j, col: i };
       selectedCell = { row: j, col: i };
     }
-    // draw();
+    draw();
     //   console.log(selectedCell, selectedRangeStart, selectedRangeEnd)
   }
 }
@@ -4984,7 +4988,7 @@ function handleKeyInputEnter(e) {
     rows[selectedCell.row][dataColumns[selectedCell.col]] = newValue;
     e.target.style.display = "none";
     selectedCell = null;
-    // draw();
+    draw();
   } else if (e.key == "Escape") {
     inputElement.style.display = "none";
   }
@@ -5003,7 +5007,7 @@ function draw() {
   //init
   // fixCanvasSize();
 
-  console.log("Started painting");
+  // console.log("Started painting");
   // let startTime = new Date();
 
   //clearing the canvas
@@ -5135,8 +5139,8 @@ function draw() {
         // inputElement.focus();
       } else {
         canvasContext.fillText(
-          // rows[j][dataColumns[i]],
-          `R${j},C${i}`,
+          rows[j][dataColumns[i]],
+          // `R${j},C${i}`,
           sum + fontPadding,
           (j + 1) * rowHeight - fontPadding
         );
@@ -5165,17 +5169,19 @@ function draw() {
     // i=0;
     posY = rowHeight*(Math.min(selectedRangeStart.row, selectedRangeEnd.row));
     rectHeight = (Math.abs(selectedRangeEnd.row - selectedRangeStart.row)+1)*rowHeight;
+    canvasContext.strokeStyle = "green"
+    canvasContext.lineWidth = 3;
 
     canvasContext.strokeRect(posX, posY, rectWidth, rectHeight);
     canvasContext.restore();
     dashOffset+=1;
     if(dashOffset>8){dashOffset=0;}
+    drawLoopId = window.requestAnimationFrame(() => {
+      draw();
+    });
   }
   // await new Promise(r => setTimeout(r, 100));
 
-  window.requestAnimationFrame(() => {
-    draw();
-  });
   // console.log("Finished painting");
   // console.log("Took : " + (new Date() - startTime));
 }
@@ -5196,9 +5202,9 @@ function drawHeader(){
     return prev + curr ;
   },0)
 
-  window.requestAnimationFrame(()=>{
-    drawHeader();
-  })
+  // window.requestAnimationFrame(()=>{
+  //   drawHeader();
+  // })
 }
 
 // canvasElement.width = dataColumns.length * columnWidth;
@@ -5251,7 +5257,7 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
   function pointerMoveColSizeHandler(eMove){
     if(colSizes[colIndex] + eMove.movementX >= 20){
       colSizes[colIndex] = colSizes[colIndex] + eMove.movementX;
-      // drawHeader();
+      drawHeader();
     }
   }
   function pointerUpHandler(eUp){
@@ -5260,8 +5266,8 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
     // if(colSizes[colIndex] + (xUp - e.offsetX) >= 20){
     // }
     fixCanvasSize();
-    // drawHeader();
-    // draw();
+    drawHeader();
+    draw();
     eUp.target.removeEventListener("pointerup",pointerUpHandler)
     eUp.target.removeEventListener("pointermove",pointerMoveColSizeHandler);
     // eUp.target.addEventListener("pointermove",headerPointerMove)
@@ -5271,8 +5277,8 @@ canvasHeaderElement.addEventListener("pointerdown",(e)=>{
   canvasHeaderElement.addEventListener("pointerup",pointerUpHandler);
   canvasHeaderElement.addEventListener("pointerleave", function pointerLeaveHandler(eL){
     fixCanvasSize();
-    // drawHeader();
-    // draw();
+    drawHeader();
+    draw();
     eL.target.removeEventListener("pointerup",pointerUpHandler);
     eL.target.removeEventListener("pointerleave",pointerLeaveHandler)
     console.log();
@@ -5323,3 +5329,46 @@ window.addEventListener("load",()=>{
   drawHeader();
   draw();
 })
+
+
+var searchInput = document.querySelector(".searchbar input")
+searchInput.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter"){
+    if(!e.target.value){
+      rows = rowsDummy;
+      fixCanvasSize();
+      drawHeader();
+      draw();
+    }
+    else{
+      searchInJson(e.target.value)
+    }
+  }
+})
+
+function searchInJson(str){
+  rows = rowsDummy.filter(r=>new String(JSON.stringify(Object.values(r))).includes(str))
+  fixCanvasSize();
+  drawHeader();
+  draw();
+}
+
+function drawBarGraph(){
+  let xCol=3;
+  let yCol=11;
+  let tempData = new Map();
+  console.log(rows)
+  for(let i=0;i<rows.length;i++){
+    // console.log(rows[i])
+    // console.log(Object.keys())
+    if(tempData.has(rows[i][dataColumns[xCol]])){
+      // console.log(tempData[rows[i][dataColumns[xCol]]])
+      tempData.set(rows[i][dataColumns[xCol]], tempData[rows[i][dataColumns[xCol]]] + rows[i][dataColumns[yCol]])
+    }
+    else{
+      tempData.set([rows[i][dataColumns[xCol]]], rows[i][dataColumns[yCol]])
+    }
+  }
+  console.log(tempData)
+
+}

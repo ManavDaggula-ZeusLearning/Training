@@ -7,6 +7,19 @@
     <title>Document</title>
 </head>
 <body>
+    <header>
+        <!-- <span>Excellish</span> -->
+        <div class="fileUploadDiv">
+            <form class="fileUploadForm" action="./../Canvas/canvas.html" method="post">
+              <label for="file">Upload a csv file here.</label>
+              <!-- <small>or drag and drop your file</small> -->
+              <input type="file" name="file" id="file" accept=".csv" />
+              <!-- <span></span> -->
+              <!-- <button>Upload</button> -->
+            </form>
+        </div>
+        <label class="searchbar"><input type="text">&#128269;</label>
+    </header>
     <div class="status-bar">
         <span class="min">Min: <span>N.A.</span></span>
         <span class="min">Avg: <span>N.A.</span></span>
@@ -26,6 +39,8 @@
         <canvas id="sheet" ></canvas>
         <input type="text" />
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="fileUpload.js"></script>
     <script src="canvas.js"></script>
 </body>
 </html>
