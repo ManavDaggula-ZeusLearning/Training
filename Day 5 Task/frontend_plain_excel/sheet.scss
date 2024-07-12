@@ -1,0 +1,61 @@
+.tableContainer{
+    display: grid;
+    grid-template-columns: 50px auto;
+    grid-template-rows: 30px auto;
+    // &>*{
+    //     outline: 1px solid blue;
+    // }
+    overflow: scroll;
+    // scrollbar-width: thin;
+    position: relative;
+    width: 500px;
+    height: 500px;
+    resize: both;
+}
+
+.headerRef{
+    display: block;
+    position: sticky;
+    top: 0px;
+    // left:30px;
+    // height: 30px;
+    // width: 100%;
+    background-color: rgb(188, 230, 105);
+    // outline: 1px solid blue;
+}
+.rowRef{
+    display: block;
+    position: sticky;
+    background-color: rgb(188, 230, 105);
+    left: 0px;
+    // top:30px;
+    // width: 30px;
+    // height: 100%;
+    // outline: 1px solid blue;
+}
+.tableDiv{
+    // outline: 1px solid blue;
+    // min-width: 10000px;
+    // min-height: 10000px;
+    background-color: rgb(230, 230, 105);
+    display: block;
+    // position: absolute;
+    // top: 30px;
+    // left: 30px;
+}
+.tableRef{
+    // outline: 1px solid red;
+    display: block;
+    // width: 100%;
+    // height: 100%;
+}
+.selectAllButton{
+    position: sticky;
+    left: 0px;
+    top: 0px;
+    height: 100%;
+    width: 100%;
+    background-color: grey;
+    z-index: 3;
+    // outline: 1px solid blue;
+}

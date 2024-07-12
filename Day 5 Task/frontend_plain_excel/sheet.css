@@ -1,0 +1,43 @@
+.tableContainer {
+  display: grid;
+  grid-template-columns: 50px auto;
+  grid-template-rows: 30px auto;
+  overflow: scroll;
+  position: relative;
+  width: 500px;
+  height: 500px;
+  resize: both;
+}
+
+.headerRef {
+  display: block;
+  position: sticky;
+  top: 0px;
+  background-color: rgb(188, 230, 105);
+}
+
+.rowRef {
+  display: block;
+  position: sticky;
+  background-color: rgb(188, 230, 105);
+  left: 0px;
+}
+
+.tableDiv {
+  background-color: rgb(230, 230, 105);
+  display: block;
+}
+
+.tableRef {
+  display: block;
+}
+
+.selectAllButton {
+  position: sticky;
+  left: 0px;
+  top: 0px;
+  height: 100%;
+  width: 100%;
+  background-color: grey;
+  z-index: 3;
+}/*# sourceMappingURL=sheet.css.map */
