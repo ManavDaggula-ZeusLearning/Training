@@ -1,10 +1,13 @@
+'use strict';
+
 let data = await fetch("./tempData.json")
 data = await data.json();
-console.log(data);
+// console.log(data);
 
 export class Sheet{
 
-    colSizes = [180, 120, 120, 120, 120, 174, 120, 120, 120, 120, 100, 100, 100, 100]
+    colSizes = Array(40).fill(100)
+    rowSizes = Array(100).fill(40)
     dataColumns = ["Email ID","Name","Country","State","City","Telephone number","Address line 1","Address line 2","Date of Birth","FY2019-20","FY2020-21","FY2021-22","FY2022-23","FY2023-24"];
     fontSize = 16;
     font = "Titillium Web";
@@ -67,39 +70,67 @@ export class Sheet{
         this.drawHeader();
         this.drawRowIndices();
         this.draw();
+
+        console.log(this)
+        this.containerDiv.addEventListener("scrollend", (e)=>{
+            this.checkIfReachedEndOfColumns();
+            this.checkIfReachedEndOfRows();
+        });
     }
 
     drawHeader() {
         this.headerContext.clearRect(0,0,this.headerRef.width,this.headerRef.height);
         this.colSizes.reduce((prev,curr,currIndex)=>{
-            this.headerContext.beginPath();
             this.headerContext.save();
-            this.headerContext.rect(prev, 0, curr, this.rowHeight);
+            this.headerContext.beginPath();
+            this.headerContext.rect(prev,0, curr, this.rowHeight);
+            this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.stroke();
             this.headerContext.clip();
             this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.headerContext.fillStyle = `${this.fontColor}`;
-            this.headerContext.fillText(this.dataColumns[currIndex].toUpperCase(),prev+this.fontPadding,this.rowHeight-this.fontPadding);
-            this.headerContext.stroke();
+            this.headerContext.fillText(Sheet.numToBase26ForHeader(currIndex), prev+this.fontPadding, this.rowHeight-this.fontPadding)
+            // this.headerContext.moveTo(prev+curr, 0);
+            // this.headerContext.lineTo(prev+curr, this.rowHeight);
             this.headerContext.restore();
-            return prev + curr ;
+            return prev+curr;
         },0)
     }
 
     drawRowIndices(){
         this.rowContext.clearRect(0,0,this.rowRef.width, this.rowRef.height)
-        data.reduce((prev,curr, currIndex)=>{
-            this.rowContext.beginPath();
+        this.rowSizes.reduce((prev,curr,currIndex)=>{
             this.rowContext.save();
-            this.rowContext.rect(0, prev, this.colWidth, this.rowHeight);
+            this.rowContext.beginPath();
+            this.rowContext.rect(0,prev, this.colWidth, curr);
+            this.rowContext.strokeStyle = this.columnGutterColor;
+            this.rowContext.stroke();
             this.rowContext.clip();
             this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.rowContext.fillStyle = `${this.fontColor}`;
             this.rowContext.textAlign = "right"
-            this.rowContext.fillText(currIndex+1, this.colWidth-this.fontPadding,prev+this.rowHeight-this.fontPadding)
-            this.rowContext.stroke();
+            this.rowContext.fillText(currIndex, this.colWidth-this.fontPadding, prev+curr-this.fontPadding)
+            // this.rowContext.moveTo(0,prev+curr);
+            // this.rowContext.lineTo(this.colWidth,prev+curr);
             this.rowContext.restore();
-            return prev+this.rowHeight;
+            return prev+curr;
         },0)
+    }
+
+    static numToBase26ForHeader(n){
+        let s = "";
+        do {
+          if(s.length>0){
+            // console.log(Math.floor((n-1)/26))
+            s = String.fromCharCode(65 + Math.floor((n-1)%26)) + s
+            n = Math.floor((n-1)/26)
+          }
+          else{
+            s = String.fromCharCode(65 + Math.floor(n%26)) + s
+            n = Math.floor(n/26)
+          }
+        } while (n > 0);
+        return s;
     }
 
     draw(){
@@ -116,43 +147,66 @@ export class Sheet{
             return prev + curr;
         },0)
 
-        for (let i = 0; i < data.length + 1; i++) {
+        this.rowSizes.reduce((prev,curr)=>{
             this.tableContext.beginPath();
             this.tableContext.save();
-            this.tableContext.moveTo(0, i * this.rowHeight);
-            this.tableContext.lineTo(this.tableRef.width, i * this.rowHeight);
+            this.tableContext.moveTo(0, prev + curr);
+            this.tableContext.lineTo(this.tableRef.width, prev + curr);
             this.tableContext.strokeStyle = this.columnGutterColor;
             this.tableContext.stroke();
             this.tableContext.restore();
-        }
+            return prev + curr;
+        },0)
 
-        for (let j = 0; j < data.length; j++) {
-            let sum = 0;
-            for (let i = 0; i < this.dataColumns.length; i++) {
-                this.tableContext.beginPath();
-                this.tableContext.save();
-                this.tableContext.rect(sum,(j) * this.rowHeight,this.colSizes[i],this.rowHeight);
-                this.tableContext.clip();
-                this.tableContext.font = `${this.fontSize}px ${this.font}`;
-                this.tableContext.fillStyle = `${this.fontColor}`;
-                this.tableContext.fillText(data[j][this.dataColumns[i]], sum+this.fontPadding, (j+1)*this.rowHeight-this.fontPadding)
-                this.tableContext.stroke();
-                this.tableContext.restore();
-                sum+=this.colSizes[i]
-            }
-        }
+        // for (let j = 0; j < data.length; j++) {
+        //     let sum = 0;
+        //     for (let i = 0; i < this.dataColumns.length; i++) {
+        //         this.tableContext.beginPath();
+        //         this.tableContext.save();
+        //         this.tableContext.rect(sum,(j) * this.rowHeight,this.colSizes[i],this.rowHeight);
+        //         this.tableContext.clip();
+        //         this.tableContext.font = `${this.fontSize}px ${this.font}`;
+        //         this.tableContext.fillStyle = `${this.fontColor}`;
+        //         this.tableContext.fillText(data[j][this.dataColumns[i]], sum+this.fontPadding, (j+1)*this.rowHeight-this.fontPadding)
+        //         // this.tableContext.stroke();
+        //         this.tableContext.restore();
+        //         sum+=this.colSizes[i]
+        //     }
+        // }
     }
 
 
     fixCanvasSize(){
         this.tableRef.width = this.colSizes.reduce((prev,curr)=>prev+curr,0);
-        this.tableRef.height = (data.length) * this.rowHeight;
+        this.tableRef.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0);
         
         this.headerRef.width = this.tableRef.width;
         this.headerRef.height = this.rowHeight
 
         this.rowRef.width = this.colWidth
         this.rowRef.height = this.tableRef.height
+    }
+
+    checkIfReachedEndOfColumns(e){
+        let status =  this.containerDiv.scrollWidth - this.containerDiv.clientWidth - this.containerDiv.scrollLeft > 50 ? false : true;
+        if(status){
+            this.colSizes = [...this.colSizes, ...Array(50).fill(100)]
+            this.fixCanvasSize();
+            this.draw();
+            this.drawHeader();
+            this.drawRowIndices();
+        }
+        // return status;
+    }
+    checkIfReachedEndOfRows(e){
+        let status = this.containerDiv.scrollHeight - this.containerDiv.clientHeight - this.containerDiv.scrollTop > 50 ? false : true;
+        if(status){
+            this.rowSizes = [...this.rowSizes, ...Array(50).fill(50)]
+            this.fixCanvasSize();
+            this.draw();
+            this.drawHeader();
+            this.drawRowIndices();
+        }
     }
 }
 
