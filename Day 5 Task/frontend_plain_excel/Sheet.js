@@ -1,14 +1,15 @@
 'use strict';
 
-let data = await fetch("./tempData.json")
-data = await data.json();
-// console.log(data);
+// let data = await fetch("./tempData.json")
+// data = await data.json();
+import {data} from "./tempData.js"
+console.log(data);
 
 export class Sheet{
 
     colSizes = Array(40).fill(100)
     rowSizes = Array(100).fill(40)
-    dataColumns = ["Email ID","Name","Country","State","City","Telephone number","Address line 1","Address line 2","Date of Birth","FY2019-20","FY2020-21","FY2021-22","FY2022-23","FY2023-24"];
+    // dataColumns = ["Email ID","Name","Country","State","City","Telephone number","Address line 1","Address line 2","Date of Birth","FY2019-20","FY2020-21","FY2021-22","FY2022-23","FY2023-24"];
     fontSize = 16;
     font = "Titillium Web";
     fontColor = "#222";
@@ -221,6 +222,7 @@ export class Sheet{
         // let rowCount = 0;
         // let colCount = 0
         for(let r = 0; r<this.rowSizes.length; r++){
+            // console.log(sumRowSizes-this.rowSizes[r]>this.tableDiv.scrollTop+this.tableDiv.clientHeight);
             if(sumRowSizes+this.rowSizes[r]>=this.tableDiv.scrollTop && sumRowSizes-this.rowSizes[r]<=this.tableDiv.scrollTop+this.tableDiv.clientHeight){
                 sumColSizes = 0;
                 // colCount=0;
@@ -232,7 +234,9 @@ export class Sheet{
                         this.tableContext.save();
                         this.tableContext.rect(sumColSizes, sumRowSizes, this.colSizes[c], this.rowSizes[r]);
                         this.tableContext.clip();
-                        this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+                        this.tableContext.font = `${this.fontSize}px ${this.font}`
+                        // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+                        this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
                         this.tableContext.stroke();
                         this.tableContext.restore();
                         // colCount++;
