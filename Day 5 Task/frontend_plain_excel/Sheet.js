@@ -29,6 +29,7 @@ export class Sheet{
         this.rowRef = document.createElement("canvas")
         this.tableRef = document.createElement("canvas")
         this.tableDiv = document.createElement("div")
+        this.sizeDiv = document.createElement("div")
         this.selectButton = document.createElement("div")
         this.headerContext = this.headerRef.getContext("2d")
         this.rowContext = this.rowRef.getContext("2d")
@@ -37,6 +38,7 @@ export class Sheet{
         this.headerRef.classList.add("headerRef")
         this.rowRef.classList.add("rowRef")
         this.tableRef.classList.add("tableRef")
+        this.sizeDiv.classList.add("sizeDiv")
         this.tableDiv.classList.add("tableDiv")
         this.selectButton.classList.add("selectAllButton")
 
@@ -62,7 +64,8 @@ export class Sheet{
         this.containerDiv.appendChild(this.selectButton)
         this.containerDiv.appendChild(this.headerRef)
         this.containerDiv.appendChild(this.rowRef)
-        this.tableDiv.appendChild(this.tableRef)
+        this.sizeDiv.appendChild(this.tableRef)
+        this.tableDiv.appendChild(this.sizeDiv)
         this.containerDiv.appendChild(this.tableDiv)
         divRef.appendChild(this.containerDiv)
 
@@ -71,15 +74,25 @@ export class Sheet{
         this.drawRowIndices();
         this.draw();
 
-        console.log(this)
-        this.containerDiv.addEventListener("scrollend", (e)=>{
+        // console.log(this)
+        this.tableDiv.addEventListener("scrollend", (e)=>{
             this.checkIfReachedEndOfColumns();
             this.checkIfReachedEndOfRows();
+            // this.draw();
         });
+
+        this.tableDiv.addEventListener("scroll",(e)=>{
+            this.drawHeader();
+            this.drawRowIndices();
+            // this.resizeBasedOnViewPort();
+            this.draw();
+        })
     }
 
     drawHeader() {
+        this.headerContext.setTransform(1, 0, 0, 1, 0, 0);
         this.headerContext.clearRect(0,0,this.headerRef.width,this.headerRef.height);
+        this.headerContext.translate(-this.tableDiv.scrollLeft, 0);
         this.colSizes.reduce((prev,curr,currIndex)=>{
             this.headerContext.save();
             this.headerContext.beginPath();
@@ -98,7 +111,9 @@ export class Sheet{
     }
 
     drawRowIndices(){
+        this.rowContext.setTransform(1, 0, 0, 1, 0, 0);
         this.rowContext.clearRect(0,0,this.rowRef.width, this.rowRef.height)
+        this.rowContext.translate(0,-this.tableDiv.scrollTop)
         this.rowSizes.reduce((prev,curr,currIndex)=>{
             this.rowContext.save();
             this.rowContext.beginPath();
@@ -133,14 +148,21 @@ export class Sheet{
         return s;
     }
 
-    draw(){
+    async draw(){
+        // console.log("redrawing...")
+        // this.tableContext.translate()
+        // console.log(this.tableContext)
+        this.tableContext.setTransform(1, 0, 0, 1, 0, 0);
+        // await new Promise(r=>setTimeout(r,1000))
         this.tableContext.clearRect(0, 0, this.tableRef.width, this.tableRef.height);
+        // await new Promise(r=>setTimeout(r,1000))
+        this.tableContext.translate(-this.tableDiv.scrollLeft, -this.tableDiv.scrollTop)
         
         this.colSizes.reduce((prev,curr)=>{
             this.tableContext.beginPath();
             this.tableContext.save();
-            this.tableContext.moveTo(prev + curr, 0);
-            this.tableContext.lineTo(prev + curr, this.tableRef.height);
+            this.tableContext.moveTo(prev + curr, this.tableDiv.scrollTop);
+            this.tableContext.lineTo(prev + curr, this.tableRef.height+this.tableDiv.scrollTop);
             this.tableContext.strokeStyle = this.columnGutterColor;
             this.tableContext.stroke();
             this.tableContext.restore();
@@ -150,8 +172,8 @@ export class Sheet{
         this.rowSizes.reduce((prev,curr)=>{
             this.tableContext.beginPath();
             this.tableContext.save();
-            this.tableContext.moveTo(0, prev + curr);
-            this.tableContext.lineTo(this.tableRef.width, prev + curr);
+            this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr);
+            this.tableContext.lineTo(this.tableRef.width + this.tableDiv.scrollLeft, prev + curr);
             this.tableContext.strokeStyle = this.columnGutterColor;
             this.tableContext.stroke();
             this.tableContext.restore();
@@ -177,18 +199,22 @@ export class Sheet{
 
 
     fixCanvasSize(){
-        this.tableRef.width = this.colSizes.reduce((prev,curr)=>prev+curr,0);
-        this.tableRef.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0);
+        // console.log(this.colSizes.reduce((prev,curr)=>prev+curr,0));
+        this.sizeDiv.style.width = this.colSizes.reduce((prev,curr)=>prev+curr,0) + "px";
+        this.sizeDiv.style.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0) + "px";
+        console.log(this.sizeDiv);
+        this.tableRef.width = this.tableDiv.parentElement.clientWidth - this.colWidth - 18
+        this.tableRef.height = this.tableDiv.parentElement.clientHeight - this.rowHeight - 18
         
-        this.headerRef.width = this.tableRef.width;
+        this.headerRef.width = this.tableRef.width + 18;
         this.headerRef.height = this.rowHeight
 
         this.rowRef.width = this.colWidth
-        this.rowRef.height = this.tableRef.height
+        this.rowRef.height = this.tableRef.height + 18
     }
 
     checkIfReachedEndOfColumns(e){
-        let status =  this.containerDiv.scrollWidth - this.containerDiv.clientWidth - this.containerDiv.scrollLeft > 50 ? false : true;
+        let status =  this.tableDiv.scrollWidth - this.tableDiv.clientWidth - this.tableDiv.scrollLeft > 50 ? false : true;
         if(status){
             this.colSizes = [...this.colSizes, ...Array(50).fill(100)]
             this.fixCanvasSize();
@@ -199,7 +225,7 @@ export class Sheet{
         // return status;
     }
     checkIfReachedEndOfRows(e){
-        let status = this.containerDiv.scrollHeight - this.containerDiv.clientHeight - this.containerDiv.scrollTop > 50 ? false : true;
+        let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
             this.rowSizes = [...this.rowSizes, ...Array(50).fill(50)]
             this.fixCanvasSize();
@@ -208,6 +234,13 @@ export class Sheet{
             this.drawRowIndices();
         }
     }
+
+    // resizeBasedOnViewPort(e){
+    //     console.log("resizing..")
+    //     this.fixCanvasSize();
+    //     this.drawHeader();
+    //     this.drawRowIndices();
+    // }
 }
 
 
