@@ -108,24 +108,43 @@ export class Sheet{
         this.headerContext.setTransform(1, 0, 0, 1, 0, 0);
         this.headerContext.clearRect(0,0,this.headerRef.width,this.headerRef.height);
         this.headerContext.translate(-this.tableDiv.scrollLeft, 0);
-        this.colSizes.reduce((prev,curr,currIndex)=>{
-            if(prev+curr >= this.tableDiv.scrollLeft && prev-curr<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth)){
+        // this.colSizes.reduce((prev,curr,currIndex)=>{
+        //     if(prev+curr >= this.tableDiv.scrollLeft && prev-curr<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth)){
+        //     this.headerContext.save();
+        //     this.headerContext.beginPath();
+        //     this.headerContext.rect(prev,0, curr, this.rowHeight);
+        //     this.headerContext.strokeStyle = this.columnGutterColor;
+        //     this.headerContext.stroke();
+        //     this.headerContext.clip();
+        //     this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
+        //     this.headerContext.fillStyle = `${this.fontColor}`;
+        //     this.headerContext.fillText(Sheet.numToBase26ForHeader(currIndex), prev+this.fontPadding, this.rowHeight-this.fontPadding)
+        //     // tempArr.push(curr)
+        //     // this.headerContext.moveTo(prev+curr, 0);
+        //     // this.headerContext.lineTo(prev+curr, this.rowHeight);
+        //     this.headerContext.restore();
+        //     }
+        //     return prev+curr;
+        // },0)
+        // let tempArr = [];
+        let {startPosCol, colIndex} = this.getCellClickIndex({offsetX:0, offsetY:0});
+        // console.log(colIndex)
+        for(let i=colIndex; startPosCol<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth); i++){
             this.headerContext.save();
             this.headerContext.beginPath();
-            this.headerContext.rect(prev,0, curr, this.rowHeight);
-            this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.rect(startPosCol,0, this.colSizes[i], this.rowHeight);
+            // this.headerContext.strokeStyle = this.columnGutterColor;
             this.headerContext.stroke();
             this.headerContext.clip();
             this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.headerContext.fillStyle = `${this.fontColor}`;
-            this.headerContext.fillText(Sheet.numToBase26ForHeader(currIndex), prev+this.fontPadding, this.rowHeight-this.fontPadding)
-            // tempArr.push(curr)
+            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.fontPadding, this.rowHeight-this.fontPadding)
+            // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
             // this.headerContext.lineTo(prev+curr, this.rowHeight);
             this.headerContext.restore();
-            }
-            return prev+curr;
-        },0)
+            startPosCol+=this.colSizes[i]
+        }
         // console.log("Columns drawn in header: "+tempArr.length);
     }
 
@@ -134,25 +153,42 @@ export class Sheet{
         this.rowContext.setTransform(1, 0, 0, 1, 0, 0);
         this.rowContext.clearRect(0,0,this.rowRef.width, this.rowRef.height)
         this.rowContext.translate(0,-this.tableDiv.scrollTop)
-        this.rowSizes.reduce((prev,curr,currIndex)=>{
-            if(prev+curr >= this.tableDiv.scrollTop && prev-curr<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight)){
+        // this.rowSizes.reduce((prev,curr,currIndex)=>{
+        //     if(prev+curr >= this.tableDiv.scrollTop && prev-curr<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight)){
+        //     this.rowContext.save();
+        //     this.rowContext.beginPath();
+        //     this.rowContext.rect(0,prev, this.colWidth, curr);
+        //     this.rowContext.strokeStyle = this.columnGutterColor;
+        //     this.rowContext.stroke();
+        //     this.rowContext.clip();
+        //     this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
+        //     this.rowContext.fillStyle = `${this.fontColor}`;
+        //     this.rowContext.textAlign = "right"
+        //     this.rowContext.fillText(currIndex, this.colWidth-this.fontPadding, prev+curr-this.fontPadding)
+        //     // tempArr.push(curr)
+        //     // this.rowContext.moveTo(0,prev+curr);
+        //     // this.rowContext.lineTo(this.colWidth,prev+curr);
+        //     this.rowContext.restore();
+        //     }
+        //     return prev+curr;
+        // },0)
+        let {startPosRow, rowIndex} = this.getCellClickIndex({offsetX:0, offsetY:0})
+        // console.log(startPosRow, rowIndex)
+        for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight); i++){
             this.rowContext.save();
             this.rowContext.beginPath();
-            this.rowContext.rect(0,prev, this.colWidth, curr);
-            this.rowContext.strokeStyle = this.columnGutterColor;
+            this.rowContext.rect(0,startPosRow, this.colWidth, this.rowSizes[i]);
+            // this.rowContext.strokeStyle = this.columnGutterColor;
             this.rowContext.stroke();
             this.rowContext.clip();
             this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.rowContext.fillStyle = `${this.fontColor}`;
             this.rowContext.textAlign = "right"
-            this.rowContext.fillText(currIndex, this.colWidth-this.fontPadding, prev+curr-this.fontPadding)
-            // tempArr.push(curr)
-            // this.rowContext.moveTo(0,prev+curr);
-            // this.rowContext.lineTo(this.colWidth,prev+curr);
+            this.rowContext.fillText(i, this.colWidth-this.fontPadding, startPosRow+this.rowSizes[i]-this.fontPadding)
+            // tempArr.push(i)
+            startPosRow+=this.rowSizes[i];
             this.rowContext.restore();
             }
-            return prev+curr;
-        },0)
         // console.log("Rows drawn in rows: "+tempArr.length);
     }
 
@@ -217,36 +253,57 @@ export class Sheet{
         //         sum+=this.colSizes[i]
         //     }
         // }
-        var sumRowSizes=0;
-        var sumColSizes=0;
+        // var sumRowSizes=0;
+        // var sumColSizes=0;
         // let rowCount = 0;
         // let colCount = 0
-        for(let r = 0; r<this.rowSizes.length; r++){
-            // console.log(sumRowSizes-this.rowSizes[r]>this.tableDiv.scrollTop+this.tableDiv.clientHeight);
-            if(sumRowSizes+this.rowSizes[r]>=this.tableDiv.scrollTop && sumRowSizes-this.rowSizes[r]<=this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                sumColSizes = 0;
-                // colCount=0;
-                for(let c=0; c<this.colSizes.length; c++){
-                    // console.log(sumColSizes);
-                    if(sumColSizes+this.colSizes[c]>=this.tableDiv.scrollLeft && sumColSizes-this.colSizes[c]<=this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                        // console.log("printing : ", c);
+        // for(let r = 0; r<this.rowSizes.length; r++){
+        //     // console.log(sumRowSizes-this.rowSizes[r]>this.tableDiv.scrollTop+this.tableDiv.clientHeight);
+        //     if(sumRowSizes+this.rowSizes[r]>=this.tableDiv.scrollTop && sumRowSizes-this.rowSizes[r]<=this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+        //         sumColSizes = 0;
+        //         // colCount=0;
+        //         for(let c=0; c<this.colSizes.length; c++){
+        //             // console.log(sumColSizes);
+        //             if(sumColSizes+this.colSizes[c]>=this.tableDiv.scrollLeft && sumColSizes-this.colSizes[c]<=this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+        //                 // console.log("printing : ", c);
+        //                 this.tableContext.beginPath();
+        //                 this.tableContext.save();
+        //                 this.tableContext.rect(sumColSizes, sumRowSizes, this.colSizes[c], this.rowSizes[r]);
+        //                 this.tableContext.clip();
+        //                 this.tableContext.font = `${this.fontSize}px ${this.font}`
+        //                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+        //                 this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+        //                 this.tableContext.stroke();
+        //                 this.tableContext.restore();
+        //                 // colCount++;
+        //             }
+        //             sumColSizes+=this.colSizes[c]
+        //         }
+        //         // rowCount++;
+        //     }
+        //     sumRowSizes+=this.rowSizes[r]
+        // }
+        let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex({offsetX:0, offsetY:0})
+        let sumColSizes;
+        for(let r=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight);r++){
+            // rowCount++;
+            sumColSizes=startPosCol;
+            for(let c=colIndex; sumColSizes<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth); c++){
                         this.tableContext.beginPath();
                         this.tableContext.save();
-                        this.tableContext.rect(sumColSizes, sumRowSizes, this.colSizes[c], this.rowSizes[r]);
+                        this.tableContext.rect(sumColSizes, startPosRow, this.colSizes[c], this.rowSizes[r]);
                         this.tableContext.clip();
                         this.tableContext.font = `${this.fontSize}px ${this.font}`
-                        // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
-                        this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+                        // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, startPosRow + this.rowSizes[r] - this.fontPadding)
+                        this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, startPosRow + this.rowSizes[r] - this.fontPadding)
                         this.tableContext.stroke();
                         this.tableContext.restore();
-                        // colCount++;
-                    }
-                    sumColSizes+=this.colSizes[c]
-                }
-                // rowCount++;
+                        sumColSizes+=this.colSizes[c]
+                        // console.log("drawing col")
             }
-            sumRowSizes+=this.rowSizes[r]
+            startPosRow+=this.rowSizes[r]
         }
+
         // console.log(`Rows drawn : ${rowCount}`)
         // console.log(`Cols drawn : ${colCount}`);
     }
