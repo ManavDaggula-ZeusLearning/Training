@@ -23,16 +23,41 @@
 }
 
 .tableDiv {
-  background-color: rgb(230, 230, 105);
   display: block;
   overflow: scroll;
   position: relative;
 }
+.tableDiv .sizeDiv .inputEditor {
+  position: absolute;
+  display: none;
+  padding: 0px;
+  box-sizing: border-box;
+  align-items: end;
+  border: 3px solid green;
+  background-color: white;
+  padding-bottom: 0px;
+  padding-left: 0px;
+}
+.tableDiv .sizeDiv .inputEditor input {
+  border: none;
+  box-sizing: border-box;
+  width: 100%;
+  font-size: 16px;
+  padding: 0px;
+  text-indent: 5px;
+  font-family: "Titillium Web";
+  background-color: transparent;
+}
+.tableDiv .sizeDiv .inputEditor input:focus, .tableDiv .sizeDiv .inputEditor input:focus-visible {
+  outline: none;
+}
+
 .tableRef {
   display: block;
   position: sticky;
   top: 0px;
   left: 0px;
+  cursor: cell;
 }
 
 .selectAllButton {

@@ -38,7 +38,7 @@
     // outline: 1px solid blue;
     // min-width: 10000px;
     // min-height: 10000px;
-    background-color: rgb(230, 230, 105);
+    // background-color: rgb(230, 230, 105);
     display: block;
     overflow: scroll;
     position: relative;
@@ -47,6 +47,31 @@
     // left: 30px;
     .sizeDiv{
         // position: relative;
+        .inputEditor{
+            position: absolute;
+            display: none;
+            padding: 0px;
+            box-sizing: border-box;
+            align-items: end;
+            border: 3px solid green;
+            background-color: white;
+            padding-bottom: 0px;
+            padding-left: 0px;
+            input{
+                border: none;
+                box-sizing: border-box;
+                width: 100%;
+                font-size: 16px;
+                padding: 0px;
+                text-indent: 5px;
+                font-family: 'Titillium Web';
+                // height: 100%;
+                background-color: transparent;
+                &:focus, &:focus-visible{
+                    outline: none;
+                }
+            }
+        }
     }
 }
 .tableRef{
@@ -55,6 +80,7 @@
     position: sticky;
     top: 0px;
     left: 0px;
+    cursor: cell;
     // width: 100%;
     // height: 100%;
 }

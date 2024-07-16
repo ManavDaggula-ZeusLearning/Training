@@ -25,10 +25,18 @@ export class Sheet{
     // rowDrawEnd = {position: 0, index:0}
     // colDrawStart = {position: 0, index:0}
     // colDrawEnd = {position: 0, index:0}
+    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedCell = null
+    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedRangeStart = null
+    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedRangeEnd = null
     
     // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
     constructor(divRef){
         // creating canvas elements and contexts
+        // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
+        this.data = data;
         this.containerDiv = document.createElement("div")
         this.headerRef = document.createElement("canvas")
         this.rowRef = document.createElement("canvas")
@@ -36,6 +44,8 @@ export class Sheet{
         this.tableDiv = document.createElement("div")
         this.sizeDiv = document.createElement("div")
         this.selectButton = document.createElement("div")
+        this.inputEditor = document.createElement("div");
+        this.inputEditor.innerHTML = "<input type='text'>"
         this.headerContext = this.headerRef.getContext("2d")
         this.rowContext = this.rowRef.getContext("2d")
         this.tableContext = this.tableRef.getContext("2d")
@@ -44,8 +54,10 @@ export class Sheet{
         this.rowRef.classList.add("rowRef")
         this.tableRef.classList.add("tableRef")
         this.sizeDiv.classList.add("sizeDiv")
+        this.inputEditor.classList.add("inputEditor")
         this.tableDiv.classList.add("tableDiv")
         this.selectButton.classList.add("selectAllButton")
+
 
         // this.headerRef.style.display = "block"
         // this.rowRef.style.display = "block"
@@ -70,6 +82,7 @@ export class Sheet{
         this.containerDiv.appendChild(this.headerRef)
         this.containerDiv.appendChild(this.rowRef)
         this.sizeDiv.appendChild(this.tableRef)
+        this.sizeDiv.appendChild(this.inputEditor)
         this.tableDiv.appendChild(this.sizeDiv)
         this.containerDiv.appendChild(this.tableDiv)
         divRef.appendChild(this.containerDiv)
@@ -92,14 +105,26 @@ export class Sheet{
             // this.resizeBasedOnViewPort();
             this.draw();
         })
-        this.tableDiv.addEventListener("click",(e)=>{
-            console.log(this.getCellClickIndex(e))
+        this.tableRef.addEventListener("dblclick",(e)=>{
+            // console.log(e);
+            // this.canvasPointerDown(e)
+            this.canvasDoubleClickHandler(e)
         })
         window.addEventListener("resize",()=>{
             this.fixCanvasSize();
             this.drawHeader();
             this.drawRowIndices();
             this.draw();
+        })
+        this.inputEditor.querySelector("input").addEventListener("keyup",(e)=>{
+            this.inputEditorKeyHandler(e)
+            
+        })
+        this.tableRef.addEventListener("pointerdown",(e)=>{
+            this.canvasPointerDown(e);
+        })
+        window.addEventListener("keydown",(e)=>{
+            this.canvasKeyHandler(e)
         })
     }
 
@@ -272,7 +297,7 @@ export class Sheet{
         //                 this.tableContext.clip();
         //                 this.tableContext.font = `${this.fontSize}px ${this.font}`
         //                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
-        //                 this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+        //                 this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
         //                 this.tableContext.stroke();
         //                 this.tableContext.restore();
         //                 // colCount++;
@@ -285,24 +310,74 @@ export class Sheet{
         // }
         let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex({offsetX:0, offsetY:0})
         let sumColSizes;
-        for(let r=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight);r++){
+        let sumRowsizes = startPosRow;
+        for(let r=rowIndex; sumRowsizes<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight);r++){
             // rowCount++;
             sumColSizes=startPosCol;
             for(let c=colIndex; sumColSizes<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth); c++){
                         this.tableContext.beginPath();
                         this.tableContext.save();
-                        this.tableContext.rect(sumColSizes, startPosRow, this.colSizes[c], this.rowSizes[r]);
+                        this.tableContext.rect(sumColSizes+0.5, sumRowsizes+0.5, this.colSizes[c]-1, this.rowSizes[r]-1);
                         this.tableContext.clip();
                         this.tableContext.font = `${this.fontSize}px ${this.font}`
-                        // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, startPosRow + this.rowSizes[r] - this.fontPadding)
-                        this.tableContext.fillText(!data[r] || !data[r][c] ? "" : data[r][c].text, sumColSizes+this.fontPadding, startPosRow + this.rowSizes[r] - this.fontPadding)
+                        // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                        this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                        // this.tableContext.lineWidth=1
+                        // if(this.selectedCell?.row==r && this.selectedCell?.col==c){
+                        //     this.tableContext.lineWidth = 3;
+                        //     this.tableContext.strokeStyle = "green";
+                        // }
+                        // else{
+                        //     this.tableContext.strokeStyle = this.columnGutterColor;
+                        // }
+                        if(this.selectedRangeStart && this.selectedRangeEnd && 
+                            c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) &&
+                            r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
+                        ){
+                            if(this.selectedCell && c==this.selectedCell.col && r==this.selectedCell.row){}
+                            else{
+                                this.tableContext.fillStyle = "#00800010"
+                                this.tableContext.fill();
+                            }
+                        }
+                        this.tableContext.strokeStyle = this.columnGutterColor;
                         this.tableContext.stroke();
                         this.tableContext.restore();
                         sumColSizes+=this.colSizes[c]
                         // console.log("drawing col")
             }
-            startPosRow+=this.rowSizes[r]
+
+            sumRowsizes+=this.rowSizes[r]
         }
+        if(this.selectedRangeStart && this.selectedRangeEnd){
+            // console.log(this.selectedRangeStart);
+            // console.log(this.selectedRangeEnd);
+            let rectStartX = Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)
+            let rectStartY = Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)
+            let rectWidth =  Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart) + this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)] - rectStartX
+            let rectHeight = Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart) + this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)] - rectStartY
+            // console.log(rectStartX, rectStartY, rectWidth, rectHeight);
+            this.tableContext.save();
+            this.tableContext.beginPath();
+            this.tableContext.strokeStyle = "#008000"
+            this.tableContext.lineWidth = 3
+            this.tableContext.fillStyle = "#00800010"
+            this.tableContext.rect(rectStartX+0.5, rectStartY+0.5, rectWidth-1, rectHeight-1)
+            this.tableContext.stroke();
+            // this.tableContext.fill();
+            this.tableContext.restore();
+        }
+        // if(this.selectedCell){
+        //     this.tableContext.save();
+        //     this.tableContext.beginPath();
+        //     this.tableContext.strokeStyle = "#008000"
+        //     this.tableContext.lineWidth = 3
+        //     this.tableContext.fillStyle = "#fff"
+        //     this.tableContext.rect(this.selectedCell.colStart+0.5, this.selectedCell.rowStart+0.5, this.colSizes[this.selectedCell.col]-1, this.rowSizes[this.selectedCell.row]-1)
+        //     // this.tableContext.stroke();
+        //     this.tableContext.fill();
+        //     this.tableContext.restore();
+        // }
 
         // console.log(`Rows drawn : ${rowCount}`)
         // console.log(`Cols drawn : ${colCount}`);
@@ -367,6 +442,141 @@ export class Sheet{
         }
 
         return {startPosRow: startPosRow, startPosCol: startPosCol, rowIndex: rowIndex, colIndex: colIndex}
+    }
+
+    canvasPointerDown(e){
+        let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(e);
+        this.selectedRangeStart = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
+        this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
+        this.selectedCell = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
+        this.inputEditor.style.display = "none"
+        this.draw();
+        // console.log(this.selectedRangeStart);
+        // if(this.selectedCell && rowIndexDown!=this.selectedCell.row && colIndexDown!=this.selectedCell.col){
+            //     this.tableContext.clearRect()
+            // }
+        let canvasPointerUp = (eUp)=>{
+            let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(eUp);
+            this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
+
+            // console.log(this.selectedRangeEnd);
+            this.tableRef.removeEventListener("pointermove", canvasPointerMove);
+            this.tableRef.removeEventListener("pointerup", canvasPointerUp);
+            this.draw();
+        }
+        let canvasPointerMove = (eMove)=>{
+            let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex(eMove);
+            if(this.selectedRangeEnd && (rowIndexMove!=this.selectedRangeEnd.row || colIndexMove!=this.selectedRangeEnd.col)){
+                this.selectedRangeEnd = {row: rowIndexMove, col: colIndexMove, rowStart: startPosRowMove, colStart: startPosColMove}
+                console.log(this.selectedRangeEnd);
+                this.draw();
+            }
+        }
+        // let pointerUp = canvasPointerUp
+        this.tableRef.addEventListener("pointerup", canvasPointerUp);
+        this.tableRef.addEventListener("pointermove",canvasPointerMove);
+
+        
+    }
+
+    canvasDoubleClickHandler(e){
+        this.selectedRangeStart = null;
+        this.selectedRangeEnd = null;
+        let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex(e);
+        this.selectedCell = {row:rowIndex, col:colIndex, rowStart:startPosRow, colStart: startPosCol}
+        // console.log(this.selectedCell);
+        this.inputEditor.style.display="grid";
+        this.inputEditor.style.left = (startPosCol-1) + "px"
+        this.inputEditor.style.top = (startPosRow-1) + "px"
+        this.inputEditor.style.width = (this.colSizes[colIndex]+2) + "px";
+        this.inputEditor.style.height = (this.rowSizes[rowIndex]+2)+"px"
+        let inputRef = this.inputEditor.querySelector("input")
+        inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
+        // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
+        inputRef.focus();
+        this.draw();
+    }
+
+    inputEditorKeyHandler(e){
+        if(e.key=="Enter"){
+            let tempCellData = {text: e.target.value}
+            // console.log(data[this.selectedCell.row]);
+            if(this.data[this.selectedCell.row]){
+                if(this.data[this.selectedCell.row][this.selectedCell.col]){
+                    this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+                }
+                else{
+                    this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+                }
+            }
+            else{
+                let tempRowData = {};
+                tempRowData[this.selectedCell.col] = tempCellData
+                this.data[this.selectedCell.row] = tempRowData
+            }
+            // data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+            // console.log(this.data);
+            this.inputEditor.style.display = "none"
+            // this.selectedCell = null;
+            // window.localStorage.setItem('data',JSON.stringify(this.data));
+        }
+        else if(e.key=="Escape"){
+            this.inputEditor.style.display = "none";
+        }
+        this.draw();
+    }
+
+    canvasKeyHandler(e){
+        // console.log(e);
+        if(e.key=="ArrowLeft" && this.selectedCell){
+            // this.selectedRangeEnd = null;
+            // this.selectedRangeStart = null;
+            if(this.selectedCell.col!=0){
+                this.selectedCell.col = this.selectedCell.col-1
+                this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
+                console.log(this.selectedCell);
+                this.selectedRangeStart = this.selectedCell
+                this.selectedRangeEnd = this.selectedCell
+                this.draw();
+            }
+        }
+        else if(e.key=="ArrowRight" && this.selectedCell){
+            // this.selectedRangeEnd = null;
+            // this.selectedRangeStart = null;
+            if(this.selectedCell.col!=0){
+                this.selectedCell.col = this.selectedCell.col-1
+                this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
+                console.log(this.selectedCell);
+                this.selectedRangeStart = this.selectedCell
+                this.selectedRangeEnd = this.selectedCell
+                this.draw();
+            }
+        }
+        else if(e.key=="ArrowTop" && this.selectedCell){
+            // this.selectedRangeEnd = null;
+            // this.selectedRangeStart = null;
+            if(this.selectedCell.col!=0){
+                this.selectedCell.col = this.selectedCell.col-1
+                this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
+                console.log(this.selectedCell);
+                this.selectedRangeStart = this.selectedCell
+                this.selectedRangeEnd = this.selectedCell
+                this.draw();
+            }
+        }
+        else if(e.key=="ArrowDown" && this.selectedCell){
+            console.log("going left")
+            // this.selectedRangeEnd = null;
+            // this.selectedRangeStart = null;
+            if(this.selectedCell.col!=0){
+                this.selectedCell.col = this.selectedCell.col-1
+                this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
+                console.log(this.selectedCell);
+                this.selectedRangeStart = this.selectedCell
+                this.selectedRangeEnd = this.selectedCell
+                this.draw();
+            }
+        }
     }
 
     // resizeBasedOnViewPort(e){
