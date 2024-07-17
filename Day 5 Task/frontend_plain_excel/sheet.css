@@ -12,11 +12,13 @@
   display: block;
   position: sticky;
   top: 0px;
+  background-color: #f5f5f5;
 }
 
 .rowRef {
   display: block;
   position: sticky;
+  background-color: #f5f5f5;
   left: 0px;
 }
 
@@ -31,7 +33,7 @@
   padding: 0px;
   box-sizing: border-box;
   align-items: end;
-  border: 3px solid green;
+  border: 3px solid #107c41;
   background-color: white;
 }
 .tableDiv .sizeDiv .inputEditor input {

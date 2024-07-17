@@ -20,7 +20,7 @@ export class Sheet{
     columnWidth = 100 ;
     rowHeight = 30
     colWidth = 50
-    columnGutterColor = "black"
+    columnGutterColor = "#cbd5d0"
     // rowDrawStart = {position: 0, index:0}
     // rowDrawEnd = {position: 0, index:0}
     // colDrawStart = {position: 0, index:0}
@@ -131,11 +131,17 @@ export class Sheet{
             this.canvasKeyHandler(e)
         })
         this.headerRef.addEventListener("pointermove",(e)=>{
-            this.colResizePointerMove(e)
+            this.colResizeCursorMove(e)
         })
         this.rowRef.addEventListener("pointermove",(e)=>{
             this.rowResizePointerMove(e);
         })
+        this.headerRef.addEventListener("pointerdown", (e)=>{
+            this.colResizePointerDown(e);
+        })
+        this.rowRef.addEventListener("pointerdown",(e)=>{
+            this.rowResizePointerDown(e);
+        })        
         
     }
 
@@ -179,7 +185,7 @@ export class Sheet{
                 this.headerContext.beginPath();
                 this.headerContext.moveTo(startPosCol, this.rowHeight-0.5);
                 this.headerContext.lineTo(startPosCol+this.colSizes[i], this.rowHeight-0.5)
-                this.headerContext.strokeStyle = "green"
+                this.headerContext.strokeStyle = "#107c41"
                 this.headerContext.lineWidth = 5;
                 this.headerContext.stroke();
             }
@@ -358,18 +364,19 @@ export class Sheet{
                 ){
                     if(this.selectedCell && c==this.selectedCell.col && r==this.selectedCell.row){}
                     else{
-                        this.tableContext.fillStyle = "#00800060"
+                        this.tableContext.fillStyle = "#e7f1ec"
                         this.tableContext.fill();
                     }
                 }
                 this.tableContext.lineWidth = 1.5
-                this.tableContext.strokeStyle = "#000f"
+                this.tableContext.strokeStyle = this.columnGutterColor
                 this.tableContext.stroke();
                 this.tableContext.font = `${this.fontSize}px ${this.font}`
                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
                 this.tableContext.fillStyle = "black"
                 this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
                 // await new Promise(r=>setTimeout(r,100))
+                // this.tableContext.closePath();
                 this.tableContext.restore();
                 sumColSizes+=this.colSizes[c]
                 // console.log("drawing col")
@@ -389,7 +396,7 @@ export class Sheet{
             this.tableContext.beginPath();
             this.tableContext.strokeStyle = "#008000"
             this.tableContext.lineWidth = 3
-            this.tableContext.rect(rectStartX+0.5, rectStartY+0.5, rectWidth-1, rectHeight-1)
+            this.tableContext.rect(rectStartX-1.5, rectStartY-1.5, rectWidth+2, rectHeight+2)
             this.tableContext.stroke();
             // this.tableContext.fill();
             this.tableContext.restore();
@@ -669,9 +676,11 @@ export class Sheet{
         }
     }
 
-    colResizePointerMove(e){
+    colResizeCursorMove(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
+        // console.log(firstCellInView);
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
+        // console.log(currPosX);
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
         for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
             if(Math.abs(currPosX-boundary)<=10){
@@ -694,6 +703,114 @@ export class Sheet{
             }
             e.target.style.cursor = "default";   
         }
+    }
+
+    /**
+     * 
+     * @param {MouseEvent} e 
+     */
+    colResizePointerDown(e){
+        let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
+        let currPosX = e.offsetX + this.tableDiv.scrollLeft
+        let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
+        let shouldResize = false;
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
+            if(Math.abs(currPosX-boundary)<=10){
+                e.target.style.cursor = "col-resize";
+                console.log(`near boundary of cell ${i}`);
+                shouldResize = true;
+                break;
+            }
+            e.target.style.cursor = "default";   
+        }
+        if(!shouldResize){return;}
+        
+        let minPosX = boundary-this.colSizes[i];
+        /**
+         * 
+         * @param {MouseEvent} eMove 
+         */
+        let colResizePointerMove = (eMove)=>{
+            if((this.colSizes[i] + eMove.movementX >= 0) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
+                if(i < this.selectedCell.col){
+                    this.selectedCell.colStart+=eMove.movementX;
+                    this.selectedRangeStart.colStart+=eMove.movementX;
+                }
+                if(i < this.selectedRangeEnd.col){
+                    this.selectedRangeEnd.colStart+=eMove.movementX;
+                }
+                this.colSizes[i] += (eMove.movementX)
+                this.drawHeader();
+                this.draw();
+            }
+        }
+        let colResizePointerUp = (eDown)=>{
+            console.log(eDown);
+            this.headerRef.removeEventListener("pointermove",colResizePointerMove);
+            this.headerRef.removeEventListener("pointerup",colResizePointerUp);    
+        }
+        let colResizePointerLeave = (eLeave) =>{
+            this.headerRef.removeEventListener("pointermove",colResizePointerMove);
+            this.headerRef.removeEventListener("pointerup",colResizePointerUp);
+            this.headerRef.removeEventListener("pointerleave",colResizePointerLeave);
+        }
+        this.headerRef.addEventListener("pointermove",colResizePointerMove);
+        this.headerRef.addEventListener("pointerup",colResizePointerUp);
+        this.headerRef.addEventListener("pointerleave",colResizePointerLeave);
+    }
+
+    /**
+     * 
+     * @param {MouseEvent} e 
+     */
+    rowResizePointerDown(e){
+        let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
+        let currPosY = e.offsetY + this.tableDiv.scrollTop
+        let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
+        let shouldResize = false;
+        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
+            if(Math.abs(currPosY-boundary)<=10){
+                e.target.style.cursor = "col-resize";
+                console.log(`near boundary of cell ${i}`);
+                shouldResize = true;
+                break;
+            }
+            e.target.style.cursor = "default";   
+        }
+        if(!shouldResize){return;}
+        
+        let minPosY = boundary-this.rowSizes[i];
+        /**
+         * 
+         * @param {MouseEvent} eMove 
+         */
+        let rowResizePointerMove = (eMove)=>{
+            if((eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
+                if(i < this.selectedCell.row){
+                    this.selectedCell.rowStart+=eMove.movementY;
+                    this.selectedRangeStart.rowStart+=eMove.movementY;
+                }
+                if(i < this.selectedRangeEnd.row){
+                    this.selectedRangeEnd.rowStart+=eMove.movementY;
+                }
+                this.rowSizes[i] += (eMove.movementY)
+                this.drawRowIndices();
+                this.draw();
+            }
+        }
+        let rowResizePointerUp = (eDown)=>{
+            console.log(eDown);
+            this.rowRef.removeEventListener("pointermove",rowResizePointerMove);
+            this.rowRef.removeEventListener("pointerup",rowResizePointerUp);    
+        }
+        let rowResizePointerLeave = (eLeave) =>{
+            this.rowRef.removeEventListener("pointermove",rowResizePointerMove);
+            this.rowRef.removeEventListener("pointerup",rowResizePointerUp);
+            this.rowRef.removeEventListener("pointerleave",rowResizePointerLeave);
+        }
+        this.rowRef.addEventListener("pointermove",rowResizePointerMove);
+        this.rowRef.addEventListener("pointerup",rowResizePointerUp);
+        this.rowRef.addEventListener("pointerleave",rowResizePointerLeave);
     }
 
     // resizeBasedOnViewPort(e){
