@@ -12,13 +12,11 @@
   display: block;
   position: sticky;
   top: 0px;
-  background-color: rgb(188, 230, 105);
 }
 
 .rowRef {
   display: block;
   position: sticky;
-  background-color: rgb(188, 230, 105);
   left: 0px;
 }
 
