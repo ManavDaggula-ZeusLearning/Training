@@ -9,7 +9,6 @@ export class Sheet{
 
     colSizes = Array(40).fill(100)
     rowSizes = Array(100).fill(40)
-    // dataColumns = ["Email ID","Name","Country","State","City","Telephone number","Address line 1","Address line 2","Date of Birth","FY2019-20","FY2020-21","FY2021-22","FY2022-23","FY2023-24"];
     fontSize = 16;
     font = "Titillium Web";
     fontColor = "#222";
@@ -21,22 +20,20 @@ export class Sheet{
     rowHeight = 30
     colWidth = 50
     columnGutterColor = "#cbd5d0"
-    // rowDrawStart = {position: 0, index:0}
-    // rowDrawEnd = {position: 0, index:0}
-    // colDrawStart = {position: 0, index:0}
-    // colDrawEnd = {position: 0, index:0}
     /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
     selectedCell = null
     /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
     selectedRangeStart = null
     /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
     selectedRangeEnd = null
+    lineDashOffset = null
+    drawLoopId = null;
     
     // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
     constructor(divRef){
         // creating canvas elements and contexts
-        this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        // this.data = data;
+        // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
+        this.data = data;
         this.containerDiv = document.createElement("div")
         this.headerRef = document.createElement("canvas")
         this.rowRef = document.createElement("canvas")
@@ -100,14 +97,14 @@ export class Sheet{
         this.tableDiv.addEventListener("scrollend", (e)=>{
             this.checkIfReachedEndOfColumns();
             this.checkIfReachedEndOfRows();
-            // this.draw();
+            // if(!this.drawLoopId) this.draw();
         });
 
         this.tableDiv.addEventListener("scroll",(e)=>{
             this.drawHeader();
             this.drawRowIndices();
             // this.resizeBasedOnViewPort();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
         })
         this.tableRef.addEventListener("dblclick",(e)=>{
             // console.log(e);
@@ -118,7 +115,7 @@ export class Sheet{
             this.fixCanvasSize();
             this.drawHeader();
             this.drawRowIndices();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
         })
         this.inputEditor.querySelector("input").addEventListener("keyup",(e)=>{
             this.inputEditorKeyHandler(e)
@@ -134,14 +131,17 @@ export class Sheet{
             this.colResizeCursorMove(e)
         })
         this.rowRef.addEventListener("pointermove",(e)=>{
-            this.rowResizePointerMove(e);
+            this.rowResizeCursorMove(e);
         })
         this.headerRef.addEventListener("pointerdown", (e)=>{
             this.colResizePointerDown(e);
         })
         this.rowRef.addEventListener("pointerdown",(e)=>{
             this.rowResizePointerDown(e);
-        })        
+        })
+        this.headerRef.addEventListener("dblclick",(e)=>{
+            this.colAutoResize(e)
+        })
         
     }
 
@@ -239,7 +239,7 @@ export class Sheet{
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
             this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
             this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
-            this.rowContext.strokeStyle = "green"
+            this.rowContext.strokeStyle = "#107c41"
             this.rowContext.lineWidth = 5;
             this.rowContext.stroke();
             startPosRow+=this.rowSizes[i];
@@ -353,7 +353,7 @@ export class Sheet{
                 // this.tableContext.lineWidth=1
                 // if(this.selectedCell?.row==r && this.selectedCell?.col==c){
                 //     this.tableContext.lineWidth = 3;
-                //     this.tableContext.strokeStyle = "green";
+                //     this.tableContext.strokeStyle = "#107c41";
                 // }
                 // else{
                 //     this.tableContext.strokeStyle = this.columnGutterColor;
@@ -394,9 +394,16 @@ export class Sheet{
             // console.log(rectStartX, rectStartY, rectWidth, rectHeight);
             this.tableContext.save();
             this.tableContext.beginPath();
-            this.tableContext.strokeStyle = "#008000"
+            this.tableContext.strokeStyle = "#107c41"
             this.tableContext.lineWidth = 3
             this.tableContext.rect(rectStartX-1.5, rectStartY-1.5, rectWidth+2, rectHeight+2)
+            if(this.lineDashOffset!=null){
+                this.tableContext.setLineDash([5,5])
+                this.tableContext.lineDashOffset = this.lineDashOffset;
+                this.lineDashOffset-=1;
+                if(this.lineDashOffset>12) this.lineDashOffset=0
+                this.drawLoopId = window.requestAnimationFrame(()=>this.draw())
+            }
             this.tableContext.stroke();
             // this.tableContext.fill();
             this.tableContext.restore();
@@ -404,7 +411,7 @@ export class Sheet{
         // if(this.selectedCell){
         //     this.tableContext.save();
         //     this.tableContext.beginPath();
-        //     this.tableContext.strokeStyle = "#008000"
+        //     this.tableContext.strokeStyle = "#107c41"
         //     this.tableContext.lineWidth = 3
         //     this.tableContext.fillStyle = "#fff"
         //     this.tableContext.rect(this.selectedCell.colStart+0.5, this.selectedCell.rowStart+0.5, this.colSizes[this.selectedCell.col]-1, this.rowSizes[this.selectedCell.row]-1)
@@ -438,7 +445,7 @@ export class Sheet{
         if(status){
             this.colSizes = [...this.colSizes, ...Array(50).fill(100)]
             this.fixCanvasSize();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
             this.drawHeader();
             this.drawRowIndices();
         }
@@ -449,7 +456,7 @@ export class Sheet{
         if(status){
             this.rowSizes = [...this.rowSizes, ...Array(50).fill(50)]
             this.fixCanvasSize();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
             this.drawHeader();
             this.drawRowIndices();
         }
@@ -457,7 +464,7 @@ export class Sheet{
 
     /**
      * 
-     * @param {MouseEvent} e 
+     * @param {PointerEvent} e 
      */
     getCellClickIndex(e){
         // console.log(e.offsetX, e.offsetY);
@@ -479,20 +486,25 @@ export class Sheet{
     }
 
     canvasPointerDown(e){
+        this.lineDashOffset = null;
+        if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
+        this.drawLoopId = null
         let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(e);
         if(e.shiftKey){
             if(this.selectedRangeStart){
                 this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown};
-                this.draw();
+                if(!this.drawLoopId) this.draw();
                 return;
             }
         }
-        console.log("not shifted")
+        // console.log("not shifted")
         this.selectedRangeStart = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
         this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
         this.selectedCell = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
         this.inputEditor.style.display = "none"
-        this.draw();
+        this.drawHeader();
+        this.drawRowIndices();
+        if(!this.drawLoopId) this.draw();
         // console.log(this.selectedRangeStart);
         // if(this.selectedCell && rowIndexDown!=this.selectedCell.row && colIndexDown!=this.selectedCell.col){
             //     this.tableContext.clearRect()
@@ -506,16 +518,19 @@ export class Sheet{
             this.tableRef.removeEventListener("pointerup", canvasPointerUp);
             this.drawRowIndices();
             this.drawHeader();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
         }
         let canvasPointerMove = (eMove)=>{
             let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex(eMove);
             if(this.selectedRangeEnd && (rowIndexMove!=this.selectedRangeEnd.row || colIndexMove!=this.selectedRangeEnd.col)){
                 this.selectedRangeEnd = {row: rowIndexMove, col: colIndexMove, rowStart: startPosRowMove, colStart: startPosColMove}
+                if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+                    this.tableDiv.scrollBy(this.colSizes[this.selectedRangeEnd.col],0)
+                }
                 // console.log(this.selectedRangeEnd);
                 this.drawHeader();
                 this.drawRowIndices();
-                this.draw();
+                if(!this.drawLoopId) this.draw();
             }
         }
         let canvasPointerLeave = (eLeave)=>{
@@ -533,21 +548,23 @@ export class Sheet{
     }
 
     canvasDoubleClickHandler(e){
-        this.selectedRangeStart = null;
-        this.selectedRangeEnd = null;
+        // this.selectedRangeStart = null;
+        // this.selectedRangeEnd = null;
         let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex(e);
         this.selectedCell = {row:rowIndex, col:colIndex, rowStart:startPosRow, colStart: startPosCol}
+        this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+        this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
         // console.log(this.selectedCell);
         this.inputEditor.style.display="grid";
-        this.inputEditor.style.left = (startPosCol-1) + "px"
-        this.inputEditor.style.top = (startPosRow-1) + "px"
-        this.inputEditor.style.width = (this.colSizes[colIndex]+2) + "px";
-        this.inputEditor.style.height = (this.rowSizes[rowIndex]+2)+"px"
+        this.inputEditor.style.left = (startPosCol) + "px"
+        this.inputEditor.style.top = (startPosRow) + "px"
+        this.inputEditor.style.width = (this.colSizes[colIndex]-1) + "px";
+        this.inputEditor.style.height = (this.rowSizes[rowIndex]-1)+"px"
         let inputRef = this.inputEditor.querySelector("input")
         inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
         // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
         inputRef.focus();
-        this.draw();
+        if(!this.drawLoopId) this.draw();
     }
 
     inputEditorKeyHandler(e){
@@ -576,7 +593,7 @@ export class Sheet{
         else if(e.key=="Escape"){
             this.inputEditor.style.display = "none";
         }
-        this.draw();
+        if(!this.drawLoopId) this.draw();
     }
 
     canvasKeyHandler(e){
@@ -603,7 +620,7 @@ export class Sheet{
             }
             this.drawHeader();
             this.drawRowIndices();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
             e.preventDefault();
         }
         else if(e.key=="ArrowRight" && this.selectedCell){
@@ -626,7 +643,7 @@ export class Sheet{
             e.preventDefault();
             this.drawHeader();
             this.drawRowIndices();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
         }
         else if(e.key=="ArrowUp" && this.selectedCell){
             if(this.selectedCell.row==0){return;}
@@ -650,7 +667,7 @@ export class Sheet{
             e.preventDefault();
             this.drawHeader();
             this.drawRowIndices();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
         }
         else if(e.key=="ArrowDown" && this.selectedCell){
             if(e.shiftKey){
@@ -672,11 +689,26 @@ export class Sheet{
             e.preventDefault();
             this.drawHeader();
             this.drawRowIndices();
-            this.draw();
+            if(!this.drawLoopId) this.draw();
+        }
+        else if(e.key==="c" && e.ctrlKey){
+            this.lineDashOffset = 0;
+            this.copyRangeToClipboard();
+            if(!this.drawLoopId) this.draw();
+        }
+        else if(e.key==="Escape"){
+            this.lineDashOffset = null;
+            // if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId);
+            this.drawLoopId = null;
         }
     }
 
+    /**
+     * 
+     * @param {PointerEvent} e 
+     */
     colResizeCursorMove(e){
+
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         // console.log(firstCellInView);
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
@@ -685,13 +717,13 @@ export class Sheet{
         for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
             if(Math.abs(currPosX-boundary)<=10){
                 e.target.style.cursor = "col-resize";
-                console.log(`near boundary of cell ${i}`);
+                // console.log(`near boundary of cell ${i}`);
                 break;
             }
             e.target.style.cursor = "default";   
         }
     }
-    rowResizePointerMove(e){
+    rowResizeCursorMove(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
@@ -707,7 +739,7 @@ export class Sheet{
 
     /**
      * 
-     * @param {MouseEvent} e 
+     * @param {PointerEvent} e 
      */
     colResizePointerDown(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
@@ -717,7 +749,7 @@ export class Sheet{
         for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
             if(Math.abs(currPosX-boundary)<=10){
                 e.target.style.cursor = "col-resize";
-                console.log(`near boundary of cell ${i}`);
+                // console.log(`near boundary of cell ${i}`);
                 shouldResize = true;
                 break;
             }
@@ -728,10 +760,10 @@ export class Sheet{
         let minPosX = boundary-this.colSizes[i];
         /**
          * 
-         * @param {MouseEvent} eMove 
+         * @param {PointerEvent} eMove 
          */
         let colResizePointerMove = (eMove)=>{
-            if((this.colSizes[i] + eMove.movementX >= 0) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
+            if((this.colSizes[i] + eMove.movementX >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
                 if(i < this.selectedCell.col){
                     this.selectedCell.colStart+=eMove.movementX;
                     this.selectedRangeStart.colStart+=eMove.movementX;
@@ -741,27 +773,27 @@ export class Sheet{
                 }
                 this.colSizes[i] += (eMove.movementX)
                 this.drawHeader();
-                this.draw();
+                if(!this.drawLoopId) this.draw();
             }
         }
         let colResizePointerUp = (eDown)=>{
-            console.log(eDown);
-            this.headerRef.removeEventListener("pointermove",colResizePointerMove);
-            this.headerRef.removeEventListener("pointerup",colResizePointerUp);    
+            // console.log(eDown);
+            window.removeEventListener("pointermove",colResizePointerMove);
+            window.removeEventListener("pointerup",colResizePointerUp);    
         }
         let colResizePointerLeave = (eLeave) =>{
-            this.headerRef.removeEventListener("pointermove",colResizePointerMove);
-            this.headerRef.removeEventListener("pointerup",colResizePointerUp);
-            this.headerRef.removeEventListener("pointerleave",colResizePointerLeave);
+            window.removeEventListener("pointermove",colResizePointerMove);
+            window.removeEventListener("pointerup",colResizePointerUp);
+            window.removeEventListener("pointerleave",colResizePointerLeave);
         }
-        this.headerRef.addEventListener("pointermove",colResizePointerMove);
-        this.headerRef.addEventListener("pointerup",colResizePointerUp);
-        this.headerRef.addEventListener("pointerleave",colResizePointerLeave);
+        window.addEventListener("pointermove",colResizePointerMove);
+        window.addEventListener("pointerup",colResizePointerUp);
+        window.addEventListener("pointerleave",colResizePointerLeave);
     }
 
     /**
      * 
-     * @param {MouseEvent} e 
+     * @param {PointerEvent} e 
      */
     rowResizePointerDown(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
@@ -771,7 +803,6 @@ export class Sheet{
         for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
             if(Math.abs(currPosY-boundary)<=10){
                 e.target.style.cursor = "col-resize";
-                console.log(`near boundary of cell ${i}`);
                 shouldResize = true;
                 break;
             }
@@ -781,11 +812,10 @@ export class Sheet{
         
         let minPosY = boundary-this.rowSizes[i];
         /**
-         * 
-         * @param {MouseEvent} eMove 
+         * @param {PointerEvent} eMove 
          */
         let rowResizePointerMove = (eMove)=>{
-            if((eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
+            if((this.rowSizes[i] + eMove.movementY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
                 if(i < this.selectedCell.row){
                     this.selectedCell.rowStart+=eMove.movementY;
                     this.selectedRangeStart.rowStart+=eMove.movementY;
@@ -795,22 +825,87 @@ export class Sheet{
                 }
                 this.rowSizes[i] += (eMove.movementY)
                 this.drawRowIndices();
-                this.draw();
+                if(!this.drawLoopId) this.draw();
             }
         }
         let rowResizePointerUp = (eDown)=>{
-            console.log(eDown);
-            this.rowRef.removeEventListener("pointermove",rowResizePointerMove);
-            this.rowRef.removeEventListener("pointerup",rowResizePointerUp);    
+            // console.log(eDown);
+            window.removeEventListener("pointermove",rowResizePointerMove);
+            window.removeEventListener("pointerup",rowResizePointerUp);    
         }
         let rowResizePointerLeave = (eLeave) =>{
-            this.rowRef.removeEventListener("pointermove",rowResizePointerMove);
-            this.rowRef.removeEventListener("pointerup",rowResizePointerUp);
-            this.rowRef.removeEventListener("pointerleave",rowResizePointerLeave);
+            window.removeEventListener("pointermove",rowResizePointerMove);
+            window.removeEventListener("pointerup",rowResizePointerUp);
+            window.removeEventListener("pointerleave",rowResizePointerLeave);
         }
-        this.rowRef.addEventListener("pointermove",rowResizePointerMove);
-        this.rowRef.addEventListener("pointerup",rowResizePointerUp);
-        this.rowRef.addEventListener("pointerleave",rowResizePointerLeave);
+        window.addEventListener("pointermove",rowResizePointerMove);
+        window.addEventListener("pointerup",rowResizePointerUp);
+        window.addEventListener("pointerleave",rowResizePointerLeave);
+    }
+
+    copyRangeToClipboard(){
+        let text = "";
+        for(let i=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row); i++){
+            for(var j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col); j++){
+                    text += (this.data[i] && this.data[i][j] ? this.data[i][j].text+"," : "")
+                }
+                if(this.data[i] && this.data[i][j]) {text+= this.data[i][j].text}
+                text+="\n"
+        }
+        // console.log(text);
+        navigator.clipboard.writeText(text.trim())
+    }
+
+    calculateAggregates(){
+        let arr=[];
+        if(this.selectedRangeStart.col != this.selectedRangeEnd.col){return [null,null,null];}
+        let start = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
+        let end = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row);
+        for(let i=start; i<=end;i++){
+            if(this.data[i] && this.data[i][this.selectedRangeStart.col] && !isNaN(Number(this.data[i][this.selectedRangeStart.col].text))){
+                arr.push(Number(this.data[i][this.selectedRangeStart.col].text))
+            }
+        }
+        let min = Math.min(...arr)
+        let max = Math.max(...arr)
+        let mean = arr.reduce((a,b)=>a+b,0)/arr.length
+        return [min==Infinity ? 0 : min,isNaN(mean) ? 0 : mean,max==-Infinity ? 0 : max];
+    }
+
+    colAutoResize(e){
+        let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
+        let currPosX = e.offsetX + this.tableDiv.scrollLeft
+        let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
+        let shouldResize = false;
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
+            if(Math.abs(currPosX-boundary)<=10){
+                e.target.style.cursor = "col-resize";
+                // console.log(`near boundary of cell ${i}`);
+                shouldResize = true;
+                break;
+            }
+            e.target.style.cursor = "default";   
+        }
+        if(!shouldResize){return;}
+        this.tableContext.save();
+        this.tableContext.font = `${this.fontSize}px ${this.font}`
+        console.log(`lets resize ${i}`);
+        let temp = Object.keys(this.data)
+                    .filter(x=>this.data[x][i])
+                    .map(x=> Math.ceil(this.tableContext.measureText(this.data[x][i].text).width) )
+        this.tableContext.restore();
+        if(temp.length==0){return}
+        let oldColSize = this.colSizes[i]
+        this.colSizes[i] = Math.max(...temp) + 2*this.fontPadding
+        if(i < this.selectedCell.col){
+            this.selectedCell.colStart+=(this.colSizes[i]-oldColSize);
+            this.selectedRangeStart.colStart+=(this.colSizes[i]-oldColSize);
+        }
+        if(i < this.selectedRangeEnd.col){
+            this.selectedRangeEnd.colStart+=(this.colSizes[i]-oldColSize);
+        }
+        if(!this.drawLoopId) this.draw()
+        this.drawHeader();
     }
 
     // resizeBasedOnViewPort(e){
