@@ -937,7 +937,7 @@ export class Sheet{
         this.tableContext.font = `${this.fontSize}px ${this.font}`
         console.log(`lets resize ${i}`);
         let temp = Object.keys(this.data)
-                    .filter(x=>this.data[x][i])
+                    .filter(x=>this.data[x][i] && !this.data[x][i].textWrap)
                     .map(x=>Math.ceil(this.tableContext.measureText(this.data[x][i].text).width))
         this.tableContext.restore();
         if(temp.length==0){return}
@@ -955,11 +955,11 @@ export class Sheet{
     }
 
     wrapText(textContent){
-        // if(!this.data[this.selectedCell.row][this.selectedCell.col].textWrap){
-        //     console.log("no need to wrap");    
-        //     return;
-        // }
-        this.data[this.selectedCell.row][this.selectedCell.col]["textWrap"] = true
+        if(!this.data[this.selectedCell.row][this.selectedCell.col].textWrap){
+            console.log("no need to wrap");    
+            return;
+        }
+        // this.data[this.selectedCell.row][this.selectedCell.col]["textWrap"] = true
         let w=2*this.fontPadding, s1="";
         this.tableContext.save();
         this.tableContext.font = `${this.fontSize}px ${this.font}`
