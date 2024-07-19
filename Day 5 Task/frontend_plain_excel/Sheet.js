@@ -3,7 +3,7 @@
 // let data = await fetch("./tempData.json")
 // data = await data.json();
 import {data} from "./tempData.js"
-console.log(data);
+// console.log(data);
 
 export class Sheet{
 
@@ -32,8 +32,10 @@ export class Sheet{
     // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
     constructor(divRef){
         // creating canvas elements and contexts
-        // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        this.data = data;
+        this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
+        // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(40).fill(100);
+        // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
+        // this.data = data;
         this.containerDiv = document.createElement("div")
         this.headerRef = document.createElement("canvas")
         this.rowRef = document.createElement("canvas")
@@ -142,7 +144,7 @@ export class Sheet{
         this.headerRef.addEventListener("dblclick",(e)=>{
             this.colAutoResize(e)
         })
-        
+        this.find("dummy")
     }
 
     drawHeader() {
@@ -374,7 +376,22 @@ export class Sheet{
                 this.tableContext.font = `${this.fontSize}px ${this.font}`
                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
                 this.tableContext.fillStyle = "black"
-                this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                if(this.data[r] && this.data[r][c]){
+                    if(this.data[r][c].textWrap){
+                        this.tableContext.textBaseline = "bottom"
+                        let base = this.fontPadding;
+                        let textPartitions = this.data[r][c].text.split("\n").reverse()
+
+                        for(let partitionText of textPartitions){
+                            this.tableContext.fillText(partitionText, sumColSizes+this.fontPadding, sumRowsizes+this.rowSizes[r]-base)
+                            base+=this.fontSize
+                        }
+                    }
+                    else{
+                        this.tableContext.fillText(this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                    }
+                }
+                // this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.fontPadding)
                 // await new Promise(r=>setTimeout(r,100))
                 // this.tableContext.closePath();
                 this.tableContext.restore();
@@ -567,6 +584,10 @@ export class Sheet{
         if(!this.drawLoopId) this.draw();
     }
 
+    /**
+     * 
+     * @param {KeyboardEvent} e 
+     */
     inputEditorKeyHandler(e){
         if(e.key=="Enter"){
             let tempCellData = {text: e.target.value}
@@ -587,6 +608,7 @@ export class Sheet{
             // data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
             // console.log(this.data);
             this.inputEditor.style.display = "none"
+            this.wrapText(e.target.value)
             // this.selectedCell = null;
             window.localStorage.setItem('data',JSON.stringify(this.data));
         }
@@ -596,9 +618,13 @@ export class Sheet{
         if(!this.drawLoopId) this.draw();
     }
 
+    /**
+    * @param {KeyboardEvent} e 
+    */
     canvasKeyHandler(e){
         if(e.target===this.inputEditor.querySelector("input")){return;}
         if(e.key=="ArrowLeft" && this.selectedCell){
+            this.lineDashOffset = null;
             if(this.selectedCell.col==0){return;}
             if(e.shiftKey){
                 if(this.selectedRangeEnd.col==0){return;}
@@ -624,6 +650,7 @@ export class Sheet{
             e.preventDefault();
         }
         else if(e.key=="ArrowRight" && this.selectedCell){
+            this.lineDashOffset = null;
             if(e.shiftKey){
                 this.selectedRangeEnd.colStart = this.selectedRangeEnd.colStart + this.colSizes[this.selectedRangeEnd.col]
                 this.selectedRangeEnd.col = this.selectedRangeEnd.col+1;
@@ -646,6 +673,7 @@ export class Sheet{
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key=="ArrowUp" && this.selectedCell){
+            this.lineDashOffset = null;
             if(this.selectedCell.row==0){return;}
             if(e.shiftKey){
                 if(this.selectedRangeEnd.row==0){return;}
@@ -670,6 +698,7 @@ export class Sheet{
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key=="ArrowDown" && this.selectedCell){
+            this.lineDashOffset = null;
             if(e.shiftKey){
                 this.selectedRangeEnd.rowStart = this.selectedRangeEnd.rowStart + this.rowSizes[this.selectedRangeEnd.row]
                 this.selectedRangeEnd.row = this.selectedRangeEnd.row+1;
@@ -700,6 +729,19 @@ export class Sheet{
             this.lineDashOffset = null;
             // if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId);
             this.drawLoopId = null;
+        }
+        else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase())){
+            this.lineDashOffset = null;
+        // else if(e.keyCode>=48 && e.keyCode<=90){
+            // if user types directly
+            this.inputEditor.style.display="grid";
+            this.inputEditor.style.left = (this.selectedCell.colStart) + "px"
+            this.inputEditor.style.top = (this.selectedCell.rowStart) + "px"
+            this.inputEditor.style.width = (this.colSizes[this.selectedCell.col]-1) + "px";
+            this.inputEditor.style.height = (this.rowSizes[this.selectedCell.row]-1)+"px"
+            let inputRef = this.inputEditor.querySelector("input")
+            // inputRef.value = e.key;
+            inputRef.focus();
         }
     }
 
@@ -776,12 +818,14 @@ export class Sheet{
                 if(!this.drawLoopId) this.draw();
             }
         }
-        let colResizePointerUp = (eDown)=>{
-            // console.log(eDown);
+        let colResizePointerUp = (eUp)=>{
+            // console.log(eUp);
+            window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);    
         }
         let colResizePointerLeave = (eLeave) =>{
+            window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);
             window.removeEventListener("pointerleave",colResizePointerLeave);
@@ -830,10 +874,12 @@ export class Sheet{
         }
         let rowResizePointerUp = (eDown)=>{
             // console.log(eDown);
+            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
             window.removeEventListener("pointerup",rowResizePointerUp);    
         }
         let rowResizePointerLeave = (eLeave) =>{
+            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
             window.removeEventListener("pointerup",rowResizePointerUp);
             window.removeEventListener("pointerleave",rowResizePointerLeave);
@@ -892,7 +938,7 @@ export class Sheet{
         console.log(`lets resize ${i}`);
         let temp = Object.keys(this.data)
                     .filter(x=>this.data[x][i])
-                    .map(x=> Math.ceil(this.tableContext.measureText(this.data[x][i].text).width) )
+                    .map(x=>Math.ceil(this.tableContext.measureText(this.data[x][i].text).width))
         this.tableContext.restore();
         if(temp.length==0){return}
         let oldColSize = this.colSizes[i]
@@ -906,6 +952,65 @@ export class Sheet{
         }
         if(!this.drawLoopId) this.draw()
         this.drawHeader();
+    }
+
+    wrapText(textContent){
+        // if(!this.data[this.selectedCell.row][this.selectedCell.col].textWrap){
+        //     console.log("no need to wrap");    
+        //     return;
+        // }
+        this.data[this.selectedCell.row][this.selectedCell.col]["textWrap"] = true
+        let w=2*this.fontPadding, s1="";
+        this.tableContext.save();
+        this.tableContext.font = `${this.fontSize}px ${this.font}`
+        for(let x of textContent){
+            w+=this.tableContext.measureText(x).width
+            if(w > this.colSizes[this.selectedCell.col]-this.fontPadding){
+                console.log(s1)
+                s1+="\n";
+                console.log(w)
+                w=2*this.fontPadding;
+            }
+            s1+=x;
+        }
+        this.tableContext.restore();
+        this.data[this.selectedCell.row][this.selectedCell.col].text = s1
+        let lineCount = s1.split("\n").length;
+        this.rowSizes[this.selectedCell.row] = Math.max(this.rowSizes[this.selectedCell.row], lineCount*this.fontSize + 2*this.fontPadding)
+        window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+        this.drawRowIndices();
+    }
+
+    // find(textContent){
+    //     console.clear();
+    //     let start = new Date();
+    //     let arrOfRows = Object.entries(this.data)
+    //     .map(x=>[x[0],Object.entries(x[1])]);
+    //     console.log(arrOfRows);
+    //     let ans = arrOfRows.map(x=>{
+    //         let tempArr = x[1].filter(y=>JSON.stringify(y[1]).replaceAll("\\n","").includes(textContent));
+    //         // console.log(tempArr.map(x=>x[0]));
+    //         return [x[0],tempArr.map(x=>x[0])]
+    //     })
+    //     .filter(x=>x[1].length)
+    //     console.log(ans);
+    //     // console.log("delay: ",new Date()-start);
+        
+    // }
+    find(textContent){
+        console.clear();
+        let arr = [];
+        for(let r of Object.keys(this.data)){
+            // console.log(r);
+            for(let c of Object.keys(this.data[r])){
+                // console.log(r,c);
+                if(JSON.stringify(this.data[r][c].text).replaceAll("\\n","").includes(textContent)){
+                    arr.push([r,c])
+                }
+            }
+        }
+        console.log(arr);
+        return arr;
     }
 
     // resizeBasedOnViewPort(e){

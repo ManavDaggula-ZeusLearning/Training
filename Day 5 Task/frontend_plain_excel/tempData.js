@@ -4773,7 +4773,8 @@ export let data =
 {
     0:{
         0:{
-            text:"Hi"
+            text:"Hi",
+            textWrap:true
         }, 
         1:{
             text: "Bye"
