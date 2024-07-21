@@ -896,7 +896,7 @@ export class Sheet{
                     text += (this.data[i] && this.data[i][j] ? this.data[i][j].text+"," : "")
                 }
                 if(this.data[i] && this.data[i][j]) {text+= this.data[i][j].text}
-                text+="\n"
+                if(this.data[i]) text+="\n"
         }
         // console.log(text);
         navigator.clipboard.writeText(text.trim())
