@@ -379,7 +379,7 @@ export class Sheet{
                 if(this.data[r] && this.data[r][c]){
                     if(this.data[r][c].textWrap){
                         this.tableContext.textBaseline = "bottom"
-                        let base = this.fontPadding;
+                        let base = this.fontPadding/2;
                         let textPartitions = this.data[r][c].text.split("\n").reverse()
 
                         for(let partitionText of textPartitions){
@@ -511,6 +511,8 @@ export class Sheet{
             if(this.selectedRangeStart){
                 this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown};
                 if(!this.drawLoopId) this.draw();
+                this.drawHeader()
+                this.drawRowIndices()
                 return;
             }
         }
