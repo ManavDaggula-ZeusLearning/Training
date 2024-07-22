@@ -7,8 +7,10 @@ import {data} from "./tempData.js"
 
 export class Sheet{
 
-    colSizes = Array(40).fill(100)
+    colSizes = Array(20).fill(100)
     rowSizes = Array(100).fill(40)
+    rowLimit = 1048576
+    colLimit = 16384
     fontSize = 16;
     font = "Titillium Web";
     fontColor = "#222";
@@ -33,7 +35,7 @@ export class Sheet{
     constructor(divRef){
         // creating canvas elements and contexts
         this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(40).fill(100);
+        // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
         this.containerDiv = document.createElement("div")
@@ -144,7 +146,7 @@ export class Sheet{
         this.headerRef.addEventListener("dblclick",(e)=>{
             this.colAutoResize(e)
         })
-        this.find("dummy")
+        // this.find("dummy")
     }
 
     drawHeader() {
@@ -177,13 +179,12 @@ export class Sheet{
             this.headerContext.save();
             this.headerContext.beginPath();
             this.headerContext.rect(startPosCol,0, this.colSizes[i], this.rowHeight);
-            // this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.strokeStyle = this.columnGutterColor;
             this.headerContext.stroke();
             this.headerContext.clip();
-            this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
-            this.headerContext.fillStyle = `${this.fontColor}`;
-            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.fontPadding, this.rowHeight-this.fontPadding)
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
+                this.headerContext.fillStyle = "#caead8"
+                this.headerContext.fill();
                 this.headerContext.beginPath();
                 this.headerContext.moveTo(startPosCol, this.rowHeight-0.5);
                 this.headerContext.lineTo(startPosCol+this.colSizes[i], this.rowHeight-0.5)
@@ -194,6 +195,9 @@ export class Sheet{
             // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
             // this.headerContext.lineTo(prev+curr, this.rowHeight);
+            this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
+            this.headerContext.fillStyle = `${this.fontColor}`;
+            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.fontPadding, this.rowHeight-this.fontPadding)
             this.headerContext.restore();
             startPosCol+=this.colSizes[i]
         }
@@ -228,22 +232,26 @@ export class Sheet{
         // console.log(startPosRow, rowIndex)
         for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && i<this.rowSizes.length; i++){
             this.rowContext.save();
+            this.rowContext.beginPath();
             this.rowContext.rect(0,startPosRow, this.colWidth, this.rowSizes[i]);
-            // this.rowContext.strokeStyle = this.columnGutterColor;
-            this.rowContext.clip();
+            this.rowContext.strokeStyle = this.columnGutterColor;
             this.rowContext.stroke();
+            this.rowContext.clip();
+            // tempArr.push(i)
+            if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
+                this.rowContext.fillStyle = "#caead8"
+                this.rowContext.fill();
+                this.rowContext.beginPath()
+                this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
+                this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
+                this.rowContext.strokeStyle = "#107c41"
+                this.rowContext.lineWidth = 5;
+                this.rowContext.stroke();
+            }
             this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.rowContext.fillStyle = `${this.fontColor}`;
             this.rowContext.textAlign = "right"
             this.rowContext.fillText(i, this.colWidth-this.fontPadding, startPosRow+this.rowSizes[i]-this.fontPadding)
-            // tempArr.push(i)
-            this.rowContext.beginPath();
-            if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
-            this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
-            this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
-            this.rowContext.strokeStyle = "#107c41"
-            this.rowContext.lineWidth = 5;
-            this.rowContext.stroke();
             startPosRow+=this.rowSizes[i];
             this.rowContext.restore();
             }
@@ -379,8 +387,8 @@ export class Sheet{
                 if(this.data[r] && this.data[r][c]){
                     if(this.data[r][c].textWrap){
                         this.tableContext.textBaseline = "bottom"
-                        let base = this.fontPadding/2;
-                        let textPartitions = this.data[r][c].text.split("\n").reverse()
+                        let base = this.fontPadding;
+                        let textPartitions = this.data[r][c].wrappedTextContent.slice().reverse();
 
                         for(let partitionText of textPartitions){
                             this.tableContext.fillText(partitionText, sumColSizes+this.fontPadding, sumRowsizes+this.rowSizes[r]-base)
@@ -406,14 +414,22 @@ export class Sheet{
             // console.log(this.selectedRangeEnd);
             let rectStartX = Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)
             let rectStartY = Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)
-            let rectWidth =  Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart) + this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)] - rectStartX
-            let rectHeight = Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart) + this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)] - rectStartY
-            // console.log(rectStartX, rectStartY, rectWidth, rectHeight);
+            let rectEndX = Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart) + 
+            this.colSizes[(Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col))<=this.colSizes.length ? Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) : 0]
+            let rectEndY = Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart) + 
+            this.rowSizes[(Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row))<=this.rowSizes.length ? Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) : 0]
+            // rectEndY = isNaN(rectEndY) ? this.tableDiv.scrollTop+this.tableDiv.clientHeight : rectEndY
+            rectStartX = Math.max(this.tableDiv.scrollLeft, rectStartX)
+            rectStartY = Math.max(this.tableDiv.scrollTop, rectStartY)
+            rectEndX = Math.max(Math.min(this.tableDiv.scrollLeft+this.tableDiv.clientWidth,rectEndX), rectStartX-2)
+            rectEndY = Math.max(Math.min(this.tableDiv.scrollTop+this.tableDiv.clientHeight, rectEndY), rectStartY-2)
+            // console.log(rectEndY, rectStartY);
+            // console.log(rectStartX, rectStartY, rectEndX-rectStartX, rectEndY-rectStartY);
             this.tableContext.save();
             this.tableContext.beginPath();
             this.tableContext.strokeStyle = "#107c41"
             this.tableContext.lineWidth = 3
-            this.tableContext.rect(rectStartX-1.5, rectStartY-1.5, rectWidth+2, rectHeight+2)
+            this.tableContext.rect(rectStartX-1.5, rectStartY-1.5, (rectEndX-rectStartX)+2, (rectEndY-rectStartY)+2)
             if(this.lineDashOffset!=null){
                 this.tableContext.setLineDash([5,5])
                 this.tableContext.lineDashOffset = this.lineDashOffset;
@@ -460,7 +476,7 @@ export class Sheet{
     checkIfReachedEndOfColumns(e){
         let status =  this.tableDiv.scrollWidth - this.tableDiv.clientWidth - this.tableDiv.scrollLeft > 50 ? false : true;
         if(status){
-            this.colSizes = [...this.colSizes, ...Array(50).fill(100)]
+            this.colSizes = [...this.colSizes, ...Array(20).fill(100)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -583,6 +599,7 @@ export class Sheet{
         inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
         // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
         inputRef.focus();
+        
         if(!this.drawLoopId) this.draw();
     }
 
@@ -637,7 +654,7 @@ export class Sheet{
                 }
             }
             else{
-                console.log("unshifted");
+                // console.log("unshifted");
                 this.selectedCell.col = this.selectedCell.col-1
                 this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
                 this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
@@ -742,7 +759,7 @@ export class Sheet{
             this.inputEditor.style.width = (this.colSizes[this.selectedCell.col]-1) + "px";
             this.inputEditor.style.height = (this.rowSizes[this.selectedCell.row]-1)+"px"
             let inputRef = this.inputEditor.querySelector("input")
-            // inputRef.value = e.key;
+            inputRef.value = "";
             inputRef.focus();
         }
     }
@@ -790,16 +807,33 @@ export class Sheet{
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
         let shouldResize = false;
-        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=10); i++,boundary+=this.colSizes[i]){
             if(Math.abs(currPosX-boundary)<=10){
                 e.target.style.cursor = "col-resize";
-                // console.log(`near boundary of cell ${i}`);
+                console.log(`near boundary of cell ${i}`);
                 shouldResize = true;
                 break;
             }
             e.target.style.cursor = "default";   
         }
-        if(!shouldResize){return;}
+        if(!shouldResize){
+            // console.log(currPosX, boundary-this.colSizes[i]);
+            this.lineDashOffset = null;
+            // console.log(`${i} to be clicked`);
+            this.selectedRangeStart.row = 0;
+            this.selectedRangeEnd.row = this.rowLimit;
+            this.selectedRangeStart.rowStart = 0;
+            this.selectedRangeEnd.rowStart = Infinity;
+            this.selectedRangeStart.col = i;
+            this.selectedRangeEnd.col = i;
+            this.selectedRangeStart.colStart = boundary-this.colSizes[i];
+            this.selectedRangeEnd.colStart = boundary-this.colSizes[i];
+            this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+            this.drawHeader();
+            this.drawRowIndices();
+            if(!this.drawLoopId) this.draw();
+            return;
+        }
         
         let minPosX = boundary-this.colSizes[i];
         /**
@@ -822,11 +856,13 @@ export class Sheet{
         }
         let colResizePointerUp = (eUp)=>{
             // console.log(eUp);
+            this.wrapTextForColumn(i);
             window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);    
         }
         let colResizePointerLeave = (eLeave) =>{
+            this.wrapTextForColumn(i);
             window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);
@@ -846,7 +882,7 @@ export class Sheet{
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
         let shouldResize = false;
-        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
+        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=10); i++,boundary+=this.rowSizes[i]){
             if(Math.abs(currPosY-boundary)<=10){
                 e.target.style.cursor = "col-resize";
                 shouldResize = true;
@@ -854,7 +890,24 @@ export class Sheet{
             }
             e.target.style.cursor = "default";   
         }
-        if(!shouldResize){return;}
+        if(!shouldResize){
+            // console.log(currPosX, boundary-this.colSizes[i]);
+            this.lineDashOffset = null;
+            // console.log(`${i} to be clicked`);
+            this.selectedRangeStart.col = 0;
+            this.selectedRangeEnd.col = this.colLimit;
+            this.selectedRangeStart.colStart = 0;
+            this.selectedRangeEnd.colStart = Infinity;
+            this.selectedRangeStart.row = i;
+            this.selectedRangeEnd.row = i;
+            this.selectedRangeStart.rowStart = boundary-this.rowSizes[i];
+            this.selectedRangeEnd.rowStart = boundary-this.rowSizes[i];
+            this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+            this.drawHeader();
+            this.drawRowIndices();
+            if(!this.drawLoopId) this.draw();
+            return;
+        }
         
         let minPosY = boundary-this.rowSizes[i];
         /**
@@ -937,7 +990,7 @@ export class Sheet{
         if(!shouldResize){return;}
         this.tableContext.save();
         this.tableContext.font = `${this.fontSize}px ${this.font}`
-        console.log(`lets resize ${i}`);
+        // console.log(`lets resize ${i}`);
         let temp = Object.keys(this.data)
                     .filter(x=>this.data[x][i] && !this.data[x][i].textWrap)
                     .map(x=>Math.ceil(this.tableContext.measureText(this.data[x][i].text).width))
@@ -952,35 +1005,81 @@ export class Sheet{
         if(i < this.selectedRangeEnd.col){
             this.selectedRangeEnd.colStart+=(this.colSizes[i]-oldColSize);
         }
+        // this.wrapTextForColumn(i);
         if(!this.drawLoopId) this.draw()
         this.drawHeader();
     }
 
     wrapText(textContent){
         if(!this.data[this.selectedCell.row][this.selectedCell.col].textWrap){
-            console.log("no need to wrap");    
+            // console.log("no need to wrap");    
             return;
         }
         // this.data[this.selectedCell.row][this.selectedCell.col]["textWrap"] = true
         let w=2*this.fontPadding, s1="";
+        let wrappedText = [];
         this.tableContext.save();
         this.tableContext.font = `${this.fontSize}px ${this.font}`
         for(let x of textContent){
             w+=this.tableContext.measureText(x).width
             if(w > this.colSizes[this.selectedCell.col]-this.fontPadding){
-                console.log(s1)
-                s1+="\n";
-                console.log(w)
+                // console.log(s1)
+                wrappedText.push(s1)
+                s1="";
+                // console.log(w)
                 w=2*this.fontPadding;
             }
             s1+=x;
         }
+        wrappedText.push(s1)
         this.tableContext.restore();
-        this.data[this.selectedCell.row][this.selectedCell.col].text = s1
-        let lineCount = s1.split("\n").length;
+        this.data[this.selectedCell.row][this.selectedCell.col].wrappedTextContent = wrappedText
+        let lineCount = wrappedText.length;
         this.rowSizes[this.selectedCell.row] = Math.max(this.rowSizes[this.selectedCell.row], lineCount*this.fontSize + 2*this.fontPadding)
         window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
         this.drawRowIndices();
+    }
+    /**
+     * 
+     * @param {Number} colIndex 
+     */
+    wrapTextForColumn(colIndex){
+        let rows = Object.keys(this.data).filter(x=>this.data[x][colIndex]?.textWrap)
+        rows.forEach(r=>{
+            let w=2*this.fontPadding, s1="";
+            let wrappedText = [];
+            this.tableContext.save();
+            this.tableContext.font = `${this.fontSize}px ${this.font}`
+            for(let x of this.data[r][colIndex].text){
+                w+=this.tableContext.measureText(x).width
+                if(w > this.colSizes[colIndex]-this.fontPadding){
+                    // console.log(s1)
+                    wrappedText.push(s1)
+                    s1="";
+                    // console.log(w)
+                    w=2*this.fontPadding;
+                }
+                s1+=x;
+            }
+            wrappedText.push(s1)
+            this.tableContext.restore();
+            this.data[r][colIndex].wrappedTextContent = wrappedText
+            let lineCount = wrappedText.length;
+            let oldRowSize = this.rowSizes[r];
+            this.rowSizes[r] = Math.max(this.rowSizes[r], lineCount*this.fontSize + 2*this.fontPadding)
+            if(r < this.selectedCell.row){
+                this.selectedCell.rowStart+=this.rowSizes[r]-oldRowSize;
+                this.selectedRangeStart.rowStart+=this.rowSizes[r]-oldRowSize;
+            }
+            if(r < this.selectedRangeEnd.row){
+                this.selectedRangeEnd.rowStart+=this.rowSizes[r]-oldRowSize;
+            }
+            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+            this.drawRowIndices();
+            this.draw();
+        })
+        
+
     }
 
     // find(textContent){
@@ -1011,7 +1110,7 @@ export class Sheet{
                 }
             }
         }
-        console.log(arr);
+        // console.log(arr);
         return arr;
     }
 
