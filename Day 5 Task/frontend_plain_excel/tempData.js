@@ -4774,7 +4774,8 @@ export let data =
     0:{
         0:{
             text:"Hi",
-            textWrap:true
+            textWrap:true,
+            wrappedTextContent:['Hi']
         }, 
         1:{
             text: "Bye"
