@@ -18,18 +18,43 @@ export class Excel{
         sheetArrayChanger.classList.add("sheetArrayChanger")
         let newSheetBtn = document.createElement("button")
         newSheetBtn.textContent = "+"
+        newSheetBtn.title = "New Sheet"
         newSheetBtn.addEventListener("click",()=>this.newSheet())
         sheetArrayChanger.appendChild(newSheetBtn)
         let prevSheetBtn = document.createElement("button")
         prevSheetBtn.textContent = "←"
+        prevSheetBtn.title = "Previous Sheet"
         prevSheetBtn.addEventListener("click",()=>this.goToPrevSheet())
         sheetArrayChanger.appendChild(prevSheetBtn)
         let nextSheetBtn = document.createElement("button")
         nextSheetBtn.textContent = "→"
+        nextSheetBtn.title = "Next Sheet"
         nextSheetBtn.addEventListener("click",()=>this.goToNextSheet())
         sheetArrayChanger.appendChild(nextSheetBtn)
-
+        let textWrapperControl = document.createElement("div")
+        textWrapperControl.classList.add("textWrapControl")
+        let wrapBtn = document.createElement("button")
+        wrapBtn.textContent = "Wrap Text"
+        wrapBtn.addEventListener("click",()=>this.wrapText())
+        textWrapperControl.appendChild(wrapBtn)
+        let aggregateDiv = document.createElement("div")
+        aggregateDiv.classList.add("aggregates")
+        this.minSpan = document.createElement("span");
+        this.minSpan.textContent = "Min: NA"
+        this.maxSpan = document.createElement("span");
+        this.maxSpan.textContent = "Max: NA"
+        this.avgSpan = document.createElement("span");
+        this.avgSpan.textContent = "Avg: NA"
+        let recalculateAggregateBtn = document.createElement("button")
+        recalculateAggregateBtn.textContent = "Recalculate"
+        recalculateAggregateBtn.addEventListener("click",()=>this.recalculateAggregates())
+        aggregateDiv.appendChild(this.minSpan)
+        aggregateDiv.appendChild(this.maxSpan)
+        aggregateDiv.appendChild(this.avgSpan)
+        aggregateDiv.appendChild(recalculateAggregateBtn)
         this.menuDiv.appendChild(sheetArrayChanger)
+        this.menuDiv.appendChild(textWrapperControl)
+        this.menuDiv.appendChild(aggregateDiv)
 
 
 
@@ -75,4 +100,15 @@ export class Excel{
             this.loadSheet(0)
         }
     }
+    wrapText(){
+        this.sheets[this.currentSheetIndex].wrapRangeSelection();
+    }
+    recalculateAggregates(){
+        let aggValues = this.sheets[this.currentSheetIndex].calculateAggregates()
+        // console.log(aggValues);
+        this.minSpan.textContent = `Min : ${aggValues[0]}`
+        this.avgSpan.textContent = `Avg : ${aggValues[1]}`
+        this.maxSpan.textContent = `Max : ${aggValues[2]}`
+    }
+
 }

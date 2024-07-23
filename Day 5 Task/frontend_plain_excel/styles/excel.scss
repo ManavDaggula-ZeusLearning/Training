@@ -1,0 +1,45 @@
+// *{
+//     box-sizing: border-box;
+// }
+.menuDiv{
+    // border: 1px solid green;
+    // height: 50px;
+    display: flex;
+    align-items: center;
+    button{
+        // background-color: white;
+        color: green;
+        padding: 0.5em;
+        border-radius: 4px;
+        border: none;
+        &:hover{
+            outline: 1px solid #44444444;
+        }
+        // aspect-ratio: 1/1;
+    }
+    background-color: #f5f5f5;
+    padding: 0.4em;
+    .sheetArrayChanger, .aggregates, .textWrapControl{
+        display: flex;
+        align-items: center;
+        gap: 1em;
+        padding: 0.4em;
+        margin-inline: 1em;
+        // background-color: white;
+        border: 1px solid #44444444;
+        box-shadow: 0px 0px 5px 2px #44444444;
+        border-radius: 4px;
+        outline: none;
+    }
+    // .aggregates{
+    //     padding-block: 1em;
+    //     span{
+    //         // padding: 1em;
+    //         padding-inline-end:1em;
+    //     }
+    // } 
+}
+.sheetContainer{
+    height: calc(100% - 20px);
+    overflow: hidden;
+}

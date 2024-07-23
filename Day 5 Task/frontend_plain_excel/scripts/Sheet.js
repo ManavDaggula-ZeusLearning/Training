@@ -1,14 +1,14 @@
-'use strict';
+// 'use strict';
 
 // let data = await fetch("./tempData.json")
 // data = await data.json();
-import {data} from "./tempData.js"
+import {data} from "../tempData.js"
 // console.log(data);
 
 export class Sheet{
 
     colSizes = Array(20).fill(100)
-    rowSizes = Array(100).fill(40)
+    rowSizes = Array(50).fill(40)
     rowLimit = 1048576
     colLimit = 16384
     fontSize = 16;
@@ -30,12 +30,13 @@ export class Sheet{
     selectedRangeEnd = null
     lineDashOffset = null
     drawLoopId = null;
+    drawnGraph = null
     
     // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
     constructor(divRef){
         // creating canvas elements and contexts
         // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        this.data = {};
+        this.data = data;
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -488,7 +489,7 @@ export class Sheet{
     checkIfReachedEndOfRows(e){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
-            this.rowSizes = [...this.rowSizes, ...Array(50).fill(50)]
+            this.rowSizes = [...this.rowSizes, ...Array(50).fill(40)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -1093,6 +1094,68 @@ export class Sheet{
             this.draw();
         })
         
+    }
+
+    wrapRangeSelection(){
+        console.log(this.selectedRangeStart, this.selectedRangeEnd)
+        for(let i=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row);i++){
+            if(this.data[i]){
+                for(let j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col);j++){
+                    if(this.data[i][j]){
+                        this.data[i][j].textWrap = true;
+                    }
+                }
+            }
+        }
+        for(let j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col);j++){
+            this.wrapTextForColumn(j)
+        }
+    }
+
+    getGraphData(){
+        if(this.drawnGraph){this.drawnGraph.destroy();}
+        let minRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)
+        let maxRow = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
+        let minCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)
+        let maxCol = Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)
+        let dataArr = Array(maxCol-minCol+1).fill(0)
+        let sumArr = Array(maxCol-minCol+1).fill(0)
+        for(var i=minRow; i<=maxRow; i++){
+            for(var j=minCol; j<=maxCol; j++){
+                if(this.data[i] && this.data[i][j] && this.data[i][j].text){
+                    // console.log("found data");
+                    if(!isNaN(Number(this.data[i][j].text))){
+                        dataArr[j] = dataArr[j] + Number(this.data[i][j].text);
+                        sumArr[j]++;
+                    }
+                }
+            }
+        }
+        let labels = dataArr.map((x,i)=>Sheet.numToBase26ForHeader(minCol+i))
+        let avgArr = dataArr.map((x,i)=>x/sumArr[i])
+        console.log("unfiltered")
+        console.log(labels, dataArr, sumArr, avgArr);
+        let filteredLabel = labels.filter((x,i)=>!isNaN(avgArr[i]));
+        let filteredAverage = avgArr.filter(x=>!isNaN(x));
+
+
+        this.drawnGraph = new Chart(document.getElementById("tempGraphCanvas"), {
+            type: 'pie',
+            data: {
+              labels: filteredLabel,
+              datasets: [{
+                data: filteredAverage,
+                borderWidth: 1
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
 
     }
 

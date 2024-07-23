@@ -8,5 +8,12 @@ body{
 }
 
 #excelContainer{
-    max-height: 100dvh;
+    height: 100dvh;
+    box-sizing: border-box;
+    // border: 1px solid red;
+    // max-height: 100dvh;
+    // overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
 }
