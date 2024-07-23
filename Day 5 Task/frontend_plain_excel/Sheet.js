@@ -34,7 +34,8 @@ export class Sheet{
     // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
     constructor(divRef){
         // creating canvas elements and contexts
-        this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
+        // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
+        this.data = {};
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -86,7 +87,7 @@ export class Sheet{
         this.sizeDiv.appendChild(this.inputEditor)
         this.tableDiv.appendChild(this.sizeDiv)
         this.containerDiv.appendChild(this.tableDiv)
-        divRef.appendChild(this.containerDiv)
+        // divRef.appendChild(this.containerDiv)
 
         this.selectedCell = {row: 0, col: 0, rowStart: 0, colStart: 0}
         this.selectedRangeStart = {row: 0, col: 0, rowStart: 0, colStart: 0}
@@ -642,7 +643,7 @@ export class Sheet{
             this.inputEditor.style.display = "none"
             this.wrapText(e.target.value)
             // this.selectedCell = null;
-            window.localStorage.setItem('data',JSON.stringify(this.data));
+            // window.localStorage.setItem('data',JSON.stringify(this.data));
         }
         else if(e.key=="Escape"){
             this.inputEditor.style.display = "none";
@@ -870,13 +871,13 @@ export class Sheet{
         let colResizePointerUp = (eUp)=>{
             // console.log(eUp);
             this.wrapTextForColumn(i);
-            window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
+            // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);    
         }
         let colResizePointerLeave = (eLeave) =>{
             this.wrapTextForColumn(i);
-            window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
+            // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);
             window.removeEventListener("pointerleave",colResizePointerLeave);
@@ -942,12 +943,12 @@ export class Sheet{
         }
         let rowResizePointerUp = (eDown)=>{
             // console.log(eDown);
-            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+            // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
             window.removeEventListener("pointerup",rowResizePointerUp);    
         }
         let rowResizePointerLeave = (eLeave) =>{
-            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+            // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
             window.removeEventListener("pointerup",rowResizePointerUp);
             window.removeEventListener("pointerleave",rowResizePointerLeave);
@@ -1049,7 +1050,7 @@ export class Sheet{
         this.data[this.selectedCell.row][this.selectedCell.col].wrappedTextContent = wrappedText
         let lineCount = wrappedText.length;
         this.rowSizes[this.selectedCell.row] = Math.max(this.rowSizes[this.selectedCell.row], lineCount*this.fontSize + 2*this.fontPadding)
-        window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+        // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
         this.drawRowIndices();
     }
     /**
@@ -1087,7 +1088,7 @@ export class Sheet{
             if(r < this.selectedRangeEnd.row){
                 this.selectedRangeEnd.rowStart+=this.rowSizes[r]-oldRowSize;
             }
-            window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+            // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             this.drawRowIndices();
             this.draw();
         })

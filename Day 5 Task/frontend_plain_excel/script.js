@@ -1,10 +1,10 @@
-import { Sheet } from "./Sheet.js";
+// import { Sheet } from "./Sheet.js";
+import { Excel } from "./Excel.js";
 
-let mainDiv = document.getElementById("canvasDiv")
-let sheet_1 = new Sheet(mainDiv);
+let excelContainer = document.getElementById("excelContainer")
+let excel = new Excel(excelContainer);
+window.excel = excel
 // sheet_1.containerDiv.style.width = (window.innerWidth-20) + "px"
-window.s = sheet_1
-
 // window.addEventListener("resize",(e)=>{
 //     sheet_1.containerDiv.style.width = (e.target.innerWidth-20) + "px"
 // })

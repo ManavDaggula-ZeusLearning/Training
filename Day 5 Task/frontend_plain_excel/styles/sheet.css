@@ -36,7 +36,7 @@
   border: 1px solid #107c41;
   background-color: white;
 }
-.tableDiv .sizeDiv .inputEditor input {
+.tableDiv .sizeDiv .inputEditor input, .tableDiv .sizeDiv .inputEditor textarea {
   margin-bottom: -2px;
   border: none;
   box-sizing: border-box;
@@ -47,7 +47,7 @@
   font-family: "Titillium Web";
   background-color: transparent;
 }
-.tableDiv .sizeDiv .inputEditor input:focus, .tableDiv .sizeDiv .inputEditor input:focus-visible {
+.tableDiv .sizeDiv .inputEditor input:focus, .tableDiv .sizeDiv .inputEditor input:focus-visible, .tableDiv .sizeDiv .inputEditor textarea:focus, .tableDiv .sizeDiv .inputEditor textarea:focus-visible {
   outline: none;
 }
 

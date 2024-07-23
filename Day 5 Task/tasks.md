@@ -2,10 +2,14 @@
 - [x] auto wrap on col resize
 - [x] wrap text don't add '\n'
 - [x] infinite row or col selection
-- [ ] format cells
-- [ ] multiple sheets
 - [x] scroll on live range selection (temp fix done)
+- [ ] multiple sheets
+- [ ] menu bar for excel
 - [ ] shift arrows don't work if large selection fix
+- [ ] enter and delete key events on sheets
+- [ ] format cells
+- [ ] local storage check
+- [ ] charts
 
 <!--format options
 dbl click for auto resize (--col done--)

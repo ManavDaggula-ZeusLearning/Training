@@ -4,4 +4,8 @@
 
 body {
   position: relative;
+}
+
+#excelContainer {
+  max-height: 100dvh;
 }/*# sourceMappingURL=style.css.map */
