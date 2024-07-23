@@ -180,7 +180,7 @@ export class Sheet{
         for(let i=colIndex; startPosCol<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && i<this.colSizes.length; i++){
             this.headerContext.save();
             this.headerContext.beginPath();
-            this.headerContext.rect(startPosCol,0, this.colSizes[i], this.rowHeight);
+            this.headerContext.rect(startPosCol-0.5,0-0.5, this.colSizes[i]+1, this.rowHeight+1);
             this.headerContext.strokeStyle = this.columnGutterColor;
             this.headerContext.stroke();
             this.headerContext.clip();
@@ -235,7 +235,7 @@ export class Sheet{
         for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && i<this.rowSizes.length; i++){
             this.rowContext.save();
             this.rowContext.beginPath();
-            this.rowContext.rect(0,startPosRow, this.colWidth, this.rowSizes[i]);
+            this.rowContext.rect(0-0.5,startPosRow-0.5, this.colWidth+1, this.rowSizes[i]+1);
             this.rowContext.strokeStyle = this.columnGutterColor;
             this.rowContext.stroke();
             this.rowContext.clip();
@@ -360,7 +360,7 @@ export class Sheet{
             for(let c=colIndex; sumColSizes<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && c<this.colSizes.length; c++){
                 this.tableContext.save();
                 this.tableContext.beginPath();
-                this.tableContext.rect(sumColSizes, sumRowsizes, this.colSizes[c], this.rowSizes[r]);
+                this.tableContext.rect(sumColSizes-0.5, sumRowsizes-0.5, this.colSizes[c]+1, this.rowSizes[r]+1);
                 this.tableContext.clip();
                 // this.tableContext.lineWidth=1
                 // if(this.selectedCell?.row==r && this.selectedCell?.col==c){
