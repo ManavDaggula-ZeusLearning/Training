@@ -556,12 +556,25 @@ export class Sheet{
             if(!this.drawLoopId) this.draw();
         }
         let canvasPointerMove = (eMove)=>{
+            // console.log(eMove.offsetX, this.tableDiv.clientWidth)
             let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex(eMove);
+            if(eMove.offsetX >= this.tableDiv.clientWidth-50){
+                this.tableDiv.scrollBy(50,0)
+            }
+            if(eMove.offsetX <= 50){
+                this.tableDiv.scrollBy(-50,0)
+            }
+            if(eMove.offsetY >= this.tableDiv.clientHeight-50){
+                this.tableDiv.scrollBy(0,50)
+            }
+            if(eMove.offsetY <= 50){
+                this.tableDiv.scrollBy(0,-50)
+            }
             if(this.selectedRangeEnd && (rowIndexMove!=this.selectedRangeEnd.row || colIndexMove!=this.selectedRangeEnd.col)){
                 this.selectedRangeEnd = {row: rowIndexMove, col: colIndexMove, rowStart: startPosRowMove, colStart: startPosColMove}
-                if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                    this.tableDiv.scrollBy(this.colSizes[this.selectedRangeEnd.col],0)
-                }
+                // if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+                //     this.tableDiv.scrollBy(this.colSizes[this.selectedRangeEnd.col],0)
+                // }
                 // console.log(this.selectedRangeEnd);
                 this.drawHeader();
                 this.drawRowIndices();

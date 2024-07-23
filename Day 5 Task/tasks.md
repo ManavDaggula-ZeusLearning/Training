@@ -4,7 +4,8 @@
 - [x] infinite row or col selection
 - [ ] format cells
 - [ ] multiple sheets
-- [ ] scroll on live range selection
+- [x] scroll on live range selection (temp fix done)
+- [ ] shift arrows don't work if large selection fix
 
 <!--format options
 dbl click for auto resize (--col done--)
