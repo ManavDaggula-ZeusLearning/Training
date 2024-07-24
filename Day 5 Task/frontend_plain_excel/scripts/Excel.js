@@ -59,6 +59,7 @@ export class Excel{
 
 
         let sheet_1 = new Sheet(this.sheetContainer);
+        window.s = sheet_1;
         this.sheets.push(sheet_1);
         this.currentSheetIndex = 0;
         this.loadSheet(0);
@@ -68,7 +69,7 @@ export class Excel{
         if(index>=this.sheets.length || index<0){
             throw new Error(`Cannot load sheet at index ${index}, index out of bounds.`)
         }
-        console.log(`Removing sheet ${this.currentSheetIndex}\nAttaching sheet ${index}`);
+        // console.log(`Removing sheet ${this.currentSheetIndex}\nAttaching sheet ${index}`);
         this.sheets[this.currentSheetIndex].containerDiv.remove();
         this.sheetContainer.appendChild(this.sheets[index].containerDiv)
         this.sheets[index].fixCanvasSize();

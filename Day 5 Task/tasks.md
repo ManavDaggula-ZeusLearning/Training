@@ -10,6 +10,11 @@
 - [ ] format cells
 - [ ] local storage check
 - [ ] charts
+- [ ] zoom handling
+- [ ] range small box at bottom-right corner
+- [ ] infinity range selection
+- [ ] column and row swap/exchange
+- [ ] header and row header selection underline fix
 
 <!--format options
 dbl click for auto resize (--col done--)

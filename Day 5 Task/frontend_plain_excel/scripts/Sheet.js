@@ -100,7 +100,7 @@ export class Sheet{
         this.draw();
 
         // console.log(this)
-        this.tableDiv.addEventListener("scrollend", (e)=>{
+        this.tableDiv.addEventListener("scroll", (e)=>{
             this.checkIfReachedEndOfColumns();
             this.checkIfReachedEndOfRows();
             // if(!this.drawLoopId) this.draw();
@@ -155,6 +155,7 @@ export class Sheet{
         // let tempArr = [];
         this.headerContext.setTransform(1, 0, 0, 1, 0, 0);
         this.headerContext.clearRect(0,0,this.headerRef.width,this.headerRef.height);
+        this.headerContext.scale(window.devicePixelRatio, window.devicePixelRatio)
         this.headerContext.translate(-this.tableDiv.scrollLeft, 0);
         // this.colSizes.reduce((prev,curr,currIndex)=>{
         //     if(prev+curr >= this.tableDiv.scrollLeft && prev-curr<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth)){
@@ -180,19 +181,20 @@ export class Sheet{
         for(let i=colIndex; startPosCol<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && i<this.colSizes.length; i++){
             this.headerContext.save();
             this.headerContext.beginPath();
-            this.headerContext.rect(startPosCol-0.5,0-0.5, this.colSizes[i]+1, this.rowHeight+1);
+            this.headerContext.rect(startPosCol,0, this.colSizes[i], this.rowHeight);
             this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.lineWidth = 1
             this.headerContext.stroke();
             this.headerContext.clip();
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
                 this.headerContext.fillStyle = "#caead8"
                 this.headerContext.fill();
-                this.headerContext.beginPath();
-                this.headerContext.moveTo(startPosCol, this.rowHeight-0.5);
-                this.headerContext.lineTo(startPosCol+this.colSizes[i], this.rowHeight-0.5)
-                this.headerContext.strokeStyle = "#107c41"
-                this.headerContext.lineWidth = 5;
-                this.headerContext.stroke();
+                // this.headerContext.beginPath();
+                // this.headerContext.moveTo(startPosCol, this.rowHeight-0.5);
+                // this.headerContext.lineTo(startPosCol+this.colSizes[i], this.rowHeight-0.5)
+                // this.headerContext.strokeStyle = "#107c41"
+                // this.headerContext.lineWidth = 5;
+                // this.headerContext.stroke();
             }
             // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
@@ -203,6 +205,16 @@ export class Sheet{
             this.headerContext.restore();
             startPosCol+=this.colSizes[i]
         }
+        if(this.selectedRangeStart && this.selectedRangeEnd){
+            this.headerContext.save();
+            this.headerContext.beginPath();
+            this.headerContext.moveTo(Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart), this.rowHeight);
+            this.headerContext.lineTo(Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)+this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)], this.rowHeight);
+            this.headerContext.strokeStyle = "#107c41"
+            this.headerContext.lineWidth = 5;
+            this.headerContext.stroke();
+            this.headerContext.restore();
+        }
         // console.log("Columns drawn in header: "+tempArr.length);
     }
 
@@ -210,6 +222,7 @@ export class Sheet{
         // let tempArr=[];
         this.rowContext.setTransform(1, 0, 0, 1, 0, 0);
         this.rowContext.clearRect(0,0,this.rowRef.width, this.rowRef.height)
+        this.rowContext.scale(window.devicePixelRatio, window.devicePixelRatio)
         this.rowContext.translate(0,-this.tableDiv.scrollTop)
         // this.rowSizes.reduce((prev,curr,currIndex)=>{
         //     if(prev+curr >= this.tableDiv.scrollTop && prev-curr<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight)){
@@ -218,7 +231,7 @@ export class Sheet{
         //     this.rowContext.rect(0,prev, this.colWidth, curr);
         //     this.rowContext.strokeStyle = this.columnGutterColor;
         //     this.rowContext.stroke();
-        //     this.rowContext.clip();
+        //     // this.rowContext.clip();
         //     this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
         //     this.rowContext.fillStyle = `${this.fontColor}`;
         //     this.rowContext.textAlign = "right"
@@ -235,20 +248,20 @@ export class Sheet{
         for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && i<this.rowSizes.length; i++){
             this.rowContext.save();
             this.rowContext.beginPath();
-            this.rowContext.rect(0-0.5,startPosRow-0.5, this.colWidth+1, this.rowSizes[i]+1);
+            this.rowContext.rect(0,startPosRow, this.colWidth, this.rowSizes[i]);
             this.rowContext.strokeStyle = this.columnGutterColor;
             this.rowContext.stroke();
-            this.rowContext.clip();
+            // this.rowContext.clip();
             // tempArr.push(i)
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
                 this.rowContext.fillStyle = "#caead8"
                 this.rowContext.fill();
-                this.rowContext.beginPath()
-                this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
-                this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
-                this.rowContext.strokeStyle = "#107c41"
-                this.rowContext.lineWidth = 5;
-                this.rowContext.stroke();
+                // this.rowContext.beginPath()
+                // this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
+                // this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
+                // this.rowContext.strokeStyle = "#107c41"
+                // this.rowContext.lineWidth = 5;
+                // this.rowContext.stroke();
             }
             this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
             this.rowContext.fillStyle = `${this.fontColor}`;
@@ -257,6 +270,16 @@ export class Sheet{
             startPosRow+=this.rowSizes[i];
             this.rowContext.restore();
             }
+        if(this.selectedRangeStart && this.selectedRangeEnd){
+            this.rowContext.save();
+            this.rowContext.beginPath();
+            this.rowContext.moveTo(this.colWidth,Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart));
+            this.rowContext.lineTo(this.colWidth,Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)+this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)]);
+            this.rowContext.strokeStyle = "#107c41"
+            this.rowContext.lineWidth = 5;
+            this.rowContext.stroke();
+            this.rowContext.restore();
+        }
         // console.log("Rows drawn in rows: "+tempArr.length);
     }
 
@@ -282,31 +305,11 @@ export class Sheet{
         // console.log(this.tableContext)
         this.tableContext.setTransform(1, 0, 0, 1, 0, 0);
         this.tableContext.clearRect(0, 0, this.tableRef.width, this.tableRef.height);
+        this.tableContext.scale(window.devicePixelRatio, window.devicePixelRatio)
         this.tableContext.translate(-this.tableDiv.scrollLeft, -this.tableDiv.scrollTop)
         // this.tableContext.translate(-this.tableDiv.scrollLeft*window.devicePixelRatio, -this.tableDiv.scrollTop*window.devicePixelRatio)
-        this.tableContext.scale(window.devicePixelRatio,window.devicePixelRatio)
+        // this.tableContext.scale(window.devicePixelRatio,window.devicePixelRatio)
         
-        // this.colSizes.reduce((prev,curr)=>{
-        //     this.tableContext.beginPath();
-        //     this.tableContext.save();
-        //     this.tableContext.moveTo(prev + curr, this.tableDiv.scrollTop);
-        //     this.tableContext.lineTo(prev + curr, this.tableRef.height+this.tableDiv.scrollTop);
-        //     this.tableContext.strokeStyle = this.columnGutterColor;
-        //     this.tableContext.stroke();
-        //     this.tableContext.restore();
-        //     return prev + curr;
-        // },0)
-
-        // this.rowSizes.reduce((prev,curr)=>{
-        //     this.tableContext.beginPath();
-        //     this.tableContext.save();
-        //     this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr);
-        //     this.tableContext.lineTo(this.tableRef.width + this.tableDiv.scrollLeft, prev + curr);
-        //     this.tableContext.strokeStyle = this.columnGutterColor;
-        //     this.tableContext.stroke();
-        //     this.tableContext.restore();
-        //     return prev + curr;
-        // },0)
 
         // for (let j = 0; j < data.length; j++) {
         //     let sum = 0;
@@ -362,7 +365,7 @@ export class Sheet{
             for(let c=colIndex; sumColSizes<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && c<this.colSizes.length; c++){
                 this.tableContext.save();
                 this.tableContext.beginPath();
-                this.tableContext.rect(sumColSizes-0.5, sumRowsizes-0.5, this.colSizes[c]+1, this.rowSizes[r]+1);
+                this.tableContext.rect(sumColSizes, sumRowsizes, this.colSizes[c], this.rowSizes[r]);
                 this.tableContext.clip();
                 // this.tableContext.lineWidth=1
                 // if(this.selectedCell?.row==r && this.selectedCell?.col==c){
@@ -413,6 +416,29 @@ export class Sheet{
 
             sumRowsizes+=this.rowSizes[r]
         }
+        
+        // this.colSizes.reduce((prev,curr)=>{
+        //     this.tableContext.beginPath();
+        //     this.tableContext.save();
+        //     this.tableContext.moveTo(prev + curr, this.tableDiv.scrollTop);
+        //     this.tableContext.lineTo(prev + curr, this.tableRef.height+this.tableDiv.scrollTop);
+        //     this.tableContext.strokeStyle = this.columnGutterColor;
+        //     this.tableContext.stroke();
+        //     this.tableContext.restore();
+        //     return prev + curr;
+        // },0)
+
+        // this.rowSizes.reduce((prev,curr)=>{
+        //     this.tableContext.beginPath();
+        //     this.tableContext.save();
+        //     this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr);
+        //     this.tableContext.lineTo(this.tableRef.width + this.tableDiv.scrollLeft, prev + curr);
+        //     this.tableContext.strokeStyle = this.columnGutterColor;
+        //     this.tableContext.stroke();
+        //     this.tableContext.restore();
+        //     return prev + curr;
+        // },0)
+
         if(this.selectedRangeStart && this.selectedRangeEnd){
             // console.log(this.selectedRangeStart);
             // console.log(this.selectedRangeEnd);
@@ -433,7 +459,7 @@ export class Sheet{
             this.tableContext.beginPath();
             this.tableContext.strokeStyle = "#107c41"
             this.tableContext.lineWidth = 3
-            this.tableContext.rect(rectStartX-1.5, rectStartY-1.5, (rectEndX-rectStartX)+2, (rectEndY-rectStartY)+2)
+            this.tableContext.rect(rectStartX, rectStartY, (rectEndX-rectStartX), (rectEndY-rectStartY))
             if(this.lineDashOffset!=null){
                 this.tableContext.setLineDash([5,5])
                 this.tableContext.lineDashOffset = this.lineDashOffset;
@@ -467,15 +493,21 @@ export class Sheet{
         this.sizeDiv.style.width = this.colSizes.reduce((prev,curr)=>prev+curr,0) + "px";
         this.sizeDiv.style.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0) + "px";
         // console.log(this.sizeDiv);
-        // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)*window.devicePixelRatio
-        // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)*window.devicePixelRatio
-        this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)
-        this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)
-        this.headerRef.width = this.tableRef.width + 18;
-        this.headerRef.height = this.rowHeight
+        this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)*window.devicePixelRatio
+        this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)*window.devicePixelRatio
+        // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)
+        // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)
+        this.headerRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)*window.devicePixelRatio ;
+        this.headerRef.height = this.rowHeight*window.devicePixelRatio
 
-        this.rowRef.width = this.colWidth
-        this.rowRef.height = this.tableRef.height + 18
+        this.rowRef.width = this.colWidth*window.devicePixelRatio
+        this.rowRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)*window.devicePixelRatio
+
+        let {width} = this.headerRef.getBoundingClientRect()
+        let {height} = this.rowRef.getBoundingClientRect()
+        console.log(width,height);
+        this.tableRef.style.width = `${width}px`
+        this.tableRef.style.height = `${height}px`
     }
 
     checkIfReachedEndOfColumns(e){
@@ -528,6 +560,7 @@ export class Sheet{
         if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
         this.drawLoopId = null
         let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(e);
+        console.log(startPosRowDown, startPosColDown)
         if(e.shiftKey){
             if(this.selectedRangeStart){
                 this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown};
@@ -604,6 +637,7 @@ export class Sheet{
         // this.selectedRangeStart = null;
         // this.selectedRangeEnd = null;
         let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex(e);
+        console.log(startPosRow, startPosCol)
         this.selectedCell = {row:rowIndex, col:colIndex, rowStart:startPosRow, colStart: startPosCol}
         this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
         this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
@@ -611,8 +645,8 @@ export class Sheet{
         this.inputEditor.style.display="grid";
         this.inputEditor.style.left = (startPosCol) + "px"
         this.inputEditor.style.top = (startPosRow) + "px"
-        this.inputEditor.style.width = (this.colSizes[colIndex]-1) + "px";
-        this.inputEditor.style.height = (this.rowSizes[rowIndex]-1)+"px"
+        this.inputEditor.style.width = (this.colSizes[colIndex]) + "px";
+        this.inputEditor.style.height = (this.rowSizes[rowIndex])+"px"
         let inputRef = this.inputEditor.querySelector("input")
         inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
         // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
@@ -862,12 +896,12 @@ export class Sheet{
             if((this.colSizes[i] + eMove.movementX >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
                 if(i < this.selectedCell.col){
                     this.selectedCell.colStart+=eMove.movementX;
-                    this.selectedRangeStart.colStart+=eMove.movementX;
+                    this.selectedRangeStart.colStart+=(eMove.movementX/window.devicePixelRatio);
                 }
                 if(i < this.selectedRangeEnd.col){
-                    this.selectedRangeEnd.colStart+=eMove.movementX;
+                    this.selectedRangeEnd.colStart+=(eMove.movementX/window.devicePixelRatio);
                 }
-                this.colSizes[i] += (eMove.movementX)
+                this.colSizes[i] += (eMove.movementX)/window.devicePixelRatio
                 this.drawHeader();
                 if(!this.drawLoopId) this.draw();
             }
@@ -902,7 +936,7 @@ export class Sheet{
         let shouldResize = false;
         for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=10); i++,boundary+=this.rowSizes[i]){
             if(Math.abs(currPosY-boundary)<=10){
-                e.target.style.cursor = "col-resize";
+                e.target.style.cursor = "row-resize";
                 shouldResize = true;
                 break;
             }
@@ -935,12 +969,12 @@ export class Sheet{
             if((this.rowSizes[i] + eMove.movementY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
                 if(i < this.selectedCell.row){
                     this.selectedCell.rowStart+=eMove.movementY;
-                    this.selectedRangeStart.rowStart+=eMove.movementY;
+                    this.selectedRangeStart.rowStart+=(eMove.movementY/window.devicePixelRatio);
                 }
                 if(i < this.selectedRangeEnd.row){
-                    this.selectedRangeEnd.rowStart+=eMove.movementY;
+                    this.selectedRangeEnd.rowStart+=(eMove.movementY/window.devicePixelRatio);
                 }
-                this.rowSizes[i] += (eMove.movementY)
+                this.rowSizes[i] += (eMove.movementY/window.devicePixelRatio)
                 this.drawRowIndices();
                 if(!this.drawLoopId) this.draw();
             }
