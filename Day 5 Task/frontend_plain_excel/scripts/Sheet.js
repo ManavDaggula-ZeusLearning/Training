@@ -684,6 +684,17 @@ export class Sheet{
             // console.log(this.data);
             this.inputEditor.style.display = "none"
             this.wrapText(e.target.value)
+            this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
+            this.selectedCell.row = this.selectedCell.row+1
+            this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+            this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+            if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+                this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+            }
+            this.drawHeader();
+            this.drawRowIndices();
+            if(!this.drawLoopId) this.draw();
+
             // this.selectedCell = null;
             // window.localStorage.setItem('data',JSON.stringify(this.data));
         }
@@ -813,12 +824,24 @@ export class Sheet{
         else if(e.key==="Enter"){
             this.lineDashOffset = null;
             this.drawLoopId = null
-            this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
-            this.selectedCell.row = this.selectedCell.row+1
-            this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
-            this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-            if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+            if(e.shiftKey){
+                if(this.selectedCell.row==0){return;}
+                this.selectedCell.row = this.selectedCell.row-1
+                this.selectedCell.rowStart = this.selectedCell.rowStart - this.rowSizes[this.selectedCell.row]
+                this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+                this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+                if(this.selectedCell.rowStart<this.tableDiv.scrollTop){
+                    this.tableDiv.scrollBy(0,-this.rowSizes[this.selectedCell.row])
+                }
+            }
+            else{
+                this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
+                this.selectedCell.row = this.selectedCell.row+1
+                this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+                this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+                if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+                    this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+                }
             }
             e.preventDefault();
             this.drawHeader();

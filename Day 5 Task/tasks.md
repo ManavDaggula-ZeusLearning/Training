@@ -5,12 +5,12 @@
 - [x] scroll on live range selection (temp fix done)
 - [ ] multiple sheets
 - [ ] menu bar for excel
-- [ ] shift arrows don't work if large selection fix
-- [ ] enter and delete key events on sheets
+- [x] shift arrows don't work if large selection fix
+- [x] enter and delete key events on sheets
 - [ ] format cells
 - [ ] local storage check
 - [ ] charts
-- [ ] zoom handling
+- [x] zoom handling
 - [ ] range small box at bottom-right corner
 - [ ] infinity range selection
 - [ ] column and row swap/exchange
