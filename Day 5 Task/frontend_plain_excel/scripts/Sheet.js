@@ -283,6 +283,8 @@ export class Sheet{
         this.tableContext.setTransform(1, 0, 0, 1, 0, 0);
         this.tableContext.clearRect(0, 0, this.tableRef.width, this.tableRef.height);
         this.tableContext.translate(-this.tableDiv.scrollLeft, -this.tableDiv.scrollTop)
+        // this.tableContext.translate(-this.tableDiv.scrollLeft*window.devicePixelRatio, -this.tableDiv.scrollTop*window.devicePixelRatio)
+        this.tableContext.scale(window.devicePixelRatio,window.devicePixelRatio)
         
         // this.colSizes.reduce((prev,curr)=>{
         //     this.tableContext.beginPath();
@@ -465,9 +467,10 @@ export class Sheet{
         this.sizeDiv.style.width = this.colSizes.reduce((prev,curr)=>prev+curr,0) + "px";
         this.sizeDiv.style.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0) + "px";
         // console.log(this.sizeDiv);
-        this.tableRef.width = this.tableDiv.parentElement.clientWidth - this.colWidth - 18
-        this.tableRef.height = this.tableDiv.parentElement.clientHeight - this.rowHeight - 18
-        
+        // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)*window.devicePixelRatio
+        // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)*window.devicePixelRatio
+        this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)
+        this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)
         this.headerRef.width = this.tableRef.width + 18;
         this.headerRef.height = this.rowHeight
 
