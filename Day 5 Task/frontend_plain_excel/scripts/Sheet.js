@@ -386,9 +386,9 @@ export class Sheet{
                         this.tableContext.fill();
                     }
                 }
-                // this.tableContext.lineWidth = 1.5
-                // this.tableContext.strokeStyle = this.columnGutterColor
-                // this.tableContext.stroke();
+                this.tableContext.lineWidth = 1
+                this.tableContext.strokeStyle = this.columnGutterColor
+                this.tableContext.stroke();
                 this.tableContext.font = `${this.fontSize}px ${this.font}`
                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
                 this.tableContext.fillStyle = "black"
@@ -418,27 +418,27 @@ export class Sheet{
             sumRowsizes+=this.rowSizes[r]
         }
         
-        this.colSizes.reduce((prev,curr)=>{
-            this.tableContext.beginPath();
-            this.tableContext.save();
-            this.tableContext.moveTo(prev + curr - 0.5, this.tableDiv.scrollTop);
-            this.tableContext.lineTo(prev + curr - 0.5, this.tableRef.height+this.tableDiv.scrollTop);
-            this.tableContext.strokeStyle = this.columnGutterColor;
-            this.tableContext.stroke();
-            this.tableContext.restore();
-            return prev + curr;
-        },0)
+        // this.colSizes.reduce((prev,curr)=>{
+        //     this.tableContext.beginPath();
+        //     this.tableContext.save();
+        //     this.tableContext.moveTo(prev + curr - 0.5, this.tableDiv.scrollTop);
+        //     this.tableContext.lineTo(prev + curr - 0.5, this.tableRef.height+this.tableDiv.scrollTop);
+        //     this.tableContext.strokeStyle = this.columnGutterColor;
+        //     this.tableContext.stroke();
+        //     this.tableContext.restore();
+        //     return prev + curr;
+        // },0)
 
-        this.rowSizes.reduce((prev,curr)=>{
-            this.tableContext.beginPath();
-            this.tableContext.save();
-            this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr);
-            this.tableContext.lineTo(this.tableRef.width + this.tableDiv.scrollLeft, prev + curr);
-            this.tableContext.strokeStyle = this.columnGutterColor;
-            this.tableContext.stroke();
-            this.tableContext.restore();
-            return prev + curr;
-        },0)
+        // this.rowSizes.reduce((prev,curr)=>{
+        //     this.tableContext.beginPath();
+        //     this.tableContext.save();
+        //     this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr);
+        //     this.tableContext.lineTo(this.tableRef.width + this.tableDiv.scrollLeft, prev + curr);
+        //     this.tableContext.strokeStyle = this.columnGutterColor;
+        //     this.tableContext.stroke();
+        //     this.tableContext.restore();
+        //     return prev + curr;
+        // },0)
 
         if(this.selectedRangeStart && this.selectedRangeEnd){
             // console.log(this.selectedRangeStart);
@@ -499,15 +499,17 @@ export class Sheet{
         this.tableRef.height = (this.tableDiv.clientHeight)*window.devicePixelRatio
         // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)
         // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)
-        this.headerRef.width = (this.tableDiv.clientWidth)*window.devicePixelRatio + 16;
+        this.headerRef.width = (this.tableDiv.offsetWidth)*window.devicePixelRatio;
         this.headerRef.height = this.rowHeight*window.devicePixelRatio
 
         this.rowRef.width = this.colWidth*window.devicePixelRatio
-        this.rowRef.height = (this.tableDiv.clientHeight)*window.devicePixelRatio + 16
+        this.rowRef.height = (this.tableDiv.offsetHeight)*window.devicePixelRatio;
 
         // let {width} = this.headerRef.getBoundingClientRect()
         // let {height} = this.rowRef.getBoundingClientRect()
         // console.log(width,height);
+        this.headerRef.style.width = `${this.tableDiv.offsetWidth}px`
+        this.rowRef.style.height = `${this.tableDiv.offsetHeight}px`
         this.tableRef.style.width = `${this.tableDiv.clientWidth}px`
         this.tableRef.style.height = `${this.tableDiv.clientHeight}px`
     }
