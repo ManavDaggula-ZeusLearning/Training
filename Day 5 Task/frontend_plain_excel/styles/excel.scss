@@ -5,7 +5,9 @@
     // border: 1px solid green;
     // height: 50px;
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
+    gap:0.2em;
     button{
         // background-color: white;
         color: green;
@@ -43,3 +45,32 @@
     height: calc(100% - 20px);
     overflow: hidden;
 }
+
+.sheetTabs{
+    display:flex;
+    // flex-wrap:wrap;
+    gap:1px;
+    align-items:flex-end;
+    height:1.4em;
+    padding-block:0.5em;
+    input.sheetTab{
+      background: yellowgreen;
+      max-width: 50px;
+      padding:4px;
+      border-radius:4px 4px 2px 2px;
+      border:none;
+      cursor:pointer;
+      height:1.2em;
+      transition:height 0.2s ease;
+  &:focus, &:focus-within{
+        outline:none;
+      }
+  &[data-current]{
+        // transform-origin: bottom;
+        height:1.8em;
+        // transform: scale(1, 1.2);
+      }
+    }
+  }
+  
+  
