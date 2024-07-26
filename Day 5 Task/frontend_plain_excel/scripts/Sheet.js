@@ -240,7 +240,7 @@ export class Sheet{
             this.rowContext.rect(0,startPosRow-0.5, this.colWidth, this.rowSizes[i]);
             // this.rowContext.strokeStyle = this.columnGutterColor;
             // this.rowContext.stroke();
-            // this.rowContext.clip();
+            this.rowContext.clip();
             // tempArr.push(i)
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
                 this.rowContext.fillStyle = "#caead8"
@@ -982,7 +982,7 @@ export class Sheet{
                 let newX = (e.offsetX + eMove.clientX - e.clientX)
                 // console.log(newX);
                 let {startPosCol, colIndex} = this.getCellClickIndex({offsetX:newX, offsetY:0});
-                console.log(startPosCol, colIndex);
+                // console.log(startPosCol, colIndex);
                 this.selectedRangeEnd.col = colIndex
                 this.selectedRangeEnd.colStart=startPosCol
                 if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col] +50 > this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
@@ -1106,7 +1106,7 @@ export class Sheet{
                 let newY = (e.offsetY + eMove.clientY - e.clientY)
                 // console.log(newX);
                 let {startPosRow, rowIndex} = this.getCellClickIndex({offsetX:0, offsetY:newY});
-                console.log(startPosRow, rowIndex);
+                // console.log(startPosRow, rowIndex);
                 this.selectedRangeEnd.row = rowIndex
                 this.selectedRangeEnd.rowStart=startPosRow
                 if(this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row] +50 > this.tableDiv.scrollTop+this.tableDiv.clientHeight){

@@ -9,7 +9,8 @@
 - [ ] **multiple sheets** (tab container done)
 - [x] **infinity range selection**
 - [ ] **find and replace**
-- [ ] canvas range selection shift to window
+- [ ] try to fix col resize cursor issue (also row)
+- [x] canvas range selection shift to window
 - [ ] menu bar for excel
 - [ ] format cells
 - [ ] local storage check
