@@ -208,14 +208,19 @@ export class Sheet{
         },0)
 
         if(this.selectedRangeStart && this.selectedRangeEnd){
-            this.headerContext.save();
-            this.headerContext.beginPath();
-            this.headerContext.moveTo(Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)-2, this.rowHeight-0.5);
-            this.headerContext.lineTo(Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)+this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)]+2, this.rowHeight-0.5);
-            this.headerContext.strokeStyle = "#107c41"
-            this.headerContext.lineWidth = 5;
-            this.headerContext.stroke();
-            this.headerContext.restore();
+            let rectStartX = Math.max(this.tableDiv.scrollLeft, Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart))
+            let rectEndX = Math.max(rectStartX,Math.min(this.tableDiv.scrollLeft+this.tableDiv.clientWidth, this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)] ? Math.max(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart)+this.colSizes[Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)] : this.tableDiv.clientWidth+rectStartX))
+            // console.log(rectEndX-rectStartX);
+            if(rectStartX!=rectEndX){
+                this.headerContext.save();
+                this.headerContext.beginPath();
+                this.headerContext.moveTo(rectStartX-2, this.rowHeight-0.5);
+                this.headerContext.lineTo(rectEndX+2, this.rowHeight-0.5);
+                this.headerContext.strokeStyle = "#107c41"
+                this.headerContext.lineWidth = 5;
+                this.headerContext.stroke();
+                this.headerContext.restore();
+            }
         }
         // console.log("Columns drawn in header: "+tempArr.length);
     }
@@ -273,14 +278,19 @@ export class Sheet{
         },0)
 
         if(this.selectedRangeStart && this.selectedRangeEnd){
-            this.rowContext.save();
-            this.rowContext.beginPath();
-            this.rowContext.moveTo(this.colWidth-0.5,Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)-2);
-            this.rowContext.lineTo(this.colWidth-0.5,Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)+this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)]+2);
-            this.rowContext.strokeStyle = "#107c41"
-            this.rowContext.lineWidth = 5;
-            this.rowContext.stroke();
-            this.rowContext.restore();
+            let rectStartY = Math.max(this.tableDiv.scrollTop, Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart))
+            let rectEndY = Math.max(rectStartY,Math.min(this.tableDiv.scrollTop+this.tableDiv.clientHeight, this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)] ? Math.max(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart)+this.rowSizes[Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)] : this.tableDiv.clientHeight+rectStartY))
+            // console.log(rectEndY-rectStartY);
+            if(rectStartY!=rectEndY){
+                this.rowContext.save();
+                this.rowContext.beginPath();
+                this.rowContext.moveTo(this.colWidth-0.5,rectStartY-2);
+                this.rowContext.lineTo(this.colWidth-0.5,rectEndY+2);
+                this.rowContext.strokeStyle = "#107c41"
+                this.rowContext.lineWidth = 5;
+                this.rowContext.stroke();
+                this.rowContext.restore();
+            }
         }
         // console.log("Rows drawn in rows: "+tempArr.length);
     }
@@ -453,29 +463,31 @@ export class Sheet{
             // rectEndY = isNaN(rectEndY) ? this.tableDiv.scrollTop+this.tableDiv.clientHeight : rectEndY
             rectStartX = Math.max(this.tableDiv.scrollLeft, rectStartX)
             rectStartY = Math.max(this.tableDiv.scrollTop, rectStartY)
-            rectEndX = Math.max(Math.min(this.tableDiv.scrollLeft+this.tableDiv.clientWidth,rectEndX), rectStartX-2)
-            rectEndY = Math.max(Math.min(this.tableDiv.scrollTop+this.tableDiv.clientHeight, rectEndY), rectStartY-2)
+            rectEndX = Math.max(Math.min(this.tableDiv.scrollLeft+this.tableDiv.clientWidth,rectEndX), rectStartX)
+            rectEndY = Math.max(Math.min(this.tableDiv.scrollTop+this.tableDiv.clientHeight, rectEndY), rectStartY)
             // console.log(rectEndY, rectStartY);
-            // console.log(rectStartX, rectStartY, rectEndX-rectStartX, rectEndY-rectStartY);
-            this.tableContext.save();
-            this.tableContext.beginPath();
-            this.tableContext.strokeStyle = "#107c41"
-            this.tableContext.lineWidth = 3
-            this.tableContext.rect(rectStartX-0.5, rectStartY-0.5, (rectEndX-rectStartX)+1, (rectEndY-rectStartY)+1)
-            if(this.lineDashOffset!=null){
-                this.tableContext.setLineDash([5,5])
-                this.tableContext.lineDashOffset = this.lineDashOffset;
-                this.drawLoopId = window.requestAnimationFrame((animationTime)=>{
-                    this.lineDashOffset += (1*(animationTime-prevTime)/50);
-                    // if(this.lineDashOffset>12) this.lineDashOffset=0
-                    this.lineDashOffset %= 10;
-                    // console.log(animationTime, prevTime);
-                    this.draw(animationTime)
-                })
+            if(rectStartX!=rectEndX && rectStartY!=rectEndY){
+                // console.log(rectEndX-rectStartX, rectEndY-rectStartY);
+                this.tableContext.save();
+                this.tableContext.beginPath();
+                this.tableContext.strokeStyle = "#107c41"
+                this.tableContext.lineWidth = 3
+                this.tableContext.rect(rectStartX-0.5, rectStartY-0.5, (rectEndX-rectStartX)+1, (rectEndY-rectStartY)+1)
+                if(this.lineDashOffset!=null){
+                    this.tableContext.setLineDash([5,5])
+                    this.tableContext.lineDashOffset = this.lineDashOffset;
+                    this.drawLoopId = window.requestAnimationFrame((animationTime)=>{
+                        this.lineDashOffset += (1*(animationTime-prevTime)/50);
+                        // if(this.lineDashOffset>12) this.lineDashOffset=0
+                        this.lineDashOffset %= 10;
+                        // console.log(animationTime, prevTime);
+                        this.draw(animationTime)
+                    })
+                }
+                this.tableContext.stroke();
+                // this.tableContext.fill();
+                this.tableContext.restore();
             }
-            this.tableContext.stroke();
-            // this.tableContext.fill();
-            this.tableContext.restore();
         }
         // if(this.selectedCell){
         //     this.tableContext.save();
@@ -715,8 +727,9 @@ export class Sheet{
     canvasKeyHandler(e){
         // if(e.target===this.inputEditor.querySelector("input")){return;}
         if(e.key=="ArrowLeft" && this.selectedCell){
-            this.drawLoopId = null
             this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
+            this.drawLoopId = null
             if(this.selectedCell.col==0){return;}
             if(e.shiftKey){
                 if(this.selectedRangeEnd.col==0){return;}
@@ -742,7 +755,8 @@ export class Sheet{
             e.preventDefault();
         }
         else if(e.key=="ArrowRight" && this.selectedCell){
-            this.lineDashOffset = null;            
+            this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
             if(e.shiftKey){
                 this.selectedRangeEnd.colStart = this.selectedRangeEnd.colStart + this.colSizes[this.selectedRangeEnd.col]
@@ -767,6 +781,7 @@ export class Sheet{
         }
         else if(e.key=="ArrowUp" && this.selectedCell){
             this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
             if(this.selectedCell.row==0){return;}
             if(e.shiftKey){
@@ -793,6 +808,7 @@ export class Sheet{
         }
         else if(e.key=="ArrowDown" && this.selectedCell){
             this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
             if(e.shiftKey){
                 this.selectedRangeEnd.rowStart = this.selectedRangeEnd.rowStart + this.rowSizes[this.selectedRangeEnd.row]
@@ -817,17 +833,20 @@ export class Sheet{
         }
         else if(e.key==="c" && e.ctrlKey){
             this.lineDashOffset = 0;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
             this.copyRangeToClipboard();
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key==="Escape"){
             this.lineDashOffset = null;
-            // if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId);
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId);
             this.drawLoopId = null;
+            if(!this.drawLoopId){this.draw()}
         }
         else if(e.key==="Enter"){
             this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
             if(e.shiftKey){
                 if(this.selectedCell.row==0){return;}
@@ -855,6 +874,7 @@ export class Sheet{
         }
         else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase())){
             this.lineDashOffset = null;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
         // else if(e.keyCode>=48 && e.keyCode<=90){
             // if user types directly

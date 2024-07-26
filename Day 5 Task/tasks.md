@@ -8,6 +8,7 @@
 - [x] zoom handling
 - [ ] **multiple sheets** (tab dontainer done)
 - [ ] **infinity range selection**
+- [ ] **find and replace**
 - [ ] canvas range selection shift to window
 - [ ] menu bar for excel
 - [ ] format cells
