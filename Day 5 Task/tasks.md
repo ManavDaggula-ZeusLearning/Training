@@ -6,8 +6,8 @@
 - [x] shift arrows don't work if large selection fix
 - [x] enter and delete key events on sheets
 - [x] zoom handling
-- [ ] **multiple sheets** (tab dontainer done)
-- [ ] **infinity range selection**
+- [ ] **multiple sheets** (tab container done)
+- [x] **infinity range selection**
 - [ ] **find and replace**
 - [ ] canvas range selection shift to window
 - [ ] menu bar for excel

@@ -608,15 +608,17 @@ export class Sheet{
             this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
 
             // console.log(this.selectedRangeEnd);
-            this.tableRef.removeEventListener("pointermove", canvasPointerMove);
-            this.tableRef.removeEventListener("pointerup", canvasPointerUp);
+            window.removeEventListener("pointermove", canvasPointerMove);
+            window.removeEventListener("pointerup", canvasPointerUp);
             this.drawRowIndices();
             this.drawHeader();
             if(!this.drawLoopId) this.draw();
         }
         let canvasPointerMove = (eMove)=>{
+            let newX = (e.offsetX + eMove.clientX - e.clientX)
+            let newY = (e.offsetY + eMove.clientY - e.clientY)
             // console.log(eMove.offsetX, this.tableDiv.clientWidth)
-            let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex(eMove);
+            let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex({offsetX:newX, offsetY:newY});
             if(eMove.offsetX >= this.tableDiv.clientWidth-50){
                 this.tableDiv.scrollBy(50,0)
             }
@@ -642,14 +644,14 @@ export class Sheet{
         }
         let canvasPointerLeave = (eLeave)=>{
             // console.log(eLeave);
-            this.tableRef.removeEventListener("pointermove", canvasPointerMove);
-            this.tableRef.removeEventListener("pointerup", canvasPointerUp);
-            this.tableRef.removeEventListener("pointerleave", canvasPointerLeave);
+            window.removeEventListener("pointermove", canvasPointerMove);
+            window.removeEventListener("pointerup", canvasPointerUp);
+            window.removeEventListener("pointerleave", canvasPointerLeave);
         }
         // let pointerUp = canvasPointerUp
-        this.tableRef.addEventListener("pointerup", canvasPointerUp);
-        this.tableRef.addEventListener("pointermove",canvasPointerMove);
-        this.tableRef.addEventListener("pointerleave", canvasPointerLeave);
+        window.addEventListener("pointerup", canvasPointerUp);
+        window.addEventListener("pointermove",canvasPointerMove);
+        window.addEventListener("pointerleave", canvasPointerLeave);
 
         
     }
@@ -945,18 +947,64 @@ export class Sheet{
             // console.log(currPosX, boundary-this.colSizes[i]);
             this.lineDashOffset = null;
             // console.log(`${i} to be clicked`);
+            if(e.shiftKey){
+                this.selectedRangeStart.row = 0;
+                this.selectedRangeEnd.row = this.rowLimit;
+                this.selectedRangeStart.rowStart = 0;
+                this.selectedRangeEnd.rowStart = Infinity;
+                this.selectedRangeEnd.col = i;
+                this.selectedRangeEnd.colStart = boundary-this.colSizes[i];
+                this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+                this.drawHeader();
+                this.drawRowIndices();
+                if(!this.drawLoopId) this.draw();
+                return;
+            }
             this.selectedRangeStart.row = 0;
             this.selectedRangeEnd.row = this.rowLimit;
             this.selectedRangeStart.rowStart = 0;
             this.selectedRangeEnd.rowStart = Infinity;
             this.selectedRangeStart.col = i;
-            this.selectedRangeEnd.col = i;
-            this.selectedRangeStart.colStart = boundary-this.colSizes[i];
             this.selectedRangeEnd.colStart = boundary-this.colSizes[i];
             this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+            this.selectedRangeEnd.col = i;
+            this.selectedRangeStart.colStart = boundary-this.colSizes[i];
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
+            
+            // write infinity multiple column selection functions here
+            /**
+             * 
+             * @param {PointerEvent} eMove 
+             */
+            let multipleColumnPointerMoveHandler = (eMove)=>{
+                let newX = (e.offsetX + eMove.clientX - e.clientX)
+                // console.log(newX);
+                let {startPosCol, colIndex} = this.getCellClickIndex({offsetX:newX, offsetY:0});
+                console.log(startPosCol, colIndex);
+                this.selectedRangeEnd.col = colIndex
+                this.selectedRangeEnd.colStart=startPosCol
+                if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col] +50 > this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+                    this.tableDiv.scrollBy(50, 0)
+                }
+                if(this.selectedRangeEnd.colStart < this.tableDiv.scrollLeft + 50){
+                    this.tableDiv.scrollBy(-50, 0)
+                }
+                this.drawHeader();
+                this.drawRowIndices();
+                if(!this.drawLoopId) this.draw();
+
+                // let newY = (e.offsetY + eMove.clientY - e.clientY)
+            }
+            let multipleColumnPointerUpHandler = (eUp)=>{
+                window.removeEventListener("pointermove",multipleColumnPointerMoveHandler)
+                window.removeEventListener("pointerup",multipleColumnPointerUpHandler)
+            }
+
+            window.addEventListener("pointermove",multipleColumnPointerMoveHandler)
+            window.addEventListener("pointerup",multipleColumnPointerUpHandler)
+
             return;
         }
         
@@ -1022,6 +1070,19 @@ export class Sheet{
         if(!shouldResize){
             // console.log(currPosX, boundary-this.colSizes[i]);
             this.lineDashOffset = null;
+            if(e.shiftKey){
+                this.selectedRangeStart.col = 0;
+                this.selectedRangeEnd.col = this.colLimit;
+                this.selectedRangeStart.colStart = 0;
+                this.selectedRangeEnd.colStart = Infinity;
+                this.selectedRangeEnd.row = i;
+                this.selectedRangeEnd.rowStart = boundary-this.rowSizes[i];
+                this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+                this.drawHeader();
+                this.drawRowIndices();
+                if(!this.drawLoopId) this.draw();        
+                return;
+            }
             // console.log(`${i} to be clicked`);
             this.selectedRangeStart.col = 0;
             this.selectedRangeEnd.col = this.colLimit;
@@ -1035,6 +1096,37 @@ export class Sheet{
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
+
+            // write infinity multiple row selection functions here
+            /**
+             * 
+             * @param {PointerEvent} eMove 
+             */
+            let multipleRowPointerMoveHandler = (eMove)=>{
+                let newY = (e.offsetY + eMove.clientY - e.clientY)
+                // console.log(newX);
+                let {startPosRow, rowIndex} = this.getCellClickIndex({offsetX:0, offsetY:newY});
+                console.log(startPosRow, rowIndex);
+                this.selectedRangeEnd.row = rowIndex
+                this.selectedRangeEnd.rowStart=startPosRow
+                if(this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row] +50 > this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+                    this.tableDiv.scrollBy(0, 50)
+                }
+                if(this.selectedRangeEnd.rowStart < this.tableDiv.scrollTop + 50){
+                    this.tableDiv.scrollBy(0, -50)
+                }
+                this.drawHeader();
+                this.drawRowIndices();
+                if(!this.drawLoopId) this.draw();
+            }
+            let multipleRowPointerUpHandler = (eUp)=>{
+                window.removeEventListener("pointermove",multipleRowPointerMoveHandler)
+                window.removeEventListener("pointerup",multipleRowPointerUpHandler)
+            }
+
+            window.addEventListener("pointermove",multipleRowPointerMoveHandler)
+            window.addEventListener("pointerup",multipleRowPointerUpHandler)
+
             return;
         }
         
