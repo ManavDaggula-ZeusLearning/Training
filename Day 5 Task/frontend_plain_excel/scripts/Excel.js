@@ -125,7 +125,7 @@ export class Excel{
         let tabs = this.sheetTabContainer.querySelectorAll("input")
         tabs[this.currentSheetIndex].removeAttribute("data-current")
         if(this.currentSheetIndex>0){
-            this.loadSheet(this.currentSheetIndex-1)
+            this.loadSheet(Number(this.currentSheetIndex)-1)
         }
         else{
             this.loadSheet(this.sheets.length-1)
@@ -136,7 +136,7 @@ export class Excel{
         let tabs = this.sheetTabContainer.querySelectorAll("input")
         tabs[this.currentSheetIndex].removeAttribute("data-current")
         if(this.currentSheetIndex<this.sheets.length-1){
-            this.loadSheet(this.currentSheetIndex+1)
+            this.loadSheet(Number(this.currentSheetIndex)+1)
         }
         else{
             this.loadSheet(0)
