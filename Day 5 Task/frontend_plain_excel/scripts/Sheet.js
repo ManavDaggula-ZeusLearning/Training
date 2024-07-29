@@ -60,6 +60,7 @@ export class Sheet{
         this.inputEditor.classList.add("inputEditor")
         this.tableDiv.classList.add("tableDiv")
         this.selectButton.classList.add("selectAllButton")
+        this.selectButton.setAttribute("data-showdot","")
 
 
         // this.headerRef.style.display = "block"
@@ -403,7 +404,7 @@ export class Sheet{
                 this.tableContext.font = `${this.fontSize}px ${this.font}`
                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
                 this.tableContext.fillStyle = "black"
-                if(this.data[r] && this.data[r][c]){
+                if(this.data[r] && this.data[r][c] && this.data[r][c].text){
                     if(this.data[r][c].textWrap){
                         this.tableContext.textBaseline = "bottom"
                         let base = this.fontPadding;
@@ -599,12 +600,20 @@ export class Sheet{
         this.drawHeader();
         this.drawRowIndices();
         if(!this.drawLoopId) this.draw();
+        if(0>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) || 0>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
+            this.selectButton.setAttribute("data-showdot","")
+        }
+        else{
+            this.selectButton.removeAttribute("data-showdot")
+        }
         // console.log(this.selectedRangeStart);
         // if(this.selectedCell && rowIndexDown!=this.selectedCell.row && colIndexDown!=this.selectedCell.col){
             //     this.tableContext.clearRect()
             // }
         let canvasPointerUp = (eUp)=>{
-            let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(eUp);
+            let newX = (e.offsetX + eUp.clientX - e.clientX)
+            let newY = (e.offsetY + eUp.clientY - e.clientY)
+            let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex({offsetX:newX, offsetY:newY});
             this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
 
             // console.log(this.selectedRangeEnd);
@@ -640,6 +649,12 @@ export class Sheet{
                 this.drawHeader();
                 this.drawRowIndices();
                 if(!this.drawLoopId) this.draw();
+            }
+            if(0>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) || 0>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
+                this.selectButton.setAttribute("data-showdot","")
+            }
+            else{
+                this.selectButton.removeAttribute("data-showdot")
             }
         }
         let canvasPointerLeave = (eLeave)=>{
@@ -727,6 +742,7 @@ export class Sheet{
     * @param {KeyboardEvent} e 
     */
     canvasKeyHandler(e){
+        // console.log(e.key, e.shiftKey)
         // if(e.target===this.inputEditor.querySelector("input")){return;}
         if(e.key=="ArrowLeft" && this.selectedCell){
             this.lineDashOffset = null;
@@ -874,6 +890,22 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
         }
+        else if(e.key==="Delete"){
+            let rowsInSelection = Object.keys(this.data).filter(r=> r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
+            rowsInSelection.forEach(r=>{
+                let colsInSelectionInRow = Object.keys(this.data[r]).filter(c=> c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col))
+                colsInSelectionInRow.forEach(c=>{
+                    // console.log(r,c)
+                    delete this.data[r][c].text;
+                    if(Object.keys(this.data[r][c]).length==0){delete this.data[r][c]}
+                    if(Object.keys(this.data[r]).length==0){delete this.data[r]}
+                })
+            })
+            e.preventDefault();
+            this.drawHeader();
+            this.drawRowIndices();
+            if(!this.drawLoopId) this.draw();
+        }
         else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase())){
             this.lineDashOffset = null;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
@@ -888,6 +920,13 @@ export class Sheet{
             let inputRef = this.inputEditor.querySelector("input")
             inputRef.value = "";
             inputRef.focus();
+        }
+
+        if(0>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) || 0>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
+            this.selectButton.setAttribute("data-showdot","")
+        }
+        else{
+            this.selectButton.removeAttribute("data-showdot")
         }
     }
 
@@ -1009,20 +1048,26 @@ export class Sheet{
         }
         
         let minPosX = boundary-this.colSizes[i];
+        let prevColSize = this.colSizes[i]
+        let prevStartColStart = this.selectedRangeStart.colStart;
+        let prevCellColStart = this.selectedCell.colStart;
+        let prevEndColStart = this.selectedRangeEnd.colStart;
+        // console.log(minPosX);
         /**
          * 
          * @param {PointerEvent} eMove 
          */
         let colResizePointerMove = (eMove)=>{
-            if((this.colSizes[i] + eMove.movementX >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
+            let deltaX = eMove.clientX - e.clientX;
+            if((prevColSize + (deltaX) >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
                 if(i < this.selectedCell.col){
-                    this.selectedCell.colStart+=eMove.movementX;
-                    this.selectedRangeStart.colStart+=(eMove.movementX/window.devicePixelRatio);
+                    this.selectedCell.colStart = prevCellColStart+(deltaX)/window.devicePixelRatio;
+                    this.selectedRangeStart.colStart= prevStartColStart+(deltaX)/window.devicePixelRatio;
                 }
                 if(i < this.selectedRangeEnd.col){
-                    this.selectedRangeEnd.colStart+=(eMove.movementX/window.devicePixelRatio);
+                    this.selectedRangeEnd.colStart= prevEndColStart+((deltaX)/window.devicePixelRatio);
                 }
-                this.colSizes[i] += (eMove.movementX)/window.devicePixelRatio
+                this.colSizes[i] = prevColSize + deltaX/window.devicePixelRatio
                 this.drawHeader();
                 if(!this.drawLoopId) this.draw();
             }
@@ -1131,19 +1176,24 @@ export class Sheet{
         }
         
         let minPosY = boundary-this.rowSizes[i];
+        let prevRowSize = this.rowSizes[i]
+        let prevStartRowStart = this.selectedRangeStart.rowStart;
+        let prevCellRowStart = this.selectedCell.rowStart;
+        let prevEndRowStart = this.selectedRangeEnd.rowStart;
         /**
          * @param {PointerEvent} eMove 
          */
         let rowResizePointerMove = (eMove)=>{
-            if((this.rowSizes[i] + eMove.movementY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
+            let deltaY = eMove.clientY - e.clientY;
+            if((prevRowSize+deltaY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
                 if(i < this.selectedCell.row){
-                    this.selectedCell.rowStart+=eMove.movementY;
-                    this.selectedRangeStart.rowStart+=(eMove.movementY/window.devicePixelRatio);
+                    this.selectedCell.rowStart= prevCellRowStart+deltaY/window.devicePixelRatio;
+                    this.selectedRangeStart.rowStart=prevStartRowStart+(deltaY/window.devicePixelRatio);
                 }
                 if(i < this.selectedRangeEnd.row){
-                    this.selectedRangeEnd.rowStart+=(eMove.movementY/window.devicePixelRatio);
+                    this.selectedRangeEnd.rowStart=prevEndRowStart+(deltaY/window.devicePixelRatio);
                 }
-                this.rowSizes[i] += (eMove.movementY/window.devicePixelRatio)
+                this.rowSizes[i] = prevRowSize+(deltaY/window.devicePixelRatio)
                 this.drawRowIndices();
                 if(!this.drawLoopId) this.draw();
             }
@@ -1409,3 +1459,5 @@ export class Sheet{
 
 
 // collastpos = [180, 300, 420, 540, 660, 834, 954, 1074, 1194, 1314, 1414, 1514, 1614, 1714]
+
+// var debugDiv = document.querySelector("#debugDiv")

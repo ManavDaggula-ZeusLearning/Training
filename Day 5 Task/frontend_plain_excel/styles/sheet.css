@@ -71,4 +71,15 @@
   width: 100%;
   background-color: grey;
   z-index: 3;
+  position: relative;
+}
+.selectAllButton[data-showdot]::after {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  position: absolute;
+  bottom: 0px;
+  right: 0px;
+  background-color: #107c41;
 }/*# sourceMappingURL=sheet.css.map */

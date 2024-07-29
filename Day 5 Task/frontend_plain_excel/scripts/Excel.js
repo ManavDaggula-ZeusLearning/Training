@@ -21,6 +21,11 @@ export class Excel{
         newSheetBtn.title = "New Sheet"
         newSheetBtn.addEventListener("click",()=>this.newSheet())
         sheetArrayChanger.appendChild(newSheetBtn)
+        let deleteSheetBtn = document.createElement("button")
+        deleteSheetBtn.textContent = "-"
+        deleteSheetBtn.title = "Delete Sheet"
+        deleteSheetBtn.addEventListener("click",()=>this.deleteSheet())
+        sheetArrayChanger.appendChild(deleteSheetBtn)
         let prevSheetBtn = document.createElement("button")
         prevSheetBtn.textContent = "←"
         prevSheetBtn.title = "Previous Sheet"
@@ -97,14 +102,14 @@ export class Excel{
             throw new Error(`Cannot load sheet at index ${index}, index out of bounds.`)
         }
         // console.log(`Removing sheet ${this.currentSheetIndex}\nAttaching sheet ${index}`);
-        this.sheets[this.currentSheetIndex].containerDiv.remove();
+        this.sheetContainer.children?.[0]?.remove();
         this.sheetContainer.appendChild(this.sheets[index].containerDiv)
         this.sheets[index].fixCanvasSize();
         this.sheets[index].draw();
         this.sheets[index].drawRowIndices();
         this.sheets[index].drawHeader();
         this.currentSheetIndex = index;
-        console.log("Loading sheet at "+index);
+        // console.log("Loading sheet at "+index);
 
     }
     newSheet(){
@@ -142,6 +147,22 @@ export class Excel{
             this.loadSheet(0)
         }
         tabs[this.currentSheetIndex].setAttribute("data-current","")
+    }
+    deleteSheet(){
+        if(this.sheets.length<=1){
+            window.alert("Cannot delete all sheets");
+            // throw new Error("Cannot delete all sheets");
+            return;
+        }
+        this.sheets = this.sheets.slice(0,Number(this.currentSheetIndex)).concat(this.sheets.slice(Number(this.currentSheetIndex)+1,this.sheets.length))
+        this.sheetTabContainer.children[this.currentSheetIndex].remove();
+        Array(...this.sheetTabContainer.children).forEach((x,i)=>{
+            x.setAttribute("data-index", i);
+        })
+        // console.log(this.sheets);
+        this.loadSheet((Number(this.currentSheetIndex)+1)%this.sheets.length);
+        this.sheetTabContainer.children[this.currentSheetIndex].setAttribute("data-current","");
+
     }
     wrapText(){
         this.sheets[this.currentSheetIndex].wrapRangeSelection();
