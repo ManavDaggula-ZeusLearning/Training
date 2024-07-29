@@ -4,6 +4,11 @@ export class Excel{
      * @type {Array.<Sheet>}
      */
     sheets = [];
+    searchObject = {
+        text:"",
+        resultArray:[],
+        currentIndex:null
+    };
     constructor(excelContainer){
         // console.log(excelContainer);
         this.menuDiv = document.createElement("div")
@@ -65,6 +70,15 @@ export class Excel{
         wrapBtn.textContent = "Wrap Text"
         wrapBtn.addEventListener("click",()=>this.wrapText())
         textWrapperControl.appendChild(wrapBtn)
+
+        let searchDiv = document.createElement("div")
+        searchDiv.classList.add("searchDiv")
+        let searchInput = document.createElement("input")
+        searchInput.placeholder = "Search text here.."
+        searchInput.addEventListener("keypress",(e)=>{
+            this.searchInputKeyHandler(e)
+        })
+        searchDiv.appendChild(searchInput);
         
         
         let aggregateDiv = document.createElement("div")
@@ -84,6 +98,7 @@ export class Excel{
         aggregateDiv.appendChild(recalculateAggregateBtn)
         this.menuDiv.appendChild(sheetArrayChanger)
         this.menuDiv.appendChild(textWrapperControl)
+        this.menuDiv.appendChild(searchDiv)
         this.menuDiv.appendChild(aggregateDiv)
 
 
@@ -189,6 +204,23 @@ export class Excel{
     sheetTabKeyHandler(e){
         if(e.key==="Enter"){
               e.target.setAttribute("readonly","")
+        }
+    }
+    searchInputKeyHandler(e){
+        if(e.key!="Enter"){
+            return;
+        }
+        if(this.searchObject.text!=e.target.value){
+            // console.log(e.target.value, this.searchObject)
+            this.searchObject.text = e.target.value;
+            this.searchObject.resultArray = this.sheets[this.currentSheetIndex].find(e.target.value)
+            if(!this.searchObject.resultArray.length){return;}
+            this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[0][0],this.searchObject.resultArray[0][1])
+            this.searchObject.currentIndex = 0;
+        }
+        else{
+            this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+            this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
         }
     }
 

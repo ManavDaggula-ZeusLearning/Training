@@ -36,7 +36,7 @@ export class Sheet{
     constructor(divRef){
         // creating canvas elements and contexts
         // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        this.data = {};
+        this.data = JSON.parse(JSON.stringify(data));
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -1008,6 +1008,7 @@ export class Sheet{
             this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
             this.selectedRangeEnd.col = i;
             this.selectedRangeStart.colStart = boundary-this.colSizes[i];
+            this.selectButton.setAttribute("data-showdot","")
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
@@ -1138,6 +1139,7 @@ export class Sheet{
             this.selectedRangeStart.rowStart = boundary-this.rowSizes[i];
             this.selectedRangeEnd.rowStart = boundary-this.rowSizes[i];
             this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
+            this.selectButton.setAttribute("data-showdot","")
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
@@ -1434,6 +1436,7 @@ export class Sheet{
         
     // }
     find(textContent){
+        if(!textContent){return []}
         // console.clear();
         let arr = [];
         for(let r of Object.keys(this.data)){
@@ -1447,6 +1450,35 @@ export class Sheet{
         }
         // console.log(arr);
         return arr;
+    }
+
+    /**
+     * @param {Number} row 
+     * @param {Number} col 
+     */
+    scrollCellInView(row,col){
+        if(row<this.rowSizes.length && col<this.colSizes.length){
+            let xPos = 0, yPos=0;
+            for(let i=0; i<col; i++){
+                xPos+=this.colSizes[i]
+            }
+            for(let i=0; i<row; i++){
+                yPos+=this.rowSizes[i]
+            }
+            // console.log(xPos,yPos);
+            if(xPos < this.tableDiv.scrollLeft || xPos+this.colSizes[col] > this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+                this.tableDiv.scrollTo(xPos,this.tableDiv.scrollTop);
+            }
+            if(yPos < this.tableDiv.scrollTop || yPos+this.rowSizes[row] > this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+                this.tableDiv.scrollTo(this.tableDiv.scrollLeft, yPos);
+            }
+            this.selectedCell = {col:col, row:row, rowStart:yPos, colStart:xPos}
+            this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+            this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+            this.drawHeader();
+            this.drawRowIndices();
+            if(!this.drawLoopId){this.draw();}
+        }
     }
 
     // resizeBasedOnViewPort(e){
