@@ -8,7 +8,7 @@ import {data} from "../tempData.js"
 export class Sheet{
 
     colSizes = Array(20).fill(100)
-    rowSizes = Array(50).fill(40)
+    rowSizes = Array(50).fill(22)
     rowLimit = 1048576
     colLimit = 16384
     // fontSize = 16;
@@ -185,26 +185,34 @@ export class Sheet{
             // this.headerContext.lineWidth = 1
             // this.headerContext.stroke();
             this.headerContext.clip();
+            this.headerContext.textAlign = "center"
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
                 if(this.selectedRangeEnd.rowStart==Infinity){
                     this.headerContext.fillStyle = "#107c41"
+                    this.headerContext.fill();
+                    this.headerContext.fillStyle = `#fff`;
                 }else{
                     this.headerContext.fillStyle = "#caead8"
+                    this.headerContext.fill();
+                    this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 }
-                this.headerContext.fill();
                 // this.headerContext.beginPath();
                 // this.headerContext.moveTo(startPosCol, this.defaultConfig.rowHeight-0.5);
                 // this.headerContext.lineTo(startPosCol+this.colSizes[i], this.defaultConfig.rowHeight-0.5)
                 // this.headerContext.strokeStyle = "#107c41"
                 // this.headerContext.lineWidth = 5;
                 // this.headerContext.stroke();
+                this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (startPosCol+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
+            }
+            else{
+                this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
+                this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (startPosCol+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             }
             // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
             // this.headerContext.lineTo(prev+curr, this.defaultConfig.rowHeight);
-            this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
-            this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
-            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.defaultConfig.fontPadding, this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             this.headerContext.restore();
             startPosCol+=this.colSizes[i]
         }
@@ -233,7 +241,15 @@ export class Sheet{
                 this.headerContext.save();
                 this.headerContext.beginPath();
                 this.headerContext.moveTo(rectStartX-2, this.defaultConfig.rowHeight-0.5);
-                this.headerContext.lineTo(rectEndX+2, this.defaultConfig.rowHeight-0.5);
+                if(this.selectedRangeEnd.rowStart==Infinity){
+                    this.headerContext.lineTo(rectEndX, this.defaultConfig.rowHeight-0.5);
+                    this.headerContext.lineTo(rectEndX, 0.5);
+                    this.headerContext.lineTo(rectStartX, 0.5);
+                    this.headerContext.lineTo(rectStartX, this.defaultConfig.rowHeight-0.5);
+                }
+                else{
+                    this.headerContext.lineTo(rectEndX+2, this.defaultConfig.rowHeight-0.5);
+                }
                 this.headerContext.strokeStyle = "#107c41"
                 this.headerContext.lineWidth = 5;
                 this.headerContext.stroke();
@@ -259,10 +275,23 @@ export class Sheet{
             // this.rowContext.strokeStyle = this.defaultConfig.columnGutterColor;
             // this.rowContext.stroke();
             this.rowContext.clip();
+            this.rowContext.textBaseline = "middle"
             // tempArr.push(i)
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
-                this.rowContext.fillStyle = "#caead8"
-                this.rowContext.fill();
+                if(this.selectedRangeEnd.colStart==Infinity){
+                    this.rowContext.fillStyle = "#107c41"
+                    this.rowContext.fill();
+                    this.rowContext.fillStyle = "#fff"
+                }
+                else{
+                    this.rowContext.fillStyle = "#caead8"
+                    this.rowContext.fill();
+                    this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
+                }
+                this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                // this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
+                this.rowContext.textAlign = "right"
+                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]/2)
                 // this.rowContext.beginPath()
                 // this.rowContext.moveTo(this.defaultConfig.colWidth-0.5, startPosRow);
                 // this.rowContext.lineTo(this.defaultConfig.colWidth-0.5, startPosRow+this.rowSizes[i])
@@ -270,10 +299,12 @@ export class Sheet{
                 // this.rowContext.lineWidth = 5;
                 // this.rowContext.stroke();
             }
-            this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
-            this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
-            this.rowContext.textAlign = "right"
-            this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]-this.defaultConfig.fontPadding)
+            else{
+                this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
+                this.rowContext.textAlign = "right"
+                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]/2)
+            }
             startPosRow+=this.rowSizes[i];
             this.rowContext.restore();
             }
@@ -303,12 +334,21 @@ export class Sheet{
                 this.rowContext.save();
                 this.rowContext.beginPath();
                 this.rowContext.moveTo(this.defaultConfig.colWidth-0.5,rectStartY-2);
-                this.rowContext.lineTo(this.defaultConfig.colWidth-0.5,rectEndY+2);
+                if(this.selectedRangeEnd.colStart==Infinity){
+                    this.rowContext.lineTo(this.defaultConfig.colWidth-0.5,rectEndY);
+                    this.rowContext.lineTo(0.5,rectEndY);
+                    this.rowContext.lineTo(0.5,rectStartY);
+                    this.rowContext.lineTo(this.defaultConfig.colWidth-0.5,rectStartY);
+                }
+                else{
+                    this.rowContext.lineTo(this.defaultConfig.colWidth-0.5,rectEndY+2);
+                }
                 this.rowContext.strokeStyle = "#107c41"
                 this.rowContext.lineWidth = 5;
                 this.rowContext.stroke();
                 this.rowContext.restore();
             }
+            
         }
         // console.log("Rows drawn in rows: "+tempArr.length);
     }
@@ -959,12 +999,12 @@ export class Sheet{
         // console.log(currPosX);
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
         for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
-            if(Math.abs(currPosX-boundary)<=10){
+            if(Math.abs(currPosX-boundary)<=5){
                 e.target.style.cursor = "col-resize";
                 // console.log(`near boundary of cell ${i}`);
                 break;
             }
-            e.target.style.cursor = "default";   
+            e.target.style.cursor = "url(./assets/columnselect.cur),default";
         }
     }
     rowResizeCursorMove(e){
@@ -972,12 +1012,12 @@ export class Sheet{
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
         for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
-            if(Math.abs(currPosY-boundary)<=10){
+            if(Math.abs(currPosY-boundary)<=5){
                 e.target.style.cursor = "row-resize";
                 // console.log(`near boundary of cell ${i}`);
                 break;
             }
-            e.target.style.cursor = "default";   
+            e.target.style.cursor = "url(./assets/rowselect.cur),default";
         }
     }
 
@@ -990,8 +1030,8 @@ export class Sheet{
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
         let shouldResize = false;
-        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=10); i++,boundary+=this.colSizes[i]){
-            if(Math.abs(currPosX-boundary)<=10){
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=5); i++,boundary+=this.colSizes[i]){
+            if(Math.abs(currPosX-boundary)<=5){
                 e.target.style.cursor = "col-resize";
                 // console.log(`near boundary of cell ${i}`);
                 shouldResize = true;
@@ -1024,9 +1064,9 @@ export class Sheet{
             this.selectedRangeEnd.rowStart = Infinity;
             this.selectedRangeStart.col = i;
             this.selectedRangeEnd.colStart = boundary-this.colSizes[i];
+            this.selectedRangeStart.colStart = boundary-this.colSizes[i];
             this.selectedCell = JSON.parse(JSON.stringify(this.selectedRangeStart))
             this.selectedRangeEnd.col = i;
-            this.selectedRangeStart.colStart = boundary-this.colSizes[i];
             this.selectButton.setAttribute("data-showdot","")
             this.drawHeader();
             this.drawRowIndices();
@@ -1081,22 +1121,45 @@ export class Sheet{
             let deltaX = eMove.clientX - e.clientX;
             if((prevColSize + (deltaX) >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
                 if(i < this.selectedCell.col){
-                    this.selectedCell.colStart = prevCellColStart+(deltaX)/window.devicePixelRatio;
-                    this.selectedRangeStart.colStart= prevStartColStart+(deltaX)/window.devicePixelRatio;
+                    this.selectedCell.colStart = prevCellColStart+(deltaX);
+                    this.selectedRangeStart.colStart= prevStartColStart+(deltaX);
                 }
                 if(i < this.selectedRangeEnd.col){
-                    this.selectedRangeEnd.colStart= prevEndColStart+((deltaX)/window.devicePixelRatio);
+                    this.selectedRangeEnd.colStart= prevEndColStart+((deltaX));
                 }
-                this.colSizes[i] = prevColSize + deltaX/window.devicePixelRatio
+                this.colSizes[i] = prevColSize + deltaX
                 this.drawHeader();
                 if(!this.drawLoopId) this.draw();
             }
         }
         let colResizePointerUp = (eUp)=>{
+            // console.log(this.selectedCell, this.selectedRangeStart, this.selectedRangeEnd)
+            if(this.selectedRangeEnd.rowStart==Infinity && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
+                for(let j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col);j++){
+                    // if(j==i){continue;}
+                    // console.log(`should resize ${j}`);
+                    let deltaX = this.colSizes[j]-this.colSizes[i];
+                    // console.log(deltaX);
+                    if(j<this.selectedRangeStart.col){
+                            this.selectedRangeStart.colStart -= deltaX
+                            this.selectedCell.colStart -= deltaX   
+                    }
+                    if(j<this.selectedRangeEnd.col){
+                        this.selectedRangeEnd.colStart -= deltaX
+                    }
+                    this.colSizes[j] = this.colSizes[i]
+                }
+                // console.log(this.colSizes);
+                // console.log(`cols before start : ${Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) - this.selectedRangeStart.col}`);
+                
+                this.drawHeader()
+                if(!this.drawLoopId){this.draw()}
+            }
             // console.log(eUp);
             this.wrapTextForColumn(i);
             // this.draw();
             this.drawRowIndices();
+            // if(!this.drawLoopId) {this.drawLoopId = window.requestAnimationFrame(()=>this.draw())}
             // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);    
@@ -1124,8 +1187,8 @@ export class Sheet{
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
         let shouldResize = false;
-        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=10); i++,boundary+=this.rowSizes[i]){
-            if(Math.abs(currPosY-boundary)<=10){
+        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=5); i++,boundary+=this.rowSizes[i]){
+            if(Math.abs(currPosY-boundary)<=5){
                 e.target.style.cursor = "row-resize";
                 shouldResize = true;
                 break;
@@ -1210,18 +1273,39 @@ export class Sheet{
             let deltaY = eMove.clientY - e.clientY;
             if((prevRowSize+deltaY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
                 if(i < this.selectedCell.row){
-                    this.selectedCell.rowStart= prevCellRowStart+deltaY/window.devicePixelRatio;
-                    this.selectedRangeStart.rowStart=prevStartRowStart+(deltaY/window.devicePixelRatio);
+                    this.selectedCell.rowStart= prevCellRowStart+deltaY;
+                    this.selectedRangeStart.rowStart=prevStartRowStart+(deltaY);
                 }
                 if(i < this.selectedRangeEnd.row){
-                    this.selectedRangeEnd.rowStart=prevEndRowStart+(deltaY/window.devicePixelRatio);
+                    this.selectedRangeEnd.rowStart=prevEndRowStart+(deltaY);
                 }
-                this.rowSizes[i] = prevRowSize+(deltaY/window.devicePixelRatio)
+                this.rowSizes[i] = prevRowSize+(deltaY)
                 this.drawRowIndices();
                 if(!this.drawLoopId) this.draw();
             }
         }
         let rowResizePointerUp = (eDown)=>{
+            if(this.selectedRangeEnd.colStart==Infinity && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
+                for(let j=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); j<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row);j++){
+                    // if(j==i){continue;}
+                    // console.log(`should resize ${j}`);
+                    let deltaX = this.rowSizes[j]-this.rowSizes[i];
+                    // console.log(deltaX);
+                    if(j<this.selectedRangeStart.row){
+                            this.selectedRangeStart.rowStart -= deltaX
+                            this.selectedCell.rowStart -= deltaX   
+                    }
+                    if(j<this.selectedRangeEnd.row){
+                        this.selectedRangeEnd.rowStart -= deltaX
+                    }
+                    this.rowSizes[j] = this.rowSizes[i]
+                }
+                // console.log(this.colSizes);
+                // console.log(`cols before start : ${Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) - this.selectedRangeStart.col}`);
+                
+                this.drawRowIndices()
+                if(!this.drawLoopId){this.draw()}
+            }
             // console.log(eDown);
             // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
