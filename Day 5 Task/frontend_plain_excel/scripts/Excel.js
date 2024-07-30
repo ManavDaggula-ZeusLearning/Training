@@ -210,6 +210,7 @@ export class Excel{
         if(e.key!="Enter"){
             return;
         }
+        // if(!e.target.value.trim()){return;}
         if(this.searchObject.text!=e.target.value){
             // console.log(e.target.value, this.searchObject)
             this.searchObject.text = e.target.value;
@@ -219,7 +220,12 @@ export class Excel{
             this.searchObject.currentIndex = 0;
         }
         else{
-            this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+            if(!this.searchObject.resultArray.length){return;}
+            if(e.shiftKey){
+                this.searchObject.currentIndex = (this.searchObject.currentIndex-1)>=0 ? (this.searchObject.currentIndex-1) : this.searchObject.resultArray.length-1;
+            }else{
+                this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+            }
             this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
         }
     }

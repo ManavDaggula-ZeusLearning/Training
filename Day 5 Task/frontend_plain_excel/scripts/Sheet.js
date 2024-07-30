@@ -11,17 +11,30 @@ export class Sheet{
     rowSizes = Array(50).fill(40)
     rowLimit = 1048576
     colLimit = 16384
-    fontSize = 16;
-    font = "Titillium Web";
-    fontColor = "#222";
-    fontSelectedColor = "#444";
-    fontSelectedBackgroundColor = "#88d1b144";
-    cellBackgroundColor = "#fff"
-    fontPadding = 6;
-    columnWidth = 100 ;
-    rowHeight = 30
-    colWidth = 50
-    columnGutterColor = "#cbd5d0"
+    // fontSize = 16;
+    // font = "Titillium Web";
+    // fontColor = "#222";
+    // fontSelectedColor = "#444";
+    // fontSelectedBackgroundColor = "#88d1b144";
+    // cellBackgroundColor = "#fff"
+    // fontPadding = 6;
+    // columnWidth = 100 ;
+    // rowHeight = 30
+    // colWidth = 50
+    // columnGutterColor = "#cbd5d0"
+    defaultConfig = {
+        "fontSize":16,
+        "font": "Titillium Web",
+        "fontColor":"#222",
+        "fontSelectedColor":"#444",
+        "fontSelectedBackgroundColor": "#88d1b144",
+        "cellBackgroundColor": "#fff",
+        "fontPadding": 6,
+        "columnWidth": 100,
+        "rowHeight": 30,
+        "colWidth": 50,
+        "columnGutterColor": "#cbd5d0",
+    }
     /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
     selectedCell = null
     /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
@@ -167,27 +180,31 @@ export class Sheet{
         for(let i=colIndex; startPosCol<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && i<this.colSizes.length; i++){
             this.headerContext.save();
             this.headerContext.beginPath();
-            this.headerContext.rect(startPosCol-0.5,0, this.colSizes[i], this.rowHeight);
-            // this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.rect(startPosCol-0.5,0, this.colSizes[i], this.defaultConfig.rowHeight);
+            // this.headerContext.strokeStyle = this.defaultConfig.columnGutterColor;
             // this.headerContext.lineWidth = 1
             // this.headerContext.stroke();
             this.headerContext.clip();
             if(this.selectedRangeStart && this.selectedRangeEnd && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
-                this.headerContext.fillStyle = "#caead8"
+                if(this.selectedRangeEnd.rowStart==Infinity){
+                    this.headerContext.fillStyle = "#107c41"
+                }else{
+                    this.headerContext.fillStyle = "#caead8"
+                }
                 this.headerContext.fill();
                 // this.headerContext.beginPath();
-                // this.headerContext.moveTo(startPosCol, this.rowHeight-0.5);
-                // this.headerContext.lineTo(startPosCol+this.colSizes[i], this.rowHeight-0.5)
+                // this.headerContext.moveTo(startPosCol, this.defaultConfig.rowHeight-0.5);
+                // this.headerContext.lineTo(startPosCol+this.colSizes[i], this.defaultConfig.rowHeight-0.5)
                 // this.headerContext.strokeStyle = "#107c41"
                 // this.headerContext.lineWidth = 5;
                 // this.headerContext.stroke();
             }
             // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
-            // this.headerContext.lineTo(prev+curr, this.rowHeight);
-            this.headerContext.font = `bold ${this.fontSize}px ${this.font}`;
-            this.headerContext.fillStyle = `${this.fontColor}`;
-            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.fontPadding, this.rowHeight-this.fontPadding)
+            // this.headerContext.lineTo(prev+curr, this.defaultConfig.rowHeight);
+            this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+            this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
+            this.headerContext.fillText(Sheet.numToBase26ForHeader(i), startPosCol+this.defaultConfig.fontPadding, this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             this.headerContext.restore();
             startPosCol+=this.colSizes[i]
         }
@@ -197,12 +214,12 @@ export class Sheet{
             this.headerContext.save();
             this.headerContext.beginPath();
             this.headerContext.moveTo(prev+curr-0.5,0);
-            this.headerContext.lineTo(prev+curr-0.5,this.rowHeight)
-            this.headerContext.strokeStyle = this.columnGutterColor;
+            this.headerContext.lineTo(prev+curr-0.5,this.defaultConfig.rowHeight)
+            this.headerContext.strokeStyle = this.defaultConfig.columnGutterColor;
             this.headerContext.stroke();
             // tempArr.push(curr)
             // this.headerContext.moveTo(prev+curr, 0);
-            // this.headerContext.lineTo(prev+curr, this.rowHeight);
+            // this.headerContext.lineTo(prev+curr, this.defaultConfig.rowHeight);
             this.headerContext.restore();
             }
             return prev+curr;
@@ -215,8 +232,8 @@ export class Sheet{
             if(rectStartX!=rectEndX){
                 this.headerContext.save();
                 this.headerContext.beginPath();
-                this.headerContext.moveTo(rectStartX-2, this.rowHeight-0.5);
-                this.headerContext.lineTo(rectEndX+2, this.rowHeight-0.5);
+                this.headerContext.moveTo(rectStartX-2, this.defaultConfig.rowHeight-0.5);
+                this.headerContext.lineTo(rectEndX+2, this.defaultConfig.rowHeight-0.5);
                 this.headerContext.strokeStyle = "#107c41"
                 this.headerContext.lineWidth = 5;
                 this.headerContext.stroke();
@@ -238,8 +255,8 @@ export class Sheet{
         for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && i<this.rowSizes.length; i++){
             this.rowContext.save();
             this.rowContext.beginPath();
-            this.rowContext.rect(0,startPosRow-0.5, this.colWidth, this.rowSizes[i]);
-            // this.rowContext.strokeStyle = this.columnGutterColor;
+            this.rowContext.rect(0,startPosRow-0.5, this.defaultConfig.colWidth, this.rowSizes[i]);
+            // this.rowContext.strokeStyle = this.defaultConfig.columnGutterColor;
             // this.rowContext.stroke();
             this.rowContext.clip();
             // tempArr.push(i)
@@ -247,16 +264,16 @@ export class Sheet{
                 this.rowContext.fillStyle = "#caead8"
                 this.rowContext.fill();
                 // this.rowContext.beginPath()
-                // this.rowContext.moveTo(this.colWidth-0.5, startPosRow);
-                // this.rowContext.lineTo(this.colWidth-0.5, startPosRow+this.rowSizes[i])
+                // this.rowContext.moveTo(this.defaultConfig.colWidth-0.5, startPosRow);
+                // this.rowContext.lineTo(this.defaultConfig.colWidth-0.5, startPosRow+this.rowSizes[i])
                 // this.rowContext.strokeStyle = "#107c41"
                 // this.rowContext.lineWidth = 5;
                 // this.rowContext.stroke();
             }
-            this.rowContext.font = `bold ${this.fontSize}px ${this.font}`;
-            this.rowContext.fillStyle = `${this.fontColor}`;
+            this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+            this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
             this.rowContext.textAlign = "right"
-            this.rowContext.fillText(i, this.colWidth-this.fontPadding, startPosRow+this.rowSizes[i]-this.fontPadding)
+            this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]-this.defaultConfig.fontPadding)
             startPosRow+=this.rowSizes[i];
             this.rowContext.restore();
             }
@@ -266,13 +283,13 @@ export class Sheet{
             this.rowContext.save();
             this.rowContext.beginPath();
             this.rowContext.moveTo(0,prev+curr - 0.5);
-            this.rowContext.lineTo(this.colWidth, prev+curr-0.5)
-            this.rowContext.strokeStyle = this.columnGutterColor;
+            this.rowContext.lineTo(this.defaultConfig.colWidth, prev+curr-0.5)
+            this.rowContext.strokeStyle = this.defaultConfig.columnGutterColor;
             this.rowContext.stroke();
             // this.rowContext.clip();
             // tempArr.push(curr)
             // this.rowContext.moveTo(0,prev+curr);
-            // this.rowContext.lineTo(this.colWidth,prev+curr);
+            // this.rowContext.lineTo(this.defaultConfig.colWidth,prev+curr);
             this.rowContext.restore();
             }
             return prev+curr;
@@ -285,8 +302,8 @@ export class Sheet{
             if(rectStartY!=rectEndY){
                 this.rowContext.save();
                 this.rowContext.beginPath();
-                this.rowContext.moveTo(this.colWidth-0.5,rectStartY-2);
-                this.rowContext.lineTo(this.colWidth-0.5,rectEndY+2);
+                this.rowContext.moveTo(this.defaultConfig.colWidth-0.5,rectStartY-2);
+                this.rowContext.lineTo(this.defaultConfig.colWidth-0.5,rectEndY+2);
                 this.rowContext.strokeStyle = "#107c41"
                 this.rowContext.lineWidth = 5;
                 this.rowContext.stroke();
@@ -329,11 +346,11 @@ export class Sheet{
         //     for (let i = 0; i < this.dataColumns.length; i++) {
         //         this.tableContext.beginPath();
         //         this.tableContext.save();
-        //         this.tableContext.rect(sum,(j) * this.rowHeight,this.colSizes[i],this.rowHeight);
+        //         this.tableContext.rect(sum,(j) * this.defaultConfig.rowHeight,this.colSizes[i],this.defaultConfig.rowHeight);
         //         this.tableContext.clip();
-        //         this.tableContext.font = `${this.fontSize}px ${this.font}`;
-        //         this.tableContext.fillStyle = `${this.fontColor}`;
-        //         this.tableContext.fillText(data[j][this.dataColumns[i]], sum+this.fontPadding, (j+1)*this.rowHeight-this.fontPadding)
+        //         this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+        //         this.tableContext.fillStyle = `${this.defaultConfig.fontColor}`;
+        //         this.tableContext.fillText(data[j][this.dataColumns[i]], sum+this.defaultConfig.fontPadding, (j+1)*this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
         //         // this.tableContext.stroke();
         //         this.tableContext.restore();
         //         sum+=this.colSizes[i]
@@ -356,9 +373,9 @@ export class Sheet{
         //                 this.tableContext.save();
         //                 this.tableContext.rect(sumColSizes, sumRowSizes, this.colSizes[c], this.rowSizes[r]);
         //                 this.tableContext.clip();
-        //                 this.tableContext.font = `${this.fontSize}px ${this.font}`
-        //                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
-        //                 this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowSizes + this.rowSizes[r] - this.fontPadding)
+        //                 this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
+        //                 // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.defaultConfig.fontPadding, sumRowSizes + this.rowSizes[r] - this.defaultConfig.fontPadding)
+        //                 this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.defaultConfig.fontPadding, sumRowSizes + this.rowSizes[r] - this.defaultConfig.fontPadding)
         //                 this.tableContext.stroke();
         //                 this.tableContext.restore();
         //                 // colCount++;
@@ -386,7 +403,7 @@ export class Sheet{
                 //     this.tableContext.strokeStyle = "#107c41";
                 // }
                 // else{
-                //     this.tableContext.strokeStyle = this.columnGutterColor;
+                //     this.tableContext.strokeStyle = this.defaultConfig.columnGutterColor;
                 // }
                 if(this.selectedRangeStart && this.selectedRangeEnd && 
                     c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) &&
@@ -399,27 +416,27 @@ export class Sheet{
                     }
                 }
                 // this.tableContext.lineWidth = 1
-                // this.tableContext.strokeStyle = this.columnGutterColor
+                // this.tableContext.strokeStyle = this.defaultConfig.columnGutterColor
                 // this.tableContext.stroke();
-                this.tableContext.font = `${this.fontSize}px ${this.font}`
-                // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
+                // this.tableContext.fillText(`R${r},C${c}`, sumColSizes+this.defaultConfig.fontPadding, sumRowsizes + this.rowSizes[r] - this.defaultConfig.fontPadding)
                 this.tableContext.fillStyle = "black"
                 if(this.data[r] && this.data[r][c] && this.data[r][c].text){
                     if(this.data[r][c].textWrap){
                         this.tableContext.textBaseline = "bottom"
-                        let base = this.fontPadding;
+                        let base = this.defaultConfig.fontPadding;
                         let textPartitions = this.data[r][c].wrappedTextContent.slice().reverse();
 
                         for(let partitionText of textPartitions){
-                            this.tableContext.fillText(partitionText, sumColSizes+this.fontPadding, sumRowsizes+this.rowSizes[r]-base)
-                            base+=this.fontSize
+                            this.tableContext.fillText(partitionText, sumColSizes+this.defaultConfig.fontPadding, sumRowsizes+this.rowSizes[r]-base)
+                            base+=this.defaultConfig.fontSize
                         }
                     }
                     else{
-                        this.tableContext.fillText(this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.rowSizes[r] - this.fontPadding)
+                        this.tableContext.fillText(this.data[r][c].text, sumColSizes+this.defaultConfig.fontPadding, sumRowsizes + this.rowSizes[r] - this.defaultConfig.fontPadding)
                     }
                 }
-                // this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.fontPadding, sumRowsizes + this.fontPadding)
+                // this.tableContext.fillText(!this.data[r] || !this.data[r][c] ? "" : this.data[r][c].text, sumColSizes+this.defaultConfig.fontPadding, sumRowsizes + this.defaultConfig.fontPadding)
                 // await new Promise(r=>setTimeout(r,100))
                 // this.tableContext.closePath();
                 this.tableContext.restore();
@@ -435,7 +452,7 @@ export class Sheet{
             this.tableContext.save();
             this.tableContext.moveTo(prev + curr - 0.5, this.tableDiv.scrollTop);
             this.tableContext.lineTo(prev + curr - 0.5, this.tableRef.height/window.devicePixelRatio+this.tableDiv.scrollTop);
-            this.tableContext.strokeStyle = this.columnGutterColor;
+            this.tableContext.strokeStyle = this.defaultConfig.columnGutterColor;
             this.tableContext.stroke();
             this.tableContext.restore();
             return prev + curr;
@@ -446,7 +463,7 @@ export class Sheet{
             this.tableContext.save();
             this.tableContext.moveTo(this.tableDiv.scrollLeft, prev + curr - 0.5);
             this.tableContext.lineTo(this.tableRef.width/window.devicePixelRatio + this.tableDiv.scrollLeft, prev + curr - 0.5);
-            this.tableContext.strokeStyle = this.columnGutterColor;
+            this.tableContext.strokeStyle = this.defaultConfig.columnGutterColor;
             this.tableContext.stroke();
             this.tableContext.restore();
             return prev + curr;
@@ -515,12 +532,12 @@ export class Sheet{
         // console.log(this.tableDiv.clientWidth, this.tableDiv.clientHeight)
         this.tableRef.width = (this.tableDiv.clientWidth)*window.devicePixelRatio
         this.tableRef.height = (this.tableDiv.clientHeight)*window.devicePixelRatio
-        // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.colWidth - 18)
-        // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.rowHeight - 18)
+        // this.tableRef.width = (this.tableDiv.parentElement.clientWidth - this.defaultConfig.colWidth - 18)
+        // this.tableRef.height = (this.tableDiv.parentElement.clientHeight - this.defaultConfig.rowHeight - 18)
         this.headerRef.width = (this.tableDiv.offsetWidth)*window.devicePixelRatio;
-        this.headerRef.height = this.rowHeight*window.devicePixelRatio
+        this.headerRef.height = this.defaultConfig.rowHeight*window.devicePixelRatio
 
-        this.rowRef.width = this.colWidth*window.devicePixelRatio
+        this.rowRef.width = this.defaultConfig.colWidth*window.devicePixelRatio
         this.rowRef.height = (this.tableDiv.offsetHeight)*window.devicePixelRatio;
 
         // let {width} = this.headerRef.getBoundingClientRect()
@@ -985,6 +1002,8 @@ export class Sheet{
         if(!shouldResize){
             // console.log(currPosX, boundary-this.colSizes[i]);
             this.lineDashOffset = null;
+            window.cancelAnimationFrame(this.drawLoopId)
+            this.drawLoopId = null;
             // console.log(`${i} to be clicked`);
             if(e.shiftKey){
                 this.selectedRangeStart.row = 0;
@@ -1076,7 +1095,7 @@ export class Sheet{
         let colResizePointerUp = (eUp)=>{
             // console.log(eUp);
             this.wrapTextForColumn(i);
-            this.draw();
+            // this.draw();
             this.drawRowIndices();
             // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
             window.removeEventListener("pointermove",colResizePointerMove);
@@ -1116,6 +1135,8 @@ export class Sheet{
         if(!shouldResize){
             // console.log(currPosX, boundary-this.colSizes[i]);
             this.lineDashOffset = null;
+            window.cancelAnimationFrame(this.drawLoopId)
+            this.drawLoopId = null;
             if(e.shiftKey){
                 this.selectedRangeStart.col = 0;
                 this.selectedRangeEnd.col = this.colLimit;
@@ -1224,6 +1245,7 @@ export class Sheet{
                     text += (this.data[i] && this.data[i][j] ? this.data[i][j].text+"\t" : "\t")
                 }
                 if(this.data[i] && this.data[i][j]) {text+= this.data[i][j].text}
+                text = text.trimEnd()
                 text+="\n"
         }
         // console.log(text);
@@ -1262,7 +1284,7 @@ export class Sheet{
         }
         if(!shouldResize){return;}
         this.tableContext.save();
-        this.tableContext.font = `${this.fontSize}px ${this.font}`
+        this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
         // console.log(`lets resize ${i}`);
         let temp = Object.keys(this.data)
                     .filter(x=>this.data[x][i] && !this.data[x][i].textWrap)
@@ -1270,7 +1292,7 @@ export class Sheet{
         this.tableContext.restore();
         if(temp.length==0){return}
         let oldColSize = this.colSizes[i]
-        this.colSizes[i] = Math.max(...temp) + 2*this.fontPadding
+        this.colSizes[i] = Math.max(...temp) + 2*this.defaultConfig.fontPadding
         if(i < this.selectedCell.col){
             this.selectedCell.colStart+=(this.colSizes[i]-oldColSize);
             this.selectedRangeStart.colStart+=(this.colSizes[i]-oldColSize);
@@ -1278,9 +1300,10 @@ export class Sheet{
         if(i < this.selectedRangeEnd.col){
             this.selectedRangeEnd.colStart+=(this.colSizes[i]-oldColSize);
         }
-        // this.wrapTextForColumn(i);
+        this.wrapTextForColumn(i);
         if(!this.drawLoopId) this.draw()
         this.drawHeader();
+        this.drawRowIndices()
     }
 
     wrapText(textContent){
@@ -1289,18 +1312,18 @@ export class Sheet{
             return;
         }
         // this.data[this.selectedCell.row][this.selectedCell.col]["textWrap"] = true
-        let w=2*this.fontPadding, s1="";
+        let w=2*this.defaultConfig.fontPadding, s1="";
         let wrappedText = [];
         this.tableContext.save();
-        this.tableContext.font = `${this.fontSize}px ${this.font}`
+        this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
         for(let x of textContent){
             w+=this.tableContext.measureText(x).width
-            if(w > this.colSizes[this.selectedCell.col]-this.fontPadding){
+            if(w > this.colSizes[this.selectedCell.col]-this.defaultConfig.fontPadding){
                 // console.log(s1)
                 wrappedText.push(s1)
                 s1="";
                 // console.log(w)
-                w=2*this.fontPadding;
+                w=2*this.defaultConfig.fontPadding;
             }
             s1+=x;
         }
@@ -1308,7 +1331,7 @@ export class Sheet{
         this.tableContext.restore();
         this.data[this.selectedCell.row][this.selectedCell.col].wrappedTextContent = wrappedText
         let lineCount = wrappedText.length;
-        this.rowSizes[this.selectedCell.row] = Math.max(this.rowSizes[this.selectedCell.row], lineCount*this.fontSize + 2*this.fontPadding)
+        this.rowSizes[this.selectedCell.row] = Math.max(this.rowSizes[this.selectedCell.row], lineCount*this.defaultConfig.fontSize + 2*this.defaultConfig.fontPadding)
         // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
         this.drawRowIndices();
     }
@@ -1319,18 +1342,18 @@ export class Sheet{
     wrapTextForColumn(colIndex){
         let rows = Object.keys(this.data).filter(x=>this.data[x][colIndex]?.textWrap)
         rows.forEach(r=>{
-            let w=2*this.fontPadding, s1="";
+            let w=2*this.defaultConfig.fontPadding, s1="";
             let wrappedText = [];
             this.tableContext.save();
-            this.tableContext.font = `${this.fontSize}px ${this.font}`
+            this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
             for(let x of this.data[r][colIndex].text){
                 w+=this.tableContext.measureText(x).width
-                if(w > this.colSizes[colIndex]-this.fontPadding){
+                if(w > this.colSizes[colIndex]-this.defaultConfig.fontPadding){
                     // console.log(s1)
                     wrappedText.push(s1)
                     s1="";
                     // console.log(w)
-                    w=2*this.fontPadding;
+                    w=2*this.defaultConfig.fontPadding;
                 }
                 s1+=x;
             }
@@ -1339,7 +1362,7 @@ export class Sheet{
             this.data[r][colIndex].wrappedTextContent = wrappedText
             let lineCount = wrappedText.length;
             let oldRowSize = this.rowSizes[r];
-            this.rowSizes[r] = Math.max(this.rowSizes[r], lineCount*this.fontSize + 2*this.fontPadding)
+            this.rowSizes[r] = Math.max(this.rowSizes[r], lineCount*this.defaultConfig.fontSize + 2*this.defaultConfig.fontPadding)
             if(r < this.selectedCell.row){
                 this.selectedCell.rowStart+=this.rowSizes[r]-oldRowSize;
                 this.selectedRangeStart.rowStart+=this.rowSizes[r]-oldRowSize;
@@ -1443,7 +1466,7 @@ export class Sheet{
             // console.log(r);
             for(let c of Object.keys(this.data[r])){
                 // console.log(r,c);
-                if(JSON.stringify(this.data[r][c].text).replaceAll("\\n","").includes(textContent)){
+                if(JSON.stringify(this.data[r][c].text).includes(textContent)){
                     arr.push([r,c])
                 }
             }
@@ -1479,6 +1502,11 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId){this.draw();}
         }
+    }
+
+    showSearchPopup(){
+        let searchDiv = document.createElement("div")
+        searchDiv.classList.add("findAndReplaceDiv")
     }
 
     // resizeBasedOnViewPort(e){
