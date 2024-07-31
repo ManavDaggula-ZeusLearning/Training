@@ -64,4 +64,91 @@
 }
 .sheetTabs input.sheetTab[data-current] {
   height: 1.8em;
+}
+
+.popup {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  top: 0px;
+  left: 0px;
+  display: none;
+  place-items: center;
+  margin: auto;
+  pointer-events: none;
+  background-color: rgba(128, 128, 128, 0.2);
+}
+
+.find-and-replace {
+  background-color: white;
+  padding: 1em;
+  position: relative;
+  display: grid;
+  gap: 1em;
+  pointer-events: all;
+  border-radius: 4px;
+}
+.find-and-replace button {
+  border: none;
+  padding: 0.5em;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.find-and-replace input {
+  padding: 0.4em;
+}
+.find-and-replace input:focus, .find-and-replace input:focus-visible {
+  outline: none;
+}
+.find-and-replace .option-tab {
+  display: flex;
+  gap: 1em;
+}
+.find-and-replace .option-tab input[type=radio] {
+  display: none;
+}
+.find-and-replace .option-tab label {
+  padding: 0.4em;
+  position: relative;
+  cursor: pointer;
+}
+.find-and-replace .option-tab label:has(:checked)::after {
+  content: "";
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  height: 3px;
+  background-color: #107c41;
+  left: 0px;
+}
+.find-and-replace .option-tab label:hover {
+  background-color: rgb(237, 235, 233);
+}
+.find-and-replace h3 {
+  color: #107c41;
+}
+.find-and-replace .find-bar, .find-and-replace .replace-bar {
+  display: grid;
+  gap: 0.4em;
+}
+.find-and-replace .btn-div {
+  display: flex;
+  gap: 0.5em;
+}
+.find-and-replace .find-btn {
+  background-color: #107c41;
+  color: white;
+}
+.find-and-replace .close-btn {
+  position: absolute;
+  right: 0px;
+  top: 0px;
+  background: transparent;
+}
+.find-and-replace .close-btn:hover {
+  background-color: rgb(237, 235, 233);
+}
+.find-and-replace:has(#find-radio:checked) .replace-bar, .find-and-replace:has(#find-radio:checked) .replace-btn {
+  display: none;
 }/*# sourceMappingURL=excel.css.map */

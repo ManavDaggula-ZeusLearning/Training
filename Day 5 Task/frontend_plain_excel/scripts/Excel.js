@@ -73,12 +73,18 @@ export class Excel{
 
         let searchDiv = document.createElement("div")
         searchDiv.classList.add("searchDiv")
-        let searchInput = document.createElement("input")
-        searchInput.placeholder = "Search text here.."
-        searchInput.addEventListener("keypress",(e)=>{
-            this.searchInputKeyHandler(e)
+        // let searchInput = document.createElement("input")
+        // searchInput.placeholder = "Search text here.."
+        // searchInput.addEventListener("keypress",(e)=>{
+        //     this.searchInputKeyHandler(e)
+        // })
+        let findAndReplaceBtn = document.createElement("button")
+        findAndReplaceBtn.textContent = "Find And Replace";
+        findAndReplaceBtn.addEventListener("click",(e)=>{
+            this.popupDiv.style.display = "grid";
+            this.popupDiv.appendChild(this.findAndReplaceForm)
         })
-        searchDiv.appendChild(searchInput);
+        searchDiv.appendChild(findAndReplaceBtn);
         
         
         let aggregateDiv = document.createElement("div")
@@ -101,6 +107,12 @@ export class Excel{
         this.menuDiv.appendChild(searchDiv)
         this.menuDiv.appendChild(aggregateDiv)
 
+        this.popupDiv = document.createElement("div")
+        this.popupDiv.classList.add("popup")
+        document.body.prepend(this.popupDiv)
+
+        this.findAndReplaceForm = this.createFindReplacePopup()
+
 
 
         let sheet_1 = new Sheet(this.sheetContainer);
@@ -110,6 +122,95 @@ export class Excel{
         this.loadSheet(0);
         let sheet_2 = new Sheet(this.sheetContainer);
         this.sheets.push(sheet_2);
+    }
+
+    createFindReplacePopup(){
+        let f = document.createElement("form")
+        f.classList.add("find-and-replace")
+        f.setAttribute("autocomplete","off")
+        f.innerHTML = `<h3>Find and Replace</h3>
+            <div class="option-tab">
+                <label><input type="radio" name="find-and-replace" id="find-radio" checked>Find</label>
+                <label><input type="radio" name="find-and-replace" id="replace-radio">Replace</label>
+            </div>
+            <div class="find-bar">
+                <p>Find</p>
+                <input type="text" placeholder="Insert text to search" name="find">
+            </div>
+            <div class="replace-bar">
+                <p>Replace</p>
+                <input type="text" placeholder="Insert text to replace with" name="replace">
+            </div>`
+        let closeBtn = document.createElement("button")
+        closeBtn.classList.add("close-btn")
+        closeBtn.textContent = "x"
+        f.appendChild(closeBtn)
+        let btnDiv = document.createElement("div")
+        btnDiv.classList.add("btn-div")
+        let findBtn = document.createElement("button")
+        findBtn.classList.add("find-btn")
+        findBtn.textContent = "Find Next"
+        btnDiv.appendChild(findBtn)
+        let replaceBtn = document.createElement("button")
+        replaceBtn.classList.add("replace-btn")
+        replaceBtn.textContent = "Replace Next"
+        btnDiv.appendChild(replaceBtn)
+        f.appendChild(btnDiv)
+
+        f.addEventListener("submit",(e)=>{
+            e.preventDefault()
+        })
+
+        closeBtn.addEventListener("click",(e)=>{
+            this.popupDiv.style.display = "none";
+            f.remove();
+        })
+
+        findBtn.addEventListener("click",(e)=>{
+            // console.log(findBtn.form.find.value)
+            if(this.searchObject.text!=findBtn.form.find.value){
+                // console.log(findBtn.form.find.value, this.searchObject)
+                this.searchObject.text = findBtn.form.find.value;
+                this.searchObject.resultArray = this.sheets[this.currentSheetIndex].find(findBtn.form.find.value)
+                if(!this.searchObject.resultArray.length){
+                    window.alert("Search not found.")    
+                    return;
+                }
+                this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[0][0],this.searchObject.resultArray[0][1])
+                this.searchObject.currentIndex = 0;
+            }
+            else{
+                if(!this.searchObject.resultArray.length){
+                    window.alert("Search not found.")    
+                    return;
+                }
+                // if(e.shiftKey){
+                //     this.searchObject.currentIndex = (this.searchObject.currentIndex-1)>=0 ? (this.searchObject.currentIndex-1) : this.searchObject.resultArray.length-1;
+                // }else{
+                //     this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+                // }
+                this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+                this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
+            }
+        })
+
+        replaceBtn.addEventListener("click",(e)=>{
+            if(this.searchObject?.resultArray?.length > 0 && this.searchObject?.text === replaceBtn.form.find.value){
+                // console.log("should replace")
+                let r = this.searchObject.resultArray[this.searchObject.currentIndex][0], c = this.searchObject.resultArray[this.searchObject.currentIndex][1];
+                this.sheets[this.currentSheetIndex].replaceCellText(r,c,replaceBtn.form.replace.value, this.searchObject.text)
+                this.searchObject.resultArray = this.searchObject.resultArray.slice(0,this.searchObject.currentIndex).concat(this.searchObject.resultArray.slice(this.searchObject.currentIndex+1))
+                if(this.searchObject.resultArray.length){
+                    this.searchObject.currentIndex %= this.searchObject.resultArray.length
+                    this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
+                }
+            }
+            else{
+                window.alert("cannot replace (did not find)")
+            }
+        })
+
+        return f;
     }
     
     loadSheet(index){
@@ -206,28 +307,28 @@ export class Excel{
               e.target.setAttribute("readonly","")
         }
     }
-    searchInputKeyHandler(e){
-        if(e.key!="Enter"){
-            return;
-        }
-        // if(!e.target.value.trim()){return;}
-        if(this.searchObject.text!=e.target.value){
-            // console.log(e.target.value, this.searchObject)
-            this.searchObject.text = e.target.value;
-            this.searchObject.resultArray = this.sheets[this.currentSheetIndex].find(e.target.value)
-            if(!this.searchObject.resultArray.length){return;}
-            this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[0][0],this.searchObject.resultArray[0][1])
-            this.searchObject.currentIndex = 0;
-        }
-        else{
-            if(!this.searchObject.resultArray.length){return;}
-            if(e.shiftKey){
-                this.searchObject.currentIndex = (this.searchObject.currentIndex-1)>=0 ? (this.searchObject.currentIndex-1) : this.searchObject.resultArray.length-1;
-            }else{
-                this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
-            }
-            this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
-        }
-    }
+    // searchInputKeyHandler(e){
+    //     if(e.key!="Enter"){
+    //         return;
+    //     }
+    //     // if(!e.target.value.trim()){return;}
+    //     if(this.searchObject.text!=e.target.value){
+    //         // console.log(e.target.value, this.searchObject)
+    //         this.searchObject.text = e.target.value;
+    //         this.searchObject.resultArray = this.sheets[this.currentSheetIndex].find(e.target.value)
+    //         if(!this.searchObject.resultArray.length){return;}
+    //         this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[0][0],this.searchObject.resultArray[0][1])
+    //         this.searchObject.currentIndex = 0;
+    //     }
+    //     else{
+    //         if(!this.searchObject.resultArray.length){return;}
+    //         if(e.shiftKey){
+    //             this.searchObject.currentIndex = (this.searchObject.currentIndex-1)>=0 ? (this.searchObject.currentIndex-1) : this.searchObject.resultArray.length-1;
+    //         }else{
+    //             this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+    //         }
+    //         this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
+    //     }
+    // }
 
 }

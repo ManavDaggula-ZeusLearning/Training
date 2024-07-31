@@ -603,7 +603,7 @@ export class Sheet{
     checkIfReachedEndOfRows(e){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
-            this.rowSizes = [...this.rowSizes, ...Array(50).fill(40)]
+            this.rowSizes = [...this.rowSizes, ...Array(50).fill(22)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -1419,6 +1419,33 @@ export class Sheet{
         // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
         this.drawRowIndices();
     }
+    wrapCell(row,col){
+        if(!this.data[row][col].textWrap){
+            console.log("no need to wrap");    
+            return;
+        }
+        // this.data[row][col]["textWrap"] = true
+        let w=2*this.defaultConfig.fontPadding, s1="";
+        let wrappedText = [];
+        this.tableContext.save();
+        this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
+        for(let x of this.data[row][col].text){
+            w+=this.tableContext.measureText(x).width
+            if(w > this.colSizes[col]-this.defaultConfig.fontPadding){
+                // console.log(s1)
+                wrappedText.push(s1)
+                s1="";
+                // console.log(w)
+                w=2*this.defaultConfig.fontPadding;
+            }
+            s1+=x;
+        }
+        wrappedText.push(s1)
+        this.tableContext.restore();
+        this.data[row][col].wrappedTextContent = wrappedText
+        let lineCount = wrappedText.length;
+        this.rowSizes[row] = Math.max(this.rowSizes[row], lineCount*this.defaultConfig.fontSize + 2*this.defaultConfig.fontPadding)
+    }
     /**
      * 
      * @param {Number} colIndex 
@@ -1588,9 +1615,32 @@ export class Sheet{
         }
     }
 
-    showSearchPopup(){
-        let searchDiv = document.createElement("div")
-        searchDiv.classList.add("findAndReplaceDiv")
+    /**
+     * @param {Number} row 
+     * @param {Number} col 
+     * @param {String} newText 
+     * @param {String|null} partText 
+     */
+    replaceCellText(row, col, newText, partText){
+        // if(!newText){newText=""}
+        console.log(row,col,newText, partText)
+        /**
+         * @type {String}
+         */
+        let text = this.data[row][col].text
+        // console.log(text);
+        text = text.replaceAll(partText, newText)
+        console.log(text);
+        this.data[row][col].text = text
+        this.wrapCell(row,col)
+        
+        // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+        this.drawRowIndices();
+
+        if(this.drawLoopId){
+            window.cancelAnimationFrame(this.drawLoopId);
+        }
+        this.draw();
     }
 
     // resizeBasedOnViewPort(e){
