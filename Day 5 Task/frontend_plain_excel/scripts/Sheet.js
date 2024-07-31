@@ -126,7 +126,8 @@ export class Sheet{
             this.drawHeader();
             this.drawRowIndices();
             // this.resizeBasedOnViewPort();
-            if(!this.drawLoopId) this.draw();
+            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId)}
+            this.draw();
         })
         this.tableRef.addEventListener("dblclick",(e)=>{
             // console.log(e);
@@ -922,9 +923,13 @@ export class Sheet{
         else if(e.key==="v" && e.ctrlKey){
             if(this.drawLoopId) {window.cancelAnimationFrame(this.drawLoopId)}
             this.drawLoopId = null
-            this.lineDashOffset = 0;
+            this.lineDashOffset = null;
             this.pasteRangeToClipboard();
-            if(!this.drawLoopId) this.draw();
+            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId)}
+            this.drawLoopId = null
+            this.draw();
+            this.drawHeader();
+            this.drawRowIndices();
         }
         else if(e.key==="Escape"){
             this.lineDashOffset = null;
@@ -1384,6 +1389,21 @@ export class Sheet{
                     this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
                 }
             }
+        }
+        this.selectedRangeStart.row = firstRow;
+        this.selectedRangeStart.col = firstCol;
+        this.selectedRangeStart.rowStart = Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart);
+        this.selectedRangeStart.colStart = Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart);
+        this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedRangeStart))
+        console.log(this.selectedRangeStart)
+        for(let i=0; i<Sheet.cellsCopiedArray[Sheet.cellsCopiedArray.length - 1][0]; i++){
+            this.selectedRangeEnd.row +=1;
+            this.selectedRangeEnd.rowStart += this.rowSizes[firstRow+i]
+            console.log("added to row",this.rowSizes[firstRow+i])
+        }
+        for(let i=0; i<Sheet.cellsCopiedArray[Sheet.cellsCopiedArray.length - 1][1]; i++){
+            this.selectedRangeEnd.col +=1;
+            this.selectedRangeEnd.colStart += this.colSizes[firstCol+i]
         }
     }
 
