@@ -11,6 +11,8 @@ export class Sheet{
     rowSizes = Array(50).fill(22)
     rowLimit = 1048576
     colLimit = 16384
+
+    static cellsCopiedArray = [];
     // fontSize = 16;
     // font = "Titillium Web";
     // fontColor = "#222";
@@ -24,7 +26,7 @@ export class Sheet{
     // columnGutterColor = "#cbd5d0"
     defaultConfig = {
         "fontSize":16,
-        "font": "Titillium Web",
+        "font": "Segoe UI",
         "fontColor":"#222",
         "fontSelectedColor":"#444",
         "fontSelectedBackgroundColor": "#88d1b144",
@@ -145,7 +147,7 @@ export class Sheet{
             this.canvasPointerDown(e);
         })
         window.addEventListener("keydown",(e)=>{
-            if(e.target.nodeName=="INPUT"){return;}
+            if(e.target.nodeName!="BODY"){return;}
             if(!this.containerDiv.parentElement){return;}
             this.canvasKeyHandler(e)
         })
@@ -202,11 +204,11 @@ export class Sheet{
                 // this.headerContext.strokeStyle = "#107c41"
                 // this.headerContext.lineWidth = 5;
                 // this.headerContext.stroke();
-                this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.headerContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (startPosCol+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             }
             else{
-                this.headerContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.headerContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (startPosCol+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             }
@@ -288,7 +290,7 @@ export class Sheet{
                     this.rowContext.fill();
                     this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 }
-                this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 // this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
                 this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]/2)
@@ -300,7 +302,7 @@ export class Sheet{
                 // this.rowContext.stroke();
             }
             else{
-                this.rowContext.font = `bold ${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
+                this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
                 this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, startPosRow+this.rowSizes[i]/2)
@@ -910,7 +912,18 @@ export class Sheet{
             this.lineDashOffset = 0;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
+            if(this.selectedRangeEnd.colStart==Infinity  || this.selectedRangeEnd.rowStart==Infinity){
+                window.alert("Cannot copy infnite cells")
+                return;
+            }
             this.copyRangeToClipboard();
+            if(!this.drawLoopId) this.draw();
+        }
+        else if(e.key==="v" && e.ctrlKey){
+            if(this.drawLoopId) {window.cancelAnimationFrame(this.drawLoopId)}
+            this.drawLoopId = null
+            this.lineDashOffset = 0;
+            this.pasteRangeToClipboard();
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key==="Escape"){
@@ -963,7 +976,7 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
         }
-        else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase())){
+        else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase()) && !e.ctrlKey){
             this.lineDashOffset = null;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
@@ -1324,16 +1337,54 @@ export class Sheet{
 
     copyRangeToClipboard(){
         let text = "";
-        for(let i=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row); i++){
-            for(var j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col); j++){
+        Sheet.cellsCopiedArray = [];
+        let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
+        let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
+        for(let i=firstRow; i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row); i++){
+            for(var j=firstCol; j<Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col); j++){
+                if(this.data?.[i]?.[j]){
+                    Sheet.cellsCopiedArray.push([i-firstRow,j-firstCol,JSON.parse(JSON.stringify(this.data[i][j]))])
                     text += (this.data[i] && this.data[i][j] ? this.data[i][j].text+"\t" : "\t")
                 }
-                if(this.data[i] && this.data[i][j]) {text+= this.data[i][j].text}
-                text = text.trimEnd()
-                text+="\n"
+                else{
+                    text+="\t";
+                    Sheet.cellsCopiedArray.push([i-firstRow,j-firstCol,null])
+                }
+            }
+            if(this.data?.[i]?.[j]) {
+                text+= this.data[i][j].text
+                Sheet.cellsCopiedArray.push([i-firstRow,j-firstCol,JSON.parse(JSON.stringify(this.data[i][j]))])
+            }
+            else{
+                Sheet.cellsCopiedArray.push([i-firstRow,j-firstCol,null])
+            }
+            // text = text.trimEnd()
+            text+="\n"
         }
         // console.log(text);
         navigator.clipboard.writeText(text.trimEnd())
+        console.log(Sheet.cellsCopiedArray);
+    }
+
+    pasteRangeToClipboard(){
+        let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
+        let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
+        for(let cellData of Sheet.cellsCopiedArray){
+            if(cellData[2]==null){
+                if(this.data[firstRow+cellData[0]]){
+                    delete this.data[firstRow+cellData[0]][firstCol+cellData[1]]
+                }
+            }
+            else{
+                if(this.data[firstRow+cellData[0]]){
+                    this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                }
+                else{
+                    this.data[firstRow+cellData[0]] = {}
+                    this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                }
+            }
+        }
     }
 
     calculateAggregates(){
@@ -1421,7 +1472,7 @@ export class Sheet{
     }
     wrapCell(row,col){
         if(!this.data[row][col].textWrap){
-            console.log("no need to wrap");    
+            // console.log("no need to wrap");    
             return;
         }
         // this.data[row][col]["textWrap"] = true
@@ -1623,14 +1674,14 @@ export class Sheet{
      */
     replaceCellText(row, col, newText, partText){
         // if(!newText){newText=""}
-        console.log(row,col,newText, partText)
+        // console.log(row,col,newText, partText)
         /**
          * @type {String}
          */
         let text = this.data[row][col].text
         // console.log(text);
         text = text.replaceAll(partText, newText)
-        console.log(text);
+        // console.log(text);
         this.data[row][col].text = text
         this.wrapCell(row,col)
         

@@ -8,7 +8,8 @@
 - [x] zoom handling
 - [x] **multiple sheets** (delete remaining)
 - [x] **infinity range selection**
-- [ ] **find and replace**
+- [x] **find and replace**
+- [ ] paste cell selection (also fix draw loop when scrolling on marching ants, also select new range that is just pasted)
 - [x] try to fix col resize cursor issue (also row)
 - [x] canvas range selection shift to window
 - [ ] backspace and delete function in canvas range selection

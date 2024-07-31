@@ -83,6 +83,7 @@ export class Excel{
         findAndReplaceBtn.addEventListener("click",(e)=>{
             this.popupDiv.style.display = "grid";
             this.popupDiv.appendChild(this.findAndReplaceForm)
+            this.findAndReplaceForm["find"].focus();
         })
         searchDiv.appendChild(findAndReplaceBtn);
         
@@ -122,6 +123,10 @@ export class Excel{
         this.loadSheet(0);
         let sheet_2 = new Sheet(this.sheetContainer);
         this.sheets.push(sheet_2);
+
+        window.addEventListener("keydown",(e)=>{
+            this.excelKeyHandler(e)
+        })
     }
 
     createFindReplacePopup(){
@@ -130,8 +135,8 @@ export class Excel{
         f.setAttribute("autocomplete","off")
         f.innerHTML = `<h3>Find and Replace</h3>
             <div class="option-tab">
-                <label><input type="radio" name="find-and-replace" id="find-radio" checked>Find</label>
-                <label><input type="radio" name="find-and-replace" id="replace-radio">Replace</label>
+                <label><input type="radio" name="find-and-replace" id="find-radio" value="find" checked>Find</label>
+                <label><input type="radio" name="find-and-replace" id="replace-radio" value="replace">Replace</label>
             </div>
             <div class="find-bar">
                 <p>Find</p>
@@ -162,6 +167,7 @@ export class Excel{
         })
 
         closeBtn.addEventListener("click",(e)=>{
+            e.preventDefault();
             this.popupDiv.style.display = "none";
             f.remove();
         })
@@ -207,6 +213,13 @@ export class Excel{
             }
             else{
                 window.alert("cannot replace (did not find)")
+            }
+        })
+        f.addEventListener("keydown",(e)=>{
+            // console.log(e)
+            if(e.key==="Escape"){
+                this.popupDiv.style.display = "none";
+                f.remove();
             }
         })
 
@@ -306,6 +319,25 @@ export class Excel{
         if(e.key==="Enter"){
               e.target.setAttribute("readonly","")
         }
+    }
+    excelKeyHandler(e){
+        // console.log(e)
+        if(e.key=="f" && e.ctrlKey){
+            e.preventDefault();
+            this.popupDiv.style.display = "grid";
+            this.findAndReplaceForm["find-and-replace"].value = "find"
+            this.popupDiv.appendChild(this.findAndReplaceForm)
+            this.findAndReplaceForm["find"].focus();
+        }
+        else if(e.key=="h" && e.ctrlKey){
+            e.preventDefault();
+            this.popupDiv.style.display = "grid";
+            this.findAndReplaceForm["find-and-replace"].value = "replace"
+            this.popupDiv.appendChild(this.findAndReplaceForm)
+            this.findAndReplaceForm["find"].focus();
+
+        }
+        // else if()
     }
     // searchInputKeyHandler(e){
     //     if(e.key!="Enter"){
