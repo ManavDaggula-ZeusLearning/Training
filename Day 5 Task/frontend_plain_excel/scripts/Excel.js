@@ -169,6 +169,8 @@ export class Excel{
         closeBtn.addEventListener("click",(e)=>{
             e.preventDefault();
             this.popupDiv.style.display = "none";
+            f.style.top = "0px"
+            f.style.left = "0px"
             f.remove();
         })
 
@@ -221,6 +223,42 @@ export class Excel{
                 this.popupDiv.style.display = "none";
                 f.remove();
             }
+        })
+        f.querySelector("h3").addEventListener("pointerdown",(eDown)=>{
+            eDown.preventDefault();
+            let posDownX = eDown.pageX;
+            let posDownY = eDown.pageY;
+            let currX = f.style.left ? Number(f.style.left.slice(0,f.style.left.length-2)) : 0;
+            let currY = f.style.top ? Number(f.style.top.slice(0,f.style.top.length-2)) : 0;
+
+            let pointerMoveHandler = (eMove)=>{
+                let posMoveX = eMove.pageX;
+                let posMoveY = eMove.pageY;
+                f.style.left = `${currX + posMoveX-posDownX}px`;
+                f.style.top = `${currY + posMoveY-posDownY}px`;
+            }
+
+            
+            let pointerUpHandler = () =>{
+                let currBounds = f.getBoundingClientRect();
+                let parentBounds = f.parentElement.getBoundingClientRect();
+                if(currBounds.top <= parentBounds.top){
+                    f.style.top = `${Number(f.style.top.slice(0,f.style.top.length-2)) + (parentBounds.top - currBounds.top)}px`;
+                };
+                if(currBounds.left <= parentBounds.left){
+                    f.style.left = `${Number(f.style.left.slice(0,f.style.left.length-2)) + (parentBounds.left - currBounds.left)}px`;
+                };
+                if(currBounds.right >= parentBounds.right){
+                    f.style.left = `${Number(f.style.left.slice(0,f.style.left.length-2)) + (parentBounds.right - currBounds.right)}px`;
+                };
+                if(currBounds.bottom >= parentBounds.bottom){
+                    f.style.top = `${Number(f.style.top.slice(0,f.style.top.length-2)) + (parentBounds.bottom - currBounds.bottom)}px`;
+                };
+                window.removeEventListener("pointermove", pointerMoveHandler);
+                window.removeEventListener("pointerup", pointerUpHandler);
+            }
+            window.addEventListener("pointermove", pointerMoveHandler);
+            window.addEventListener("pointerup", pointerUpHandler);
         })
 
         return f;

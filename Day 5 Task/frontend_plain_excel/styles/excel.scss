@@ -99,7 +99,8 @@
   }
   
 .popup{
-    position: absolute;
+    overflow: hidden;
+    position: fixed;
     width: 100%;
     height: 100%;
     z-index: 10;
@@ -121,6 +122,7 @@
     pointer-events: all;
     border-radius: 4px;
     font-family: "Segoe UI";
+    // transition: left 0.1s linear 0.1s, top 0.1s linear 0.1s;
     button{
         border: none;
         padding: 0.5em;
@@ -163,6 +165,7 @@
     }
     h3{
         color: #107c41;
+        cursor: all-scroll;
     }
     .find-bar, .replace-bar{
         display: grid;

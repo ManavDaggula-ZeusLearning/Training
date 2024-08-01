@@ -8,7 +8,7 @@ import {data} from "../tempData.js"
 export class Sheet{
 
     colSizes = Array(20).fill(100)
-    rowSizes = Array(50).fill(22)
+    rowSizes = Array(50).fill(30)
     rowLimit = 1048576
     colLimit = 16384
 
@@ -606,7 +606,7 @@ export class Sheet{
     checkIfReachedEndOfRows(e){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
-            this.rowSizes = [...this.rowSizes, ...Array(50).fill(22)]
+            this.rowSizes = [...this.rowSizes, ...Array(50).fill(30)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -1012,30 +1012,31 @@ export class Sheet{
     colResizeCursorMove(e){
 
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
-        // console.log(firstCellInView);
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
-        // console.log(currPosX);
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
-        for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length; i++,boundary+=this.colSizes[i]){
-            if(Math.abs(currPosX-boundary)<=5){
+        let shouldResize = false;
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=5); i++,boundary+=this.colSizes[i]){
+            if(Math.abs(currPosX-boundary)<=3){
                 e.target.style.cursor = "col-resize";
                 // console.log(`near boundary of cell ${i}`);
+                shouldResize = true;
                 break;
             }
-            e.target.style.cursor = "url(./assets/columnselect.cur),default";
+            e.target.style.cursor = "default";   
         }
     }
     rowResizeCursorMove(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
-        for(let i=firstCellInView.colIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
-            if(Math.abs(currPosY-boundary)<=5){
+        let shouldResize = false;
+        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=5); i++,boundary+=this.rowSizes[i]){
+            if(Math.abs(currPosY-boundary)<=3){
                 e.target.style.cursor = "row-resize";
-                // console.log(`near boundary of cell ${i}`);
+                shouldResize = true;
                 break;
             }
-            e.target.style.cursor = "url(./assets/rowselect.cur),default";
+            e.target.style.cursor = "default";   
         }
     }
 
@@ -1049,7 +1050,7 @@ export class Sheet{
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
         let shouldResize = false;
         for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=5); i++,boundary+=this.colSizes[i]){
-            if(Math.abs(currPosX-boundary)<=5){
+            if(Math.abs(currPosX-boundary)<=3){
                 e.target.style.cursor = "col-resize";
                 // console.log(`near boundary of cell ${i}`);
                 shouldResize = true;
@@ -1206,7 +1207,7 @@ export class Sheet{
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
         let shouldResize = false;
         for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=5); i++,boundary+=this.rowSizes[i]){
-            if(Math.abs(currPosY-boundary)<=5){
+            if(Math.abs(currPosY-boundary)<=3){
                 e.target.style.cursor = "row-resize";
                 shouldResize = true;
                 break;

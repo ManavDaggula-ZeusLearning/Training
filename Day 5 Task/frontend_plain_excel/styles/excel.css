@@ -72,7 +72,8 @@
 }
 
 .popup {
-  position: absolute;
+  overflow: hidden;
+  position: fixed;
   width: 100%;
   height: 100%;
   z-index: 10;
@@ -133,6 +134,7 @@
 }
 .find-and-replace h3 {
   color: #107c41;
+  cursor: all-scroll;
 }
 .find-and-replace .find-bar, .find-and-replace .replace-bar {
   display: grid;
