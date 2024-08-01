@@ -1,0 +1,41 @@
+.graphDiv{
+    // background-color: yellow;
+    max-width: 100vw;
+    max-height: 100vh;
+    z-index: 5;
+    min-width: 100px;
+    min-height: 100px;
+    width: 300px;
+    height: 300px;
+    resize: both;
+    overflow: scroll;
+    scrollbar-width: none;
+    position: absolute;
+    background-color: white;
+    // padding: 1em;
+    box-shadow: 0px 0px 10px 2px grey;
+    position: absolute;
+    border: 1px solid grey;
+
+    div:first-child{
+        height: 1em;
+        span{
+            cursor: all-scroll;
+            transform: rotate(90deg);
+        }
+        button{
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            background-color: transparent;
+            border: none;
+            &:hover{
+                background-color: rgb(237, 235, 233);
+            }
+        }
+    }
+    div:nth-child(2){
+        width: 100%;
+        height: calc(100% - 1em);
+    }
+}

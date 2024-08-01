@@ -3,6 +3,7 @@
 // let data = await fetch("./tempData.json")
 // data = await data.json();
 import {data} from "../tempData.js"
+import { Graph } from "./Graph.js"
 // console.log(data);
 
 export class Sheet{
@@ -1369,7 +1370,7 @@ export class Sheet{
         }
         // console.log(text);
         navigator.clipboard.writeText(text.trimEnd())
-        console.log(Sheet.cellsCopiedArray);
+        // console.log(Sheet.cellsCopiedArray);
     }
 
     pasteRangeToClipboard(){
@@ -1396,7 +1397,7 @@ export class Sheet{
         this.selectedRangeStart.rowStart = Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart);
         this.selectedRangeStart.colStart = Math.min(this.selectedRangeStart.colStart, this.selectedRangeEnd.colStart);
         this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedRangeStart))
-        console.log(this.selectedRangeStart)
+        // console.log(this.selectedRangeStart)
         for(let i=0; i<Sheet.cellsCopiedArray[Sheet.cellsCopiedArray.length - 1][0]; i++){
             this.selectedRangeEnd.row +=1;
             this.selectedRangeEnd.rowStart += this.rowSizes[firstRow+i]
@@ -1578,7 +1579,7 @@ export class Sheet{
         this.drawRowIndices();
     }
 
-    getGraphData(){
+    getGraphData(type="bar"){
         if(this.drawnGraph){this.drawnGraph.destroy();}
         let minRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)
         let maxRow = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
@@ -1586,13 +1587,17 @@ export class Sheet{
         let maxCol = Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)
         let dataArr = Array(maxCol-minCol+1).fill(0)
         let sumArr = Array(maxCol-minCol+1).fill(0)
+        let rowsWithData = new Set();
+        let allCellData = [];
         for(var i=minRow; i<=maxRow; i++){
             for(var j=minCol; j<=maxCol; j++){
                 if(this.data[i] && this.data[i][j] && this.data[i][j].text){
                     // console.log("found data");
                     if(!isNaN(Number(this.data[i][j].text))){
-                        dataArr[j] = dataArr[j] + Number(this.data[i][j].text);
-                        sumArr[j]++;
+                        dataArr[j-minCol] = dataArr[j-minCol] + Number(this.data[i][j].text);
+                        sumArr[j-minCol]++;
+                        rowsWithData.add(i)
+                        allCellData.push(Number(this.data[i][j].text))
                     }
                 }
             }
@@ -1603,25 +1608,31 @@ export class Sheet{
         // console.log(labels, dataArr, sumArr, avgArr);
         let filteredLabel = labels.filter((x,i)=>!isNaN(avgArr[i]));
         let filteredAverage = avgArr.filter(x=>!isNaN(x));
+        if(filteredLabel.length>1){
+            new Graph(this.sizeDiv, filteredLabel, filteredAverage,this.tableDiv.scrollLeft, this.tableDiv.scrollTop,type)
+        }
+        else{
+            new Graph(this.sizeDiv, [...rowsWithData], allCellData,this.tableDiv.scrollLeft, this.tableDiv.scrollTop,type)
+        }
 
 
-        this.drawnGraph = new Chart(document.getElementById("tempGraphCanvas"), {
-            type: 'pie',
-            data: {
-              labels: filteredLabel,
-              datasets: [{
-                data: filteredAverage,
-                borderWidth: 1
-              }]
-            },
-            options: {
-              scales: {
-                y: {
-                  beginAtZero: true
-                }
-              }
-            }
-          });
+        // this.drawnGraph = new Chart(document.getElementById("tempGraphCanvas"), {
+        //     type: 'pie',
+        //     data: {
+        //       labels: filteredLabel,
+        //       datasets: [{
+        //         data: filteredAverage,
+        //         borderWidth: 1
+        //       }]
+        //     },
+        //     options: {
+        //       scales: {
+        //         y: {
+        //           beginAtZero: true
+        //         }
+        //       }
+        //     }
+        //   });
 
     }
 
