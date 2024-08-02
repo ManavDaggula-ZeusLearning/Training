@@ -678,6 +678,8 @@ export class Sheet{
             this.selectedRangeEnd = {row: rowIndexDown, col: colIndexDown, rowStart: startPosRowDown, colStart: startPosColDown}
 
             // console.log(this.selectedRangeEnd);
+            // calculate event dispatch here
+            this.dispatchAggregateEvent()
             window.removeEventListener("pointermove", canvasPointerMove);
             window.removeEventListener("pointerup", canvasPointerUp);
             this.drawRowIndices();
@@ -1172,11 +1174,12 @@ export class Sheet{
                 // console.log(this.colSizes);
                 // console.log(`cols before start : ${Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) - this.selectedRangeStart.col}`);
                 
-                this.drawHeader()
-                if(!this.drawLoopId){this.draw()}
+                
             }
             // console.log(eUp);
             this.wrapTextForColumn(i);
+            this.drawHeader()
+            if(!this.drawLoopId){this.draw()}
             // this.draw();
             this.drawRowIndices();
             // if(!this.drawLoopId) {this.drawLoopId = window.requestAnimationFrame(()=>this.draw())}
@@ -1724,6 +1727,11 @@ export class Sheet{
             window.cancelAnimationFrame(this.drawLoopId);
         }
         this.draw();
+    }
+
+    dispatchAggregateEvent(){
+        let e = new CustomEvent("aggregateValues",{detail:this.calculateAggregates()})
+        window.dispatchEvent(e)
     }
 
     // resizeBasedOnViewPort(e){

@@ -11,9 +11,9 @@
   scrollbar-width: none;
   position: absolute;
   background-color: white;
-  box-shadow: 0px 0px 10px 2px grey;
+  box-shadow: 0px 0px 10px 2px #bfbfbf;
   position: absolute;
-  border: 1px solid grey;
+  border: 1px solid #bfbfbf;
 }
 .graphDiv div:first-child {
   height: 1em;
@@ -30,7 +30,8 @@
   border: none;
 }
 .graphDiv div:first-child button:hover {
-  background-color: rgb(237, 235, 233);
+  background-color: mediumorchid;
+  color: white;
 }
 .graphDiv div:nth-child(2) {
   width: 100%;

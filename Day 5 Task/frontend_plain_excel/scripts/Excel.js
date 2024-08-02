@@ -9,6 +9,7 @@ export class Excel{
         resultArray:[],
         currentIndex:null
     };
+    menuTabsArray = ["Text","Data","Graph"]
     constructor(excelContainer){
         // console.log(excelContainer);
         this.menuDiv = document.createElement("div")
@@ -43,70 +44,64 @@ export class Excel{
         sheetArrayChanger.appendChild(nextSheetBtn)
         this.sheetTabContainer = document.createElement("div")
         this.sheetTabContainer.classList.add("sheetTabs")
-        let firstSheet = document.createElement("input")
-        firstSheet.classList.add("sheetTab")
-        firstSheet.value="Sheet 1";
-        firstSheet.setAttribute("readonly","")
-        firstSheet.setAttribute("data-current","")
-        firstSheet.setAttribute("data-index","0")
-        this.sheetTabContainer.appendChild(firstSheet)
-        let secondSheet = document.createElement("input")
-        secondSheet.classList.add("sheetTab")
-        secondSheet.value="Sheet 2";
-        secondSheet.setAttribute("readonly","")
-        secondSheet.setAttribute("data-index","1")
-        this.sheetTabContainer.appendChild(secondSheet)
+        // let firstSheet = document.createElement("input")
+        // firstSheet.classList.add("sheetTab")
+        // firstSheet.value="Sheet 1";
+        // firstSheet.setAttribute("readonly","")
+        // firstSheet.setAttribute("data-current","")
+        // firstSheet.setAttribute("data-index","0")
+        // this.sheetTabContainer.appendChild(firstSheet)
+        // let secondSheet = document.createElement("input")
+        // secondSheet.classList.add("sheetTab")
+        // secondSheet.value="Sheet 2";
+        // secondSheet.setAttribute("readonly","")
+        // secondSheet.setAttribute("data-index","1")
+        // this.sheetTabContainer.appendChild(secondSheet)
         sheetArrayChanger.appendChild(this.sheetTabContainer)
-        firstSheet.addEventListener("click",e=>this.sheetTabClickHandler(e))
-        firstSheet.addEventListener("dblclick",e=>this.sheetTabDoubleClickHandler(e))
-        firstSheet.addEventListener("keydown",e=>this.sheetTabKeyHandler(e))
-        secondSheet.addEventListener("click",e=>this.sheetTabClickHandler(e))
-        secondSheet.addEventListener("dblclick",e=>this.sheetTabDoubleClickHandler(e))
-        secondSheet.addEventListener("keydown",e=>this.sheetTabKeyHandler(e))
-        
-        let textWrapperControl = document.createElement("div")
-        textWrapperControl.classList.add("textWrapControl")
-        let wrapBtn = document.createElement("button")
-        wrapBtn.textContent = "Wrap Text"
-        wrapBtn.addEventListener("click",()=>this.wrapText())
-        textWrapperControl.appendChild(wrapBtn)
+        // firstSheet.addEventListener("click",e=>this.sheetTabClickHandler(e))
+        // firstSheet.addEventListener("dblclick",e=>this.sheetTabDoubleClickHandler(e))
+        // firstSheet.addEventListener("keydown",e=>this.sheetTabKeyHandler(e))
+        // secondSheet.addEventListener("click",e=>this.sheetTabClickHandler(e))
+        // secondSheet.addEventListener("dblclick",e=>this.sheetTabDoubleClickHandler(e))
+        // secondSheet.addEventListener("keydown",e=>this.sheetTabKeyHandler(e))
 
-        let searchDiv = document.createElement("div")
-        searchDiv.classList.add("searchDiv")
+        // let searchDiv = document.createElement("div")
+        // searchDiv.classList.add("searchDiv")
         // let searchInput = document.createElement("input")
         // searchInput.placeholder = "Search text here.."
         // searchInput.addEventListener("keypress",(e)=>{
         //     this.searchInputKeyHandler(e)
         // })
-        let findAndReplaceBtn = document.createElement("button")
-        findAndReplaceBtn.textContent = "Find And Replace";
-        findAndReplaceBtn.addEventListener("click",(e)=>{
-            this.popupDiv.style.display = "grid";
-            this.popupDiv.appendChild(this.findAndReplaceForm)
-            this.findAndReplaceForm["find"].focus();
+        
+        // searchDiv.appendChild(findAndReplaceBtn);
+        
+        
+        
+        excelContainer.appendChild(sheetArrayChanger)
+        // this.menuDiv.appendChild(searchDiv)
+
+        this.menuTabDiv = document.createElement("div")
+        this.menuTabDiv.classList.add("menuTabDiv")
+        this.menuDiv.appendChild(this.menuTabDiv)
+
+        let menuTabsContainer = document.createElement("div")
+        menuTabsContainer.classList.add("menu-tabs-container")
+        this.menuDiv.appendChild(menuTabsContainer)
+        this.prepareMenuTabs(menuTabsContainer);
+
+
+        this.menuTabsArray.forEach((x,i)=>{
+            let label = document.createElement("label")
+            label.classList.add("menu-tab-selector")
+            let inputRadio = document.createElement("input");
+            inputRadio.type = "radio";
+            inputRadio.name="menu-tab"
+            inputRadio.value = x;
+            if(i==0){inputRadio.setAttribute("checked","")}
+            label.appendChild(inputRadio)
+            label.append(x)
+            this.menuTabDiv.appendChild(label)
         })
-        searchDiv.appendChild(findAndReplaceBtn);
-        
-        
-        let aggregateDiv = document.createElement("div")
-        aggregateDiv.classList.add("aggregates")
-        this.minSpan = document.createElement("span");
-        this.minSpan.textContent = "Min: NA"
-        this.maxSpan = document.createElement("span");
-        this.maxSpan.textContent = "Max: NA"
-        this.avgSpan = document.createElement("span");
-        this.avgSpan.textContent = "Avg: NA"
-        let recalculateAggregateBtn = document.createElement("button")
-        recalculateAggregateBtn.textContent = "Recalculate"
-        recalculateAggregateBtn.addEventListener("click",()=>this.recalculateAggregates())
-        aggregateDiv.appendChild(this.minSpan)
-        aggregateDiv.appendChild(this.maxSpan)
-        aggregateDiv.appendChild(this.avgSpan)
-        aggregateDiv.appendChild(recalculateAggregateBtn)
-        this.menuDiv.appendChild(sheetArrayChanger)
-        this.menuDiv.appendChild(textWrapperControl)
-        this.menuDiv.appendChild(searchDiv)
-        this.menuDiv.appendChild(aggregateDiv)
 
         this.popupDiv = document.createElement("div")
         this.popupDiv.classList.add("popup")
@@ -116,16 +111,20 @@ export class Excel{
 
 
 
-        let sheet_1 = new Sheet(this.sheetContainer);
-        window.s = sheet_1;
-        this.sheets.push(sheet_1);
-        this.currentSheetIndex = 0;
-        this.loadSheet(0);
-        let sheet_2 = new Sheet(this.sheetContainer);
-        this.sheets.push(sheet_2);
+        // let sheet_1 = new Sheet(this.sheetContainer);
+        // window.s = sheet_1;
+        // this.sheets.push(sheet_1);
+        // this.currentSheetIndex = 0;
+        // this.loadSheet(0);
+        // let sheet_2 = new Sheet(this.sheetContainer);
+        // this.sheets.push(sheet_2);
+        this.newSheet()
 
         window.addEventListener("keydown",(e)=>{
             this.excelKeyHandler(e)
+        })
+        window.addEventListener("aggregateValues",(e)=>{
+            this.recalculateAggregates(e.detail)
         })
     }
 
@@ -263,6 +262,61 @@ export class Excel{
 
         return f;
     }
+
+    prepareMenuTabs(menuTabsContainer){
+        /* Text menu tab */
+        let textWrapperControl = document.createElement("div")
+        textWrapperControl.classList.add("menu-tab-container", "text")
+        let wrapBtn = document.createElement("button")
+        wrapBtn.textContent = "Wrap Text"
+        wrapBtn.addEventListener("click",()=>this.wrapText())
+        textWrapperControl.appendChild(wrapBtn)
+        menuTabsContainer.appendChild(textWrapperControl)
+        
+        /* Data menu tab */
+        let dataTab = document.createElement("div")
+        dataTab.classList.add("menu-tab-container", "data")
+        let findAndReplaceBtn = document.createElement("button")
+        findAndReplaceBtn.textContent = "Find And Replace";
+        findAndReplaceBtn.addEventListener("click",(e)=>{
+            this.popupDiv.style.display = "grid";
+            this.popupDiv.appendChild(this.findAndReplaceForm)
+            this.findAndReplaceForm["find"].focus();
+        })
+        dataTab.appendChild(findAndReplaceBtn)
+        
+        let dataAggregateDiv = document.createElement("div")
+        dataAggregateDiv.classList.add("aggregates")
+        this.minSpan = document.createElement("span");
+        this.minSpan.textContent = "Min: NA"
+        this.maxSpan = document.createElement("span");
+        this.maxSpan.textContent = "Max: NA"
+        this.avgSpan = document.createElement("span");
+        this.avgSpan.textContent = "Avg: NA"
+        let recalculateAggregateBtn = document.createElement("button")
+        recalculateAggregateBtn.textContent = "Recalculate"
+        recalculateAggregateBtn.addEventListener("click",()=>this.recalculateAggregates())
+        dataAggregateDiv.appendChild(this.minSpan)
+        dataAggregateDiv.appendChild(this.maxSpan)
+        dataAggregateDiv.appendChild(this.avgSpan)
+        dataAggregateDiv.appendChild(recalculateAggregateBtn)
+        dataTab.appendChild(dataAggregateDiv)
+        menuTabsContainer.appendChild(dataTab)
+        
+        let graphTab = document.createElement("div")
+        graphTab.classList.add("menu-tab-container", "graph")
+        let graphBtnArray = ["Bar","Pie","Line"]
+        graphBtnArray.forEach(x=>{
+            let btn = document.createElement("button")
+            btn.textContent = x;
+            btn.addEventListener("click",(e)=>{
+                this.sheets[this.currentSheetIndex].getGraphData(x.toLowerCase())
+            })
+            graphTab.appendChild(btn)
+        })
+        menuTabsContainer.appendChild(graphTab)
+
+    }
     
     loadSheet(index){
         if(index>=this.sheets.length || index<0){
@@ -282,16 +336,22 @@ export class Excel{
     newSheet(){
         let newSheet = new Sheet(this.sheetContainer)
         this.sheets.push(newSheet);
-        // this.loadSheet(this.sheets.length - 1)
+        this.loadSheet(this.sheets.length - 1)
         let newSheetTab = document.createElement("input")
         newSheetTab.classList.add("sheetTab")
-        newSheetTab.value=`Sheet ${this.sheets.length}`;
         newSheetTab.setAttribute("readonly","")
         newSheetTab.setAttribute("data-index",this.sheets.length-1)
         newSheetTab.addEventListener("click",e=>this.sheetTabClickHandler(e))
         newSheetTab.addEventListener("dblclick",e=>this.sheetTabDoubleClickHandler(e))
         newSheetTab.addEventListener("keydown",e=>this.sheetTabKeyHandler(e))
         this.sheetTabContainer.appendChild(newSheetTab)
+        let tabs=this.sheetTabContainer.querySelectorAll("input")
+        tabs[this.currentSheetIndex].click();
+        for(var i=0; i<this.sheets.length;i++){
+            if(![...tabs].map(x=>x.value).includes(`Sheet ${i+1}`)){break;}
+        }
+        newSheetTab.value=`Sheet ${i+1}`;
+        this.sheetTabContainer.scrollTo(this.sheetTabContainer.scrollWidth,0)
     }
     goToPrevSheet(){
         let tabs = this.sheetTabContainer.querySelectorAll("input")
@@ -327,15 +387,15 @@ export class Excel{
             x.setAttribute("data-index", i);
         })
         // console.log(this.sheets);
-        this.loadSheet((Number(this.currentSheetIndex)+1)%this.sheets.length);
+        this.loadSheet(this.currentSheetIndex-1>0 ? this.currentSheetIndex-1 : 0);
         this.sheetTabContainer.children[this.currentSheetIndex].setAttribute("data-current","");
 
     }
     wrapText(){
         this.sheets[this.currentSheetIndex].wrapRangeSelection();
     }
-    recalculateAggregates(){
-        let aggValues = this.sheets[this.currentSheetIndex].calculateAggregates()
+    recalculateAggregates(aggValues=this.sheets[this.currentSheetIndex].calculateAggregates()){
+        // let aggValues = this.sheets[this.currentSheetIndex].calculateAggregates()
         // console.log(aggValues);
         this.minSpan.textContent = `Min : ${aggValues[0]}`
         this.avgSpan.textContent = `Avg : ${aggValues[1]}`
