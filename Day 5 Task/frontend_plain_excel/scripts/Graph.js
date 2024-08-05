@@ -1,9 +1,30 @@
 export class Graph{
 
-    graphContainer = null;
-    canvas = null
-    graphId = null;
 
+    /**
+     * Graph container div element
+     * @type {HTMLDivElement}
+     */
+    graphContainer;
+    /**
+     * canvas of the component onto which charts are drawn
+     * @type {HTMLCanvasElement} 
+     */
+    canvas;
+    /**
+     * Chart Instance
+     * @type {Chart}
+     */
+    graphId;
+
+    /**
+     * @param {HTMLElement} parentElement - Parent element into which the component will be appended
+     * @param {Number} x - x position or the left offset to place the component at within the parentElement
+     * @param {Number} y - y position or the top offset to place the component at within the parentElement
+     * @param {Array<String>} labels - the labels for the dataArray to be drawn
+     * @param {Array<Number>} dataArray - array of data that is drawn on the chart
+     * @param {String} type - type of chart to be drawn
+     */
     constructor(parentElement,labels,dataArray,x,y,type="pie"){
         this.init();
         this.attachTo(parentElement,x,y);
@@ -11,6 +32,9 @@ export class Graph{
         this.attachDraggerFunction();
     }
 
+    /**
+     * Initializer to make all divs and canvases
+     */
     init(){
         this.graphContainer = document.createElement("div")
         this.graphContainer.classList.add("graphDiv")
@@ -34,14 +58,25 @@ export class Graph{
         
     }
 
+    /**
+     * This function appends the component within the parent element with the specified positions
+     * @param {HTMLElement} parentElement - Parent element into which the component will be appended
+     * @param {Number} x - x position or the left offset to place the component at within the parentElement
+     * @param {Number} y - y position or the top offset to place the component at within the parentElement
+     */
     attachTo(parentElement,x,y){
         parentElement.appendChild(this.graphContainer)
         this.graphContainer.style.left = `${x}px`
         this.graphContainer.style.top = `${y}px`
     }
 
+    /**
+     * This function is responsible to draw the graph based on passed data array
+     * @param {Array<String>} labels - the labels for the dataArray to be drawn
+     * @param {Array<Number>} dataArray - array of data that is drawn on the chart
+     * @param {String} type - type of chart to be drawn
+     */
     drawGraph(labels, dataArray, type="bar"){
-        console.log(labels);
         this.graphId = new Chart(this.canvas, {
             type: type,
             data: {
@@ -68,11 +103,18 @@ export class Graph{
             
           });
     }
+
+    /**
+     * This function destroys the Chart instance and removes the component from the parent
+     */
     close(){
         this.graphId?.destroy();
         this.graphContainer.remove();
     }
 
+    /**
+     * This function adds the dragger functionality to the component making it movable with the cursor by the user.
+     */
     attachDraggerFunction(){
         this.graphContainer.querySelectorAll("canvas,span").forEach(x=>{
             x.addEventListener("pointerdown",(eDown)=>{
