@@ -1,15 +1,81 @@
 import { Sheet } from "./Sheet.js";
 export class Excel{
     /**
-     * @type {Array.<Sheet>}
-     */
+     * holds all the array of sheets
+     * @type {Array<Sheet>}*/
     sheets = [];
+    /**
+     * Search object to store the search params and the result of the search
+     * @type {{
+     * text:String,
+     * resultArray: Array<[Number,Number]>,
+     * currentIndex: Number}}
+     */
     searchObject = {
         text:"",
         resultArray:[],
         currentIndex:null
     };
+    /**
+     * Array of menu to be added to the top menu tab bar
+     * @type {String[]}
+     */
     menuTabsArray = ["Text","Data","Graph"]
+    /**
+     * menu div that holds entire menu
+     * @type {HTMLDivElement}
+     */
+    menuDiv;
+    /**
+     * Sheet container in which sheet will be displayed
+     * @type {HTMLDivElement}
+     */
+    sheetContainer;
+    /**
+     * Sheet tab buttons container
+     * @type {HTMLDivElement}
+     */
+    sheetTabContainer;
+    /**
+     * Menu tab container
+     * @type {HTMLDivElement}
+     */
+    menuTabDiv;
+    /**
+     * Span element to display minimum of selected range
+     * @type {HTMLSpanElement}
+     */
+    minSpan;
+    /**
+     * Span element to display maximum of selected range
+     * @type {HTMLSpanElement}
+     */
+    maxSpan;
+    /**
+     * Span element to display average of selected range
+     * @type {HTMLSpanElement}
+     */
+    avgSpan;
+    /**
+     * Popup div overlay container for all popups
+     * @type {HTMLDivElement}
+     */
+    popupDiv;
+    /**
+     * Find and replace form container
+     * @type {HTMLFormElement}
+     */
+    findAndReplaceForm;
+    /**
+     * Index of sheet currently being displayed
+     * @type {Number}
+     */
+    currentSheetIndex;
+
+
+    /**
+     * @param {HTMLElement} excelContainer - parent element to which the excel component will be apended
+     */
     constructor(excelContainer){
         // console.log(excelContainer);
         this.menuDiv = document.createElement("div")
@@ -128,6 +194,10 @@ export class Excel{
         })
     }
 
+    /**
+     * Function that creates the find and replace form and sets the event listeners
+     * @returns {HTMLFormElement}
+     */
     createFindReplacePopup(){
         let f = document.createElement("form")
         f.classList.add("find-and-replace")
@@ -263,6 +333,10 @@ export class Excel{
         return f;
     }
 
+    /**
+     * Funtion to create and append tabs to the menu tab container
+     * @param {HTMLElement} menuTabsContainer - container to which the prepared menu tabs will be appended
+     */
     prepareMenuTabs(menuTabsContainer){
         /* Text menu tab */
         let textWrapperControl = document.createElement("div")
@@ -318,6 +392,10 @@ export class Excel{
 
     }
     
+    /**
+     * Loads the sheet with specified index
+     * @param {Number} index - index of the sheet to be loaded into the component
+     */
     loadSheet(index){
         if(index>=this.sheets.length || index<0){
             throw new Error(`Cannot load sheet at index ${index}, index out of bounds.`)
@@ -333,8 +411,12 @@ export class Excel{
         // console.log("Loading sheet at "+index);
 
     }
+
+    /**
+     * Creates a new sheet and loads it to the component
+     */
     newSheet(){
-        let newSheet = new Sheet(this.sheetContainer)
+        let newSheet = new Sheet()
         this.sheets.push(newSheet);
         this.loadSheet(this.sheets.length - 1)
         let newSheetTab = document.createElement("input")
@@ -353,6 +435,10 @@ export class Excel{
         newSheetTab.value=`Sheet ${i+1}`;
         this.sheetTabContainer.scrollTo(this.sheetTabContainer.scrollWidth,0)
     }
+
+    /**
+     * Load the previous sheet to the current loaded sheet
+     */
     goToPrevSheet(){
         let tabs = this.sheetTabContainer.querySelectorAll("input")
         tabs[this.currentSheetIndex].removeAttribute("data-current")
@@ -364,6 +450,9 @@ export class Excel{
         }
         tabs[this.currentSheetIndex].setAttribute("data-current","")
     }
+    /**
+     * Load the next sheet to the current loaded sheet
+     */
     goToNextSheet(){
         let tabs = this.sheetTabContainer.querySelectorAll("input")
         tabs[this.currentSheetIndex].removeAttribute("data-current")
@@ -375,6 +464,9 @@ export class Excel{
         }
         tabs[this.currentSheetIndex].setAttribute("data-current","")
     }
+    /**
+     * Delete the loaded sheet
+     */
     deleteSheet(){
         if(this.sheets.length<=1){
             window.alert("Cannot delete all sheets");
@@ -391,9 +483,16 @@ export class Excel{
         this.sheetTabContainer.children[this.currentSheetIndex].setAttribute("data-current","");
 
     }
+    /**
+     * Wraps cells in the current selection range of the sheet
+     */
     wrapText(){
         this.sheets[this.currentSheetIndex].wrapRangeSelection();
     }
+    /**
+     * Function to change the displayed aggregates of the selected range
+     * @param {[Number,Number,Number]} aggValues  - 3 element array of numbers(min, avg, max) that by default calculates the sheet aggregate values
+     */
     recalculateAggregates(aggValues=this.sheets[this.currentSheetIndex].calculateAggregates()){
         // let aggValues = this.sheets[this.currentSheetIndex].calculateAggregates()
         // console.log(aggValues);
@@ -401,6 +500,11 @@ export class Excel{
         this.avgSpan.textContent = `Avg : ${aggValues[1]}`
         this.maxSpan.textContent = `Max : ${aggValues[2]}`
     }
+
+    /**
+     * Click function handler for the sheet tab that loads the clicked sheet
+     * @param {PointerEvent} e 
+     */
     sheetTabClickHandler(e){
         e.target.parentElement.querySelectorAll("input").forEach(t1=>{
             t1.removeAttribute("data-current")
@@ -409,25 +513,38 @@ export class Excel{
         e.target.setAttribute("data-current","true")
         this.loadSheet(e.target.dataset["index"])
     }
+    /**
+     * Function to make tab text editable
+     * @param {PointerEvent} e 
+     */
     sheetTabDoubleClickHandler(e){
         e.target.focus();
         e.target.removeAttribute("readonly")
     }
+    /**
+     * Function to handle key events in the sheet tab input boxes
+     * @param {KeyboardEvent} e 
+     */
     sheetTabKeyHandler(e){
         if(e.key==="Enter"){
               e.target.setAttribute("readonly","")
         }
     }
+
+    /**
+     * Key handler for the component
+     * @param {KeyboardEvent} e 
+     */
     excelKeyHandler(e){
         // console.log(e)
-        if(e.key=="f" && e.ctrlKey){
+        if(e.key.toLowerCase()=="f" && e.ctrlKey){
             e.preventDefault();
             this.popupDiv.style.display = "grid";
             this.findAndReplaceForm["find-and-replace"].value = "find"
             this.popupDiv.appendChild(this.findAndReplaceForm)
             this.findAndReplaceForm["find"].focus();
         }
-        else if(e.key=="h" && e.ctrlKey){
+        else if(e.key.toLowerCase()=="h" && e.ctrlKey){
             e.preventDefault();
             this.popupDiv.style.display = "grid";
             this.findAndReplaceForm["find-and-replace"].value = "replace"

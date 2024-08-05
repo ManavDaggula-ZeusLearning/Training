@@ -8,23 +8,35 @@ import { Graph } from "./Graph.js"
 
 export class Sheet{
 
+    /**
+     * Array of all column widths
+     * @type {Number[]}
+     */
     colSizes = Array(20).fill(100)
+    /**
+     * Array of all row heights
+     * @type {Number[]}
+     */
     rowSizes = Array(50).fill(30)
+    /**
+     * Row limit set to limit range of sheet
+     * @type {Number}
+     */
     rowLimit = 1048576
+    /**
+     * Column limit set to limit range of sheet
+     * @type {Number}
+     */
     colLimit = 16384
-
+    /**
+     * Static Array of all copied cells shared with all sheet instances
+     * @type {[Number, Number, Object]}
+     */
     static cellsCopiedArray = [];
-    // fontSize = 16;
-    // font = "Titillium Web";
-    // fontColor = "#222";
-    // fontSelectedColor = "#444";
-    // fontSelectedBackgroundColor = "#88d1b144";
-    // cellBackgroundColor = "#fff"
-    // fontPadding = 6;
-    // columnWidth = 100 ;
-    // rowHeight = 30
-    // colWidth = 50
-    // columnGutterColor = "#cbd5d0"
+    
+    /**
+     * Default configuration object to set the default config parameters
+     */
     defaultConfig = {
         "fontSize":16,
         "font": "Segoe UI",
@@ -38,18 +50,93 @@ export class Sheet{
         "colWidth": 50,
         "columnGutterColor": "#cbd5d0",
     }
-    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
-    selectedCell = null
-    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
-    selectedRangeStart = null
-    /**@type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
-    selectedRangeEnd = null
+
+    /**
+     * Object to store selected cell details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
+     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedCell;
+    /**
+     * Object to store selected range start details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
+     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedRangeStart;
+    /**
+     * Object to store selected range ending details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
+     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+    selectedRangeEnd;
+    /**
+     * stores the offset for drawing marching ants lines
+     * @type {(null|Number)}
+     */
     lineDashOffset = null
+    /**
+     * Stores id returned by draw loop from window.requestAnimationFrame
+     * @type {(null|Number)}
+     */
     drawLoopId = null;
-    drawnGraph = null
+    /**
+     * Sheet data
+     * @type {Object}
+     */
+    data;
+    /**
+     * Top level container for the sheet elements
+     * @type {HTMLDivElement}
+     */
+    containerDiv;
+    /**
+     * Header canvas element
+     * @type {HTMLCanvasElement}
+     */
+    headerRef;
+    /**
+     * Row canvas element
+     * @type {HTMLCanvasElement}
+     */
+    rowRef;
+    /**
+     * Table canvas element
+     * @type {HTMLCanvasElement}
+     */
+    tableRef;
+    /**
+     * table div container
+     * @type {HTMLDivElement}
+     */
+    tableDiv;
+    /**
+     * Scroll container
+     * @type {HTMLDivElement}
+     */
+    sizeDiv;
+    /**
+     * Top left select all button
+     * @type {HTMLElement}
+     */
+    selectButton;
+    /**
+     * Input editor div having the input box
+     * @type {HTMLDivElement}
+     */
+    inputEditor;
+    /**
+     * Header canvas context
+     * @type {CanvasRenderingContext2D}
+     */
+    headerContext;
+    /**
+     * Row canvas context
+     * @type {CanvasRenderingContext2D}
+     */
+    rowContext;
+    /**
+     * Table canvas context
+     * @type {CanvasRenderingContext2D}
+     */
+    tableContext;
     
-    // dom elements : 1 header canvas, 1 row canvas, 1 table canvas
-    constructor(divRef){
+    
+    
+    constructor(){
         // creating canvas elements and contexts
         // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
         this.data = JSON.parse(JSON.stringify(data));
@@ -143,8 +230,11 @@ export class Sheet{
         })
         this.inputEditor.querySelector("input").addEventListener("keyup",(e)=>{
             this.inputEditorKeyHandler(e)
-            
         })
+        // this.inputEditor.querySelector("input").addEventListener("blur",(e)=>{
+        //     this.inputBlurHandler(e)
+        // })
+
         this.tableRef.addEventListener("pointerdown",(e)=>{
             this.canvasPointerDown(e);
         })
@@ -169,8 +259,12 @@ export class Sheet{
             this.colAutoResize(e)
         })
         // this.find("dummy")
+        Object.keys(this).forEach(x=>console.log(x))
     }
 
+    /**
+     * Header canvas renderer
+     */
     drawHeader() {
         // let tempArr = [];
         this.headerContext.setTransform(1, 0, 0, 1, 0, 0);
@@ -263,6 +357,9 @@ export class Sheet{
         // console.log("Columns drawn in header: "+tempArr.length);
     }
 
+    /**
+     * Row canvas renderer
+     */
     drawRowIndices(){
         // let tempArr=[];
         this.rowContext.setTransform(1, 0, 0, 1, 0, 0);
@@ -357,6 +454,11 @@ export class Sheet{
         // console.log("Rows drawn in rows: "+tempArr.length);
     }
 
+    /**
+     * Funtion to convert given column index to String header
+     * @param {Number} n 
+     * @returns {String}
+     */
     static numToBase26ForHeader(n){
         let s = "";
         do {
@@ -373,6 +475,10 @@ export class Sheet{
         return s;
     }
 
+    /**
+     * Draw function renderer to repaint sheet canvas
+     * @param {(null|Number)} prevTime 
+     */
     draw(prevTime=null){
         // console.log("redrawing...")
         // this.tableContext.translate()
@@ -568,6 +674,9 @@ export class Sheet{
     }
 
 
+    /**
+     * Function to recompute all canvases size
+     */
     fixCanvasSize(){
         // console.log(this.colSizes.reduce((prev,curr)=>prev+curr,0));
         this.sizeDiv.style.width = this.colSizes.reduce((prev,curr)=>prev+curr,0) + "px";
@@ -593,6 +702,9 @@ export class Sheet{
         this.tableRef.style.height = `${this.tableDiv.clientHeight}px`
     }
 
+    /**
+     * Function to check if we reach end of columns and adds more rows
+     */
     checkIfReachedEndOfColumns(e){
         let status =  this.tableDiv.scrollWidth - this.tableDiv.clientWidth - this.tableDiv.scrollLeft > 50 ? false : true;
         if(status){
@@ -604,7 +716,10 @@ export class Sheet{
         }
         // return status;
     }
-    checkIfReachedEndOfRows(e){
+    /**
+     * Function to check if we reach end of rows and adds more rows
+     */
+    checkIfReachedEndOfRows(){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
             this.rowSizes = [...this.rowSizes, ...Array(50).fill(30)]
@@ -616,8 +731,9 @@ export class Sheet{
     }
 
     /**
-     * 
-     * @param {PointerEvent} e 
+     * Funtion to get clicked cell
+     * @param {(PointerEvent | {offsetX:Number, offsetY:Number})} e 
+     * @returns {{startPosRow:Number, startPosCol:Number, rowIndex:Number,colIndex: Number}}
      */
     getCellClickIndex(e){
         // console.log(e.offsetX, e.offsetY);
@@ -638,6 +754,10 @@ export class Sheet{
         return {startPosRow: startPosRow, startPosCol: startPosCol, rowIndex: rowIndex, colIndex: colIndex}
     }
 
+    /**
+     * Pointer down handler for range selection on canvas sheet
+     * @param {PointerEvent} e 
+     */
     canvasPointerDown(e){
         this.lineDashOffset = null;
         if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
@@ -667,10 +787,10 @@ export class Sheet{
         else{
             this.selectButton.removeAttribute("data-showdot")
         }
-        // console.log(this.selectedRangeStart);
-        // if(this.selectedCell && rowIndexDown!=this.selectedCell.row && colIndexDown!=this.selectedCell.col){
-            //     this.tableContext.clearRect()
-            // }
+        /**
+         * Pointer up handler for range selection in canvas
+         * @param {PointerEvent} eUp 
+         */
         let canvasPointerUp = (eUp)=>{
             let newX = (e.offsetX + eUp.clientX - e.clientX)
             let newY = (e.offsetY + eUp.clientY - e.clientY)
@@ -686,6 +806,10 @@ export class Sheet{
             this.drawHeader();
             if(!this.drawLoopId) this.draw();
         }
+        /**
+         * Pointer move handler for range selection in canvas
+         * @param {PointerEvent} eMove 
+         */
         let canvasPointerMove = (eMove)=>{
             let newX = (e.offsetX + eMove.clientX - e.clientX)
             let newY = (e.offsetY + eMove.clientY - e.clientY)
@@ -720,6 +844,10 @@ export class Sheet{
                 this.selectButton.removeAttribute("data-showdot")
             }
         }
+        /**
+         * Pointer leave handler for range selection in canvas
+         * @param {PointerEvent} eLeave 
+         */
         let canvasPointerLeave = (eLeave)=>{
             // console.log(eLeave);
             window.removeEventListener("pointermove", canvasPointerMove);
@@ -734,6 +862,10 @@ export class Sheet{
         
     }
 
+    /**
+     * Double click handler on sheet canvas
+     * @param {PointerEvent} e 
+     */
     canvasDoubleClickHandler(e){
         // this.selectedRangeStart = null;
         // this.selectedRangeEnd = null;
@@ -757,10 +889,11 @@ export class Sheet{
     }
 
     /**
-     * 
+     * key handler for input box 
      * @param {KeyboardEvent} e 
      */
     inputEditorKeyHandler(e){
+        // console.log("input",e)
         if(e.key=="Enter"){
             let tempCellData = {text: e.target.value}
             // console.log(data[this.selectedCell.row]);
@@ -802,10 +935,47 @@ export class Sheet{
     }
 
     /**
-    * @param {KeyboardEvent} e 
-    */
+     * Input editor focus lost event
+     * @param {FocusEvent} e 
+     */
+    // inputBlurHandler(e){
+    //     let tempCellData = {text: e.target.value}
+    //         // console.log(data[this.selectedCell.row]);
+    //         if(this.data[this.selectedCell.row]){
+    //             if(this.data[this.selectedCell.row][this.selectedCell.col]){
+    //                 this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+    //             }
+    //             else{
+    //                 this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+    //             }
+    //         }
+    //         else{
+    //             let tempRowData = {};
+    //             tempRowData[this.selectedCell.col] = tempCellData
+    //             this.data[this.selectedCell.row] = tempRowData
+    //         }
+    //         // data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+    //         // console.log(this.data);
+    //         this.inputEditor.style.display = "none"
+    //         this.wrapText(e.target.value)
+    //         this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
+    //         this.selectedCell.row = this.selectedCell.row+1
+    //         this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+    //         this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+    //         if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+    //             this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+    //         }
+    //         this.drawHeader();
+    //         this.drawRowIndices();
+    //         if(!this.drawLoopId) this.draw();
+    // }
+
+    /**
+     * Key Handler for the sheet omponent to perform editing and other selection functions from keyboard
+     * @param {KeyboardEvent} e 
+     */
     canvasKeyHandler(e){
-        // console.log(e.key, e.shiftKey)
+        // console.log("window",e.key)
         // if(e.target===this.inputEditor.querySelector("input")){return;}
         if(e.key=="ArrowLeft" && this.selectedCell){
             this.lineDashOffset = null;
@@ -912,7 +1082,7 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
         }
-        else if(e.key==="c" && e.ctrlKey){
+        else if(e.key.toLowerCase()==="c" && e.ctrlKey){
             this.lineDashOffset = 0;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
@@ -923,7 +1093,7 @@ export class Sheet{
             this.copyRangeToClipboard();
             if(!this.drawLoopId) this.draw();
         }
-        else if(e.key==="v" && e.ctrlKey){
+        else if(e.key.toLowerCase()==="v" && e.ctrlKey){
             if(this.drawLoopId) {window.cancelAnimationFrame(this.drawLoopId)}
             this.drawLoopId = null
             this.lineDashOffset = null;
@@ -984,7 +1154,10 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
         }
-        else if("abcdefghijklmnopqrstuvwxyz0123456789".includes(e.key.toLowerCase()) && !e.ctrlKey){
+        else if(`abcdefghijklmnopqrstuvwxyz0123456789\`~!@#$%^&*()-_=+[{]}'"|\\;:'",<.>/?`.includes(e.key.toLowerCase()) && !e.ctrlKey){
+        // else if(e.key.charCodeAt()>=33 && e.key.charCodeAt()<=126 && !e.ctrlKey){
+        // else{
+            // console.log(e.key, e.key.charCodeAt())
             this.lineDashOffset = null;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
@@ -1009,7 +1182,7 @@ export class Sheet{
     }
 
     /**
-     * 
+     * Function to detect if pointer is near column boundaries and changes cursor type
      * @param {PointerEvent} e 
      */
     colResizeCursorMove(e){
@@ -1028,6 +1201,11 @@ export class Sheet{
             e.target.style.cursor = "default";   
         }
     }
+
+    /**
+     * Function to detect if pointer is near row boundaries and changes cursor type
+     * @param {PointerEvent} e 
+     */
     rowResizeCursorMove(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosY = e.offsetY + this.tableDiv.scrollTop
@@ -1044,7 +1222,8 @@ export class Sheet{
     }
 
     /**
-     * 
+     * Pointer down handler for column canvas,
+     * can perform resize or column selection based on pointer position
      * @param {PointerEvent} e 
      */
     colResizePointerDown(e){
@@ -1096,7 +1275,7 @@ export class Sheet{
             
             // write infinity multiple column selection functions here
             /**
-             * 
+             * pointer move handler for multiple column selection
              * @param {PointerEvent} eMove 
              */
             let multipleColumnPointerMoveHandler = (eMove)=>{
@@ -1118,6 +1297,10 @@ export class Sheet{
 
                 // let newY = (e.offsetY + eMove.clientY - e.clientY)
             }
+            /**
+             * Pointer up handler for multiple column selection
+             * @param {PointerEvent} eUp 
+             */
             let multipleColumnPointerUpHandler = (eUp)=>{
                 window.removeEventListener("pointermove",multipleColumnPointerMoveHandler)
                 window.removeEventListener("pointerup",multipleColumnPointerUpHandler)
@@ -1136,7 +1319,7 @@ export class Sheet{
         let prevEndColStart = this.selectedRangeEnd.colStart;
         // console.log(minPosX);
         /**
-         * 
+         * pointer move handler for column resize
          * @param {PointerEvent} eMove 
          */
         let colResizePointerMove = (eMove)=>{
@@ -1154,6 +1337,10 @@ export class Sheet{
                 if(!this.drawLoopId) this.draw();
             }
         }
+        /**
+         * Pointer up handler for column resize
+         * @param {PointerEvent} eUp 
+         */
         let colResizePointerUp = (eUp)=>{
             // console.log(this.selectedCell, this.selectedRangeStart, this.selectedRangeEnd)
             if(this.selectedRangeEnd.rowStart==Infinity && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
@@ -1187,6 +1374,10 @@ export class Sheet{
             window.removeEventListener("pointermove",colResizePointerMove);
             window.removeEventListener("pointerup",colResizePointerUp);    
         }
+        /**
+         * Pointer leave handler for header canvas
+         * @param {PointerEvent} eLeave 
+         */
         let colResizePointerLeave = (eLeave) =>{
             this.wrapTextForColumn(i);
             this.draw();
@@ -1202,7 +1393,8 @@ export class Sheet{
     }
 
     /**
-     * 
+     * Pointer down handler on row canvas,
+     * can perform resize or row selection based on pointer position
      * @param {PointerEvent} e 
      */
     rowResizePointerDown(e){
@@ -1251,9 +1443,8 @@ export class Sheet{
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
 
-            // write infinity multiple row selection functions here
             /**
-             * 
+             * Pointer move handler to select multiple rows
              * @param {PointerEvent} eMove 
              */
             let multipleRowPointerMoveHandler = (eMove)=>{
@@ -1273,6 +1464,10 @@ export class Sheet{
                 this.drawRowIndices();
                 if(!this.drawLoopId) this.draw();
             }
+            /**
+             * Pointer up handler for multiple rows selection
+             * @param {PointerEvent} eUp 
+             */
             let multipleRowPointerUpHandler = (eUp)=>{
                 window.removeEventListener("pointermove",multipleRowPointerMoveHandler)
                 window.removeEventListener("pointerup",multipleRowPointerUpHandler)
@@ -1290,6 +1485,7 @@ export class Sheet{
         let prevCellRowStart = this.selectedCell.rowStart;
         let prevEndRowStart = this.selectedRangeEnd.rowStart;
         /**
+         * Pointer move handler for row resize
          * @param {PointerEvent} eMove 
          */
         let rowResizePointerMove = (eMove)=>{
@@ -1307,7 +1503,10 @@ export class Sheet{
                 if(!this.drawLoopId) this.draw();
             }
         }
-        let rowResizePointerUp = (eDown)=>{
+        /**
+         * Pointer up handler for row resize
+         */
+        let rowResizePointerUp = ()=>{
             if(this.selectedRangeEnd.colStart==Infinity && i>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row) && i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)){
                 for(let j=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); j<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row);j++){
                     // if(j==i){continue;}
@@ -1334,6 +1533,10 @@ export class Sheet{
             window.removeEventListener("pointermove",rowResizePointerMove);
             window.removeEventListener("pointerup",rowResizePointerUp);    
         }
+        /**
+         * Pointer leace handler for row canvas
+         * @param {PointerEvent} eLeave 
+         */
         let rowResizePointerLeave = (eLeave) =>{
             // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
             window.removeEventListener("pointermove",rowResizePointerMove);
@@ -1345,6 +1548,9 @@ export class Sheet{
         window.addEventListener("pointerleave",rowResizePointerLeave);
     }
 
+    /**
+     * Function to copy cells data to the static cellsCopiedArray
+     */
     copyRangeToClipboard(){
         let text = "";
         Sheet.cellsCopiedArray = [];
@@ -1376,6 +1582,9 @@ export class Sheet{
         // console.log(Sheet.cellsCopiedArray);
     }
 
+    /**
+     * Function to paste copied cells data to the sheet
+     */
     pasteRangeToClipboard(){
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
@@ -1412,6 +1621,10 @@ export class Sheet{
         }
     }
 
+    /**
+     * Function to get aggregate values (minimum, average, maximum) for the selected range
+     * @returns {[Number, Number, Number]}
+     */
     calculateAggregates(){
         let arr=[];
         if(this.selectedRangeStart.col != this.selectedRangeEnd.col){return [null,null,null];}
@@ -1428,6 +1641,10 @@ export class Sheet{
         return [min==Infinity ? 0 : min,isNaN(mean) ? 0 : mean,max==-Infinity ? 0 : max];
     }
 
+    /**
+     * Function to auto-resize column based on text length
+     * @param {PointerEvent} e 
+     */
     colAutoResize(e){
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
@@ -1466,6 +1683,10 @@ export class Sheet{
         this.drawRowIndices()
     }
 
+    /**
+     * Function to wrap text entered in the input box and write it to the cells data
+     * @param {String} textContent - text content of input box on which wrapping is performent
+     */
     wrapText(textContent){
         if(!this.data[this.selectedCell.row][this.selectedCell.col].textWrap){
             // console.log("no need to wrap");    
@@ -1495,6 +1716,13 @@ export class Sheet{
         // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
         this.drawRowIndices();
     }
+
+    /**
+     * Function to wrap a specific cell
+     * @param {Number} row - row Index of cell to be wrapped
+     * @param {Number} col - column index of cell to be wrapped
+     * @returns 
+     */
     wrapCell(row,col){
         if(!this.data[row][col].textWrap){
             // console.log("no need to wrap");    
@@ -1522,8 +1750,9 @@ export class Sheet{
         let lineCount = wrappedText.length;
         this.rowSizes[row] = Math.max(this.rowSizes[row], lineCount*this.defaultConfig.fontSize + 2*this.defaultConfig.fontPadding)
     }
+
     /**
-     * 
+     * Function to rewrap all wrapped cells for a specific column
      * @param {Number} colIndex 
      */
     wrapTextForColumn(colIndex){
@@ -1564,6 +1793,9 @@ export class Sheet{
         
     }
 
+    /**
+     * Funtion to wrap cells within the selected range
+     */
     wrapRangeSelection(){
         // console.log(this.selectedRangeStart, this.selectedRangeEnd)
         for(let i=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row); i<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row);i++){
@@ -1582,8 +1814,11 @@ export class Sheet{
         this.drawRowIndices();
     }
 
+    /**
+     * Function to draw graph for the selected range
+     * @param {String} type - type of chart to be drawn
+     */
     getGraphData(type="bar"){
-        if(this.drawnGraph){this.drawnGraph.destroy();}
         let minRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)
         let maxRow = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
         let minCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col)
@@ -1618,25 +1853,6 @@ export class Sheet{
             new Graph(this.sizeDiv, [...rowsWithData], allCellData,this.tableDiv.scrollLeft, this.tableDiv.scrollTop,type)
         }
 
-
-        // this.drawnGraph = new Chart(document.getElementById("tempGraphCanvas"), {
-        //     type: 'pie',
-        //     data: {
-        //       labels: filteredLabel,
-        //       datasets: [{
-        //         data: filteredAverage,
-        //         borderWidth: 1
-        //       }]
-        //     },
-        //     options: {
-        //       scales: {
-        //         y: {
-        //           beginAtZero: true
-        //         }
-        //       }
-        //     }
-        //   });
-
     }
 
     // find(textContent){
@@ -1655,6 +1871,11 @@ export class Sheet{
     //     // console.log("delay: ",new Date()-start);
         
     // }
+    /**
+     * Function to find the specified text within the sheet
+     * @param {String} textContent - string to search within the sheet data
+     * @returns {[Number, Number]}
+     */
     find(textContent){
         if(!textContent){return []}
         // console.clear();
@@ -1673,6 +1894,7 @@ export class Sheet{
     }
 
     /**
+     * Scrolls the cell with specified row and column into view
      * @param {Number} row 
      * @param {Number} col 
      */
@@ -1685,16 +1907,17 @@ export class Sheet{
             for(let i=0; i<row; i++){
                 yPos+=this.rowSizes[i]
             }
-            // console.log(xPos,yPos);
-            if(xPos < this.tableDiv.scrollLeft || xPos+this.colSizes[col] > this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                this.tableDiv.scrollTo(xPos,this.tableDiv.scrollTop);
-            }
-            if(yPos < this.tableDiv.scrollTop || yPos+this.rowSizes[row] > this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                this.tableDiv.scrollTo(this.tableDiv.scrollLeft, yPos);
-            }
             this.selectedCell = {col:col, row:row, rowStart:yPos, colStart:xPos}
             this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
             this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+            // console.log(xPos,yPos);
+            if(xPos >= this.tableDiv.scrollLeft && xPos+this.colSizes[col] <= this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
+                xPos = this.tableDiv.scrollLeft;
+            }
+            if(yPos >= this.tableDiv.scrollTop && yPos+this.rowSizes[row] <= this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+                yPos = this.tableDiv.scrollTop;
+            }
+            this.tableDiv.scrollTo(xPos,yPos);
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId){this.draw();}
@@ -1702,6 +1925,7 @@ export class Sheet{
     }
 
     /**
+     * Replaces each occurence of partText from the cell at specified row and column with newText
      * @param {Number} row 
      * @param {Number} col 
      * @param {String} newText 
@@ -1710,9 +1934,6 @@ export class Sheet{
     replaceCellText(row, col, newText, partText){
         // if(!newText){newText=""}
         // console.log(row,col,newText, partText)
-        /**
-         * @type {String}
-         */
         let text = this.data[row][col].text
         // console.log(text);
         text = text.replaceAll(partText, newText)
@@ -1729,20 +1950,14 @@ export class Sheet{
         this.draw();
     }
 
+    /**
+     * Funtion to dispatch event with aggregate details
+     */
     dispatchAggregateEvent(){
         let e = new CustomEvent("aggregateValues",{detail:this.calculateAggregates()})
         window.dispatchEvent(e)
     }
 
-    // resizeBasedOnViewPort(e){
-    //     console.log("resizing..")
-    //     this.fixCanvasSize();
-    //     this.drawHeader();
-    //     this.drawRowIndices();
-    // }
 }
-
-
-// collastpos = [180, 300, 420, 540, 660, 834, 954, 1074, 1194, 1314, 1414, 1514, 1614, 1714]
 
 // var debugDiv = document.querySelector("#debugDiv")
