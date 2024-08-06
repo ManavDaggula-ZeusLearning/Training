@@ -133,6 +133,12 @@ export class Sheet{
      * @type {CanvasRenderingContext2D}
      */
     tableContext;
+
+    /** 
+     * Previous cell value that is currently being edited
+     * @type {Object}
+    */
+    cellPreviousvalue;
     
     
     
@@ -197,6 +203,7 @@ export class Sheet{
         this.selectedCell = {row: 0, col: 0, rowStart: 0, colStart: 0}
         this.selectedRangeStart = {row: 0, col: 0, rowStart: 0, colStart: 0}
         this.selectedRangeEnd = {row: 0, col: 0, rowStart: 0, colStart: 0}
+        this.cellPreviousvalue = null;
 
         this.fixCanvasSize();
         this.drawHeader();
@@ -214,8 +221,9 @@ export class Sheet{
             this.drawHeader();
             this.drawRowIndices();
             // this.resizeBasedOnViewPort();
-            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId)}
+            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId);this.drawLoopId=null;}
             this.draw();
+            // window.requestAnimationFrame(()=>this.draw())
         })
         this.tableRef.addEventListener("dblclick",(e)=>{
             // console.log(e);
@@ -226,14 +234,15 @@ export class Sheet{
             this.fixCanvasSize();
             this.drawHeader();
             this.drawRowIndices();
-            if(!this.drawLoopId) this.draw();
+            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId);this.drawLoopId=null;}
+            this.draw();
         })
         this.inputEditor.querySelector("input").addEventListener("keyup",(e)=>{
             this.inputEditorKeyHandler(e)
         })
-        // this.inputEditor.querySelector("input").addEventListener("blur",(e)=>{
-        //     this.inputBlurHandler(e)
-        // })
+        this.inputEditor.querySelector("input").addEventListener("focus",(e)=>{
+            console.log("focused at cell", e.target.value)
+        })
 
         this.tableRef.addEventListener("pointerdown",(e)=>{
             this.canvasPointerDown(e);
@@ -849,16 +858,16 @@ export class Sheet{
         /**
          * Pointer leave handler for range selection in canvas
          */
-        let canvasPointerLeave = ()=>{
-            // console.log(eLeave);
-            window.removeEventListener("pointermove", canvasPointerMove);
-            window.removeEventListener("pointerup", canvasPointerUp);
-            window.removeEventListener("pointerleave", canvasPointerLeave);
-        }
+        // let canvasPointerLeave = ()=>{
+        //     // console.log(eLeave);
+        //     window.removeEventListener("pointermove", canvasPointerMove);
+        //     window.removeEventListener("pointerup", canvasPointerUp);
+        //     // window.removeEventListener("pointerleave", canvasPointerLeave);
+        // }
         // let pointerUp = canvasPointerUp
         window.addEventListener("pointerup", canvasPointerUp);
         window.addEventListener("pointermove",canvasPointerMove);
-        window.addEventListener("pointerleave", canvasPointerLeave);
+        // window.addEventListener("pointerleave", canvasPointerLeave);
 
         
     }
@@ -883,6 +892,8 @@ export class Sheet{
         this.inputEditor.style.height = (this.rowSizes[rowIndex])+"px"
         let inputRef = this.inputEditor.querySelector("input")
         inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
+        this.cellPreviousvalue = this.data?.[this.selectedCell.row]?.[this.selectedCell.col] || null;
+        console.log(this.cellPreviousvalue)
         // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
         inputRef.focus();
         
@@ -933,6 +944,23 @@ export class Sheet{
         }
         else if(e.key=="Escape"){
             this.inputEditor.style.display = "none";
+        }
+        else{
+            let tempCellData = {text: e.target.value}
+            // console.log(data[this.selectedCell.row]);
+            if(this.data[this.selectedCell.row]){
+                if(this.data[this.selectedCell.row][this.selectedCell.col]){
+                    this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+                }
+                else{
+                    this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+                }
+            }
+            else{
+                let tempRowData = {};
+                tempRowData[this.selectedCell.col] = tempCellData
+                this.data[this.selectedCell.row] = tempRowData
+            }
         }
         if(!this.drawLoopId) this.draw();
     }
@@ -1227,6 +1255,7 @@ export class Sheet{
      * @param {PointerEvent} e 
      */
     colResizePointerDown(e){
+        e.preventDefault();
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
@@ -1279,6 +1308,8 @@ export class Sheet{
              * @param {PointerEvent} eMove 
              */
             let multipleColumnPointerMoveHandler = (eMove)=>{
+                eMove.preventDefault();
+                // console.log("move while multi col select")
                 let newX = (e.offsetX + eMove.clientX - e.clientX)
                 // console.log(newX);
                 let {startPosCol, colIndex} = this.getCellClickIndex({offsetX:newX, offsetY:0});
@@ -1286,7 +1317,7 @@ export class Sheet{
                 this.selectedRangeEnd.col = colIndex
                 this.selectedRangeEnd.colStart=startPosCol
                 if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col] +50 > this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                    this.tableDiv.scrollBy(50, 0)
+                    this.tableDiv.scrollBy(+50, 0)
                 }
                 if(this.selectedRangeEnd.colStart < this.tableDiv.scrollLeft + 50){
                     this.tableDiv.scrollBy(-50, 0)
@@ -1301,7 +1332,9 @@ export class Sheet{
              * Pointer up handler for multiple column selection
              * @param {PointerEvent} eUp 
              */
-            let multipleColumnPointerUpHandler = ()=>{
+            let multipleColumnPointerUpHandler = (eUp)=>{
+                eUp.preventDefault();
+                // console.log("upped while multi col select")
                 window.removeEventListener("pointermove",multipleColumnPointerMoveHandler)
                 window.removeEventListener("pointerup",multipleColumnPointerUpHandler)
             }
@@ -1323,6 +1356,7 @@ export class Sheet{
          * @param {PointerEvent} eMove 
          */
         let colResizePointerMove = (eMove)=>{
+            eMove.preventDefault();
             let deltaX = eMove.clientX - e.clientX;
             if((prevColSize + (deltaX) >= 10) && (eMove.offsetX+this.tableDiv.scrollLeft >= minPosX)){
                 if(i < this.selectedCell.col){
@@ -1341,7 +1375,8 @@ export class Sheet{
          * Pointer up handler for column resize
          * @param {PointerEvent} eUp 
          */
-        let colResizePointerUp = ()=>{
+        let colResizePointerUp = (eUp)=>{
+            eUp.preventDefault();
             // console.log(this.selectedCell, this.selectedRangeStart, this.selectedRangeEnd)
             if(this.selectedRangeEnd.rowStart==Infinity && i>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col) && i<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col)){
                 for(let j=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col); j<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col);j++){
@@ -1377,18 +1412,19 @@ export class Sheet{
         /**
          * Pointer leave handler for header canvas
          */
-        let colResizePointerLeave = () =>{
-            this.wrapTextForColumn(i);
-            this.draw();
-            this.drawRowIndices();
-            // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
-            window.removeEventListener("pointermove",colResizePointerMove);
-            window.removeEventListener("pointerup",colResizePointerUp);
-            window.removeEventListener("pointerleave",colResizePointerLeave);
-        }
+        // let colResizePointerLeave = () =>{
+        //     this.wrapTextForColumn(i);
+        //     this.draw();
+        //     this.drawRowIndices();
+        //     // window.localStorage.setItem("colSizes",JSON.stringify(this.colSizes))
+        //     window.removeEventListener("pointermove",colResizePointerMove);
+        //     window.removeEventListener("pointerup",colResizePointerUp);
+        //     window.removeEventListener("pointerleave",colResizePointerLeave);
+        // }
         window.addEventListener("pointermove",colResizePointerMove);
         window.addEventListener("pointerup",colResizePointerUp);
-        window.addEventListener("pointerleave",colResizePointerLeave);
+        // window.addEventListener("pointerleave",colResizePointerLeave);
+        
     }
 
     /**
@@ -1397,6 +1433,7 @@ export class Sheet{
      * @param {PointerEvent} e 
      */
     rowResizePointerDown(e){
+        e.preventDefault();
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
@@ -1447,6 +1484,7 @@ export class Sheet{
              * @param {PointerEvent} eMove 
              */
             let multipleRowPointerMoveHandler = (eMove)=>{
+                eMove.preventDefault();
                 let newY = (e.offsetY + eMove.clientY - e.clientY)
                 // console.log(newX);
                 let {startPosRow, rowIndex} = this.getCellClickIndex({offsetX:0, offsetY:newY});
@@ -1487,6 +1525,7 @@ export class Sheet{
          * @param {PointerEvent} eMove 
          */
         let rowResizePointerMove = (eMove)=>{
+            eMove.preventDefault();
             let deltaY = eMove.clientY - e.clientY;
             if((prevRowSize+deltaY >= 10) && (eMove.offsetY+this.tableDiv.scrollTop >= minPosY)){
                 if(i < this.selectedCell.row){
@@ -1534,15 +1573,15 @@ export class Sheet{
         /**
          * Pointer leace handler for row canvas
          */
-        let rowResizePointerLeave = () =>{
-            // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
-            window.removeEventListener("pointermove",rowResizePointerMove);
-            window.removeEventListener("pointerup",rowResizePointerUp);
-            window.removeEventListener("pointerleave",rowResizePointerLeave);
-        }
+        // let rowResizePointerLeave = () =>{
+        //     // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
+        //     window.removeEventListener("pointermove",rowResizePointerMove);
+        //     window.removeEventListener("pointerup",rowResizePointerUp);
+        //     window.removeEventListener("pointerleave",rowResizePointerLeave);
+        // }
         window.addEventListener("pointermove",rowResizePointerMove);
         window.addEventListener("pointerup",rowResizePointerUp);
-        window.addEventListener("pointerleave",rowResizePointerLeave);
+        // window.addEventListener("pointerleave",rowResizePointerLeave);
     }
 
     /**
@@ -1575,7 +1614,7 @@ export class Sheet{
             text+="\n"
         }
         // console.log(text);
-        navigator.clipboard.writeText(text.trimEnd())
+        navigator.clipboard.writeText(text)
         // console.log(Sheet.cellsCopiedArray);
     }
 
@@ -1583,6 +1622,7 @@ export class Sheet{
      * Function to paste copied cells data to the sheet
      */
     pasteRangeToClipboard(){
+        if(Sheet.cellsCopiedArray.length==0){return}
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
         for(let cellData of Sheet.cellsCopiedArray){
@@ -1967,6 +2007,10 @@ export class Sheet{
     dispatchAggregateEvent(){
         let e = new CustomEvent("aggregateValues",{detail:this.calculateAggregates()})
         window.dispatchEvent(e)
+    }
+
+    storeTempCellDataBeforeEditing(){
+
     }
 
 }
