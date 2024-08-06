@@ -30,7 +30,6 @@
   display: block;
   overflow: scroll;
   position: relative;
-  scroll-behavior: smooth;
 }
 .tableDiv .sizeDiv .inputEditor {
   position: absolute;

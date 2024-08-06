@@ -243,7 +243,7 @@ export class Excel{
             f.remove();
         })
 
-        findBtn.addEventListener("click",(e)=>{
+        findBtn.addEventListener("click",()=>{
             // console.log(findBtn.form.find.value)
             if(this.searchObject.text!=findBtn.form.find.value){
                 // console.log(findBtn.form.find.value, this.searchObject)
@@ -271,7 +271,7 @@ export class Excel{
             }
         })
 
-        replaceBtn.addEventListener("click",(e)=>{
+        replaceBtn.addEventListener("click",()=>{
             if(this.searchObject?.resultArray?.length > 0 && this.searchObject?.text === replaceBtn.form.find.value){
                 // console.log("should replace")
                 let r = this.searchObject.resultArray[this.searchObject.currentIndex][0], c = this.searchObject.resultArray[this.searchObject.currentIndex][1];
@@ -352,7 +352,7 @@ export class Excel{
         dataTab.classList.add("menu-tab-container", "data")
         let findAndReplaceBtn = document.createElement("button")
         findAndReplaceBtn.textContent = "Find And Replace";
-        findAndReplaceBtn.addEventListener("click",(e)=>{
+        findAndReplaceBtn.addEventListener("click",()=>{
             this.popupDiv.style.display = "grid";
             this.popupDiv.appendChild(this.findAndReplaceForm)
             this.findAndReplaceForm["find"].focus();
@@ -365,6 +365,8 @@ export class Excel{
         this.minSpan.textContent = "Min: NA"
         this.maxSpan = document.createElement("span");
         this.maxSpan.textContent = "Max: NA"
+        this.sumSpan = document.createElement("span");
+        this.sumSpan.textContent = "Sum: NA"
         this.avgSpan = document.createElement("span");
         this.avgSpan.textContent = "Avg: NA"
         let recalculateAggregateBtn = document.createElement("button")
@@ -373,17 +375,18 @@ export class Excel{
         dataAggregateDiv.appendChild(this.minSpan)
         dataAggregateDiv.appendChild(this.maxSpan)
         dataAggregateDiv.appendChild(this.avgSpan)
+        dataAggregateDiv.appendChild(this.sumSpan)
         dataAggregateDiv.appendChild(recalculateAggregateBtn)
         dataTab.appendChild(dataAggregateDiv)
         menuTabsContainer.appendChild(dataTab)
         
         let graphTab = document.createElement("div")
         graphTab.classList.add("menu-tab-container", "graph")
-        let graphBtnArray = ["Bar","Pie","Line"]
+        let graphBtnArray = ["Bar","Pie","Doughnut","Line"]
         graphBtnArray.forEach(x=>{
             let btn = document.createElement("button")
             btn.textContent = x;
-            btn.addEventListener("click",(e)=>{
+            btn.addEventListener("click",()=>{
                 this.sheets[this.currentSheetIndex].getGraphData(x.toLowerCase())
             })
             graphTab.appendChild(btn)
@@ -491,7 +494,7 @@ export class Excel{
     }
     /**
      * Function to change the displayed aggregates of the selected range
-     * @param {[Number,Number,Number]} aggValues  - 3 element array of numbers(min, avg, max) that by default calculates the sheet aggregate values
+     * @param {[Number,Number,Number,Number]} aggValues  - array of numbers(min, avg, max, sum) that by default calculates the sheet aggregate values
      */
     recalculateAggregates(aggValues=this.sheets[this.currentSheetIndex].calculateAggregates()){
         // let aggValues = this.sheets[this.currentSheetIndex].calculateAggregates()
@@ -499,6 +502,7 @@ export class Excel{
         this.minSpan.textContent = `Min : ${aggValues[0]}`
         this.avgSpan.textContent = `Avg : ${aggValues[1]}`
         this.maxSpan.textContent = `Max : ${aggValues[2]}`
+        this.sumSpan.textContent = `Sum : ${aggValues[3]}`
     }
 
     /**

@@ -1,3 +1,4 @@
+await import("https://cdn.jsdelivr.net/npm/chart.js")
 export class Graph{
 
 
@@ -77,7 +78,7 @@ export class Graph{
      * @param {String} type - type of chart to be drawn
      */
     drawGraph(labels, dataArray, type="bar"){
-        this.graphId = new Chart(this.canvas, {
+        this.graphId = new window.Chart(this.canvas, {
             type: type,
             data: {
                 labels: labels,
@@ -96,7 +97,7 @@ export class Graph{
                 },
                 plugins:{
                     legend:{
-                        display:type=="pie"?true:false,
+                        display:["pie","doughnut"].includes(type)?true:false,
                     }
                 }
             },
