@@ -243,7 +243,7 @@ export class Excel{
             f.remove();
         })
 
-        findBtn.addEventListener("click",()=>{
+        findBtn.addEventListener("click",(e)=>{
             // console.log(findBtn.form.find.value)
             if(this.searchObject.text!=findBtn.form.find.value){
                 // console.log(findBtn.form.find.value, this.searchObject)
@@ -266,7 +266,7 @@ export class Excel{
                 // }else{
                 //     this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
                 // }
-                this.searchObject.currentIndex = (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length;
+                this.searchObject.currentIndex = !e.shiftKey ? (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length : (this.searchObject.currentIndex>0 ? this.searchObject.currentIndex-1 : this.searchObject.resultArray.length-1);
                 this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
             }
         })

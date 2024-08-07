@@ -17,7 +17,7 @@ export class Sheet{
      * Array of all row heights
      * @type {Number[]}
      */
-    rowSizes = Array(50).fill(30)
+    rowSizes;
     /**
      * Row limit set to limit range of sheet
      * @type {Number}
@@ -146,6 +146,13 @@ export class Sheet{
         // creating canvas elements and contexts
         // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
         this.data = JSON.parse(JSON.stringify(data));
+        let rows = Object.keys(this.data)
+        this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
+        let numOfColumns = Math.max(...rows.map(x=>{
+            let cols = Object.keys(this.data[x])
+            return cols[cols.length-1]
+        }))
+        this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -209,11 +216,13 @@ export class Sheet{
         this.drawHeader();
         this.drawRowIndices();
         this.draw();
+        this.updateFirstCellCache();
 
         // console.log(this)
         this.tableDiv.addEventListener("scroll", ()=>{
             this.checkIfReachedEndOfColumns();
             this.checkIfReachedEndOfRows();
+            this.updateFirstCellCache()
             // if(!this.drawLoopId) this.draw();
         });
 
@@ -232,6 +241,7 @@ export class Sheet{
         })
         window.addEventListener("resize",()=>{
             this.fixCanvasSize();
+            this.updateFirstCellCache();
             this.drawHeader();
             this.drawRowIndices();
             if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId);this.drawLoopId=null;}
@@ -282,7 +292,7 @@ export class Sheet{
         this.headerContext.translate(-this.tableDiv.scrollLeft, 0);
         
         // let tempArr = [];
-        let {startPosCol, colIndex} = this.getCellClickIndex({offsetX:0, offsetY:0});
+        let {startPosCol, colIndex} = this.firstCellInViewCache || this.getCellClickIndex({offsetX:0, offsetY:0});
         // console.log(colIndex)
         for(let i=colIndex; startPosCol<=(this.tableDiv.scrollLeft+this.tableDiv.clientWidth) && i<this.colSizes.length; i++){
             this.headerContext.save();
@@ -376,7 +386,7 @@ export class Sheet{
         this.rowContext.scale(window.devicePixelRatio, window.devicePixelRatio)
         this.rowContext.translate(0,-this.tableDiv.scrollTop)
         
-        let {startPosRow, rowIndex} = this.getCellClickIndex({offsetX:0, offsetY:0})
+        let {startPosRow, rowIndex} = this.firstCellInViewCache || this.getCellClickIndex({offsetX:0, offsetY:0})
         // console.log(startPosRow, rowIndex)
         for(let i=rowIndex; startPosRow<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && i<this.rowSizes.length; i++){
             this.rowContext.save();
@@ -545,7 +555,7 @@ export class Sheet{
         //     }
         //     sumRowSizes+=this.rowSizes[r]
         // }
-        let {startPosRow, startPosCol, rowIndex, colIndex} = this.getCellClickIndex({offsetX:0, offsetY:0})
+        let {startPosRow, startPosCol, rowIndex, colIndex} = this.firstCellInViewCache ? this.firstCellInViewCache : this.getCellClickIndex({offsetX:0, offsetY:0})
         let sumColSizes;
         let sumRowsizes = startPosRow;
         for(let r=rowIndex; sumRowsizes<=(this.tableDiv.scrollTop+this.tableDiv.clientHeight) && r<this.rowSizes.length;r++){
@@ -643,7 +653,7 @@ export class Sheet{
             rectStartY = Math.max(this.tableDiv.scrollTop, rectStartY)
             rectEndX = Math.max(Math.min(this.tableDiv.scrollLeft+this.tableDiv.clientWidth,rectEndX), rectStartX)
             rectEndY = Math.max(Math.min(this.tableDiv.scrollTop+this.tableDiv.clientHeight, rectEndY), rectStartY)
-            // console.log(rectEndY, rectStartY);
+            // console.log(rectStartX, rectEndX, rectStartY, rectEndY, `draw:${rectStartX!=rectEndX && rectStartY!=rectEndY}`);
             if(rectStartX!=rectEndX && rectStartY!=rectEndY){
                 // console.log(rectEndX-rectStartX, rectEndY-rectStartY);
                 this.tableContext.save();
@@ -718,7 +728,7 @@ export class Sheet{
     checkIfReachedEndOfColumns(){
         let status =  this.tableDiv.scrollWidth - this.tableDiv.clientWidth - this.tableDiv.scrollLeft > 50 ? false : true;
         if(status){
-            this.colSizes = [...this.colSizes, ...Array(20).fill(100)]
+            this.colSizes = [...this.colSizes, ...Array(20).fill(this.defaultConfig.colWidth)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -732,7 +742,7 @@ export class Sheet{
     checkIfReachedEndOfRows(){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
-            this.rowSizes = [...this.rowSizes, ...Array(50).fill(30)]
+            this.rowSizes = [...this.rowSizes, ...Array(50).fill(this.defaultConfig.rowHeight)]
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
@@ -746,9 +756,11 @@ export class Sheet{
      * @returns {{startPosRow:Number, startPosCol:Number, rowIndex:Number,colIndex: Number}}
      */
     getCellClickIndex(e){
+        // console.log("function called to calc");
         // console.log(e.offsetX, e.offsetY);
         let startPosRow=0, startPosCol=0, rowIndex=0, colIndex=0;
         for(rowIndex=0; rowIndex<this.rowSizes.length; rowIndex++){
+            console.log("row");
             if(e.offsetY+this.tableDiv.scrollTop <= startPosRow+this.rowSizes[rowIndex]){
                 break;
             }
@@ -765,14 +777,65 @@ export class Sheet{
     }
 
     /**
+     * Funtion to get clicked cell from cached firstCell values
+     * @param {(PointerEvent|{offsetX:Number,offsetY:Number})} e - pointer object or custom object of cliced mouse positions
+     */
+    getCellClickIndexFromCache(e){
+        
+        // console.clear()
+        console.log(e);
+        let startPosRow=this.firstCellInViewCache.startPosRow, startPosCol=this.firstCellInViewCache.startPosCol, rowIndex=this.firstCellInViewCache.rowIndex, colIndex=this.firstCellInViewCache.colIndex;
+        for(rowIndex; rowIndex<this.rowSizes.length; rowIndex++){
+            console.log("row");
+            if(e.offsetY+this.tableDiv.scrollTop <= startPosRow+this.rowSizes[rowIndex]){
+                break;
+            }
+            startPosRow+=this.rowSizes[rowIndex]
+        }
+        for(colIndex; colIndex<this.colSizes.length; colIndex++){
+            if(e.offsetX+this.tableDiv.scrollLeft <= startPosCol+this.colSizes[colIndex]){
+                break;
+            }
+            startPosCol+=this.colSizes[colIndex]
+        }
+
+        return {startPosRow: startPosRow, startPosCol: startPosCol, rowIndex: rowIndex, colIndex: colIndex};
+
+    }
+
+    /**
+     * Function to cache the properties of first cell in view i.e. its column and row index and the column-start and row-start pixel positions
+     */
+    updateFirstCellCache(){
+        console.log("updating first cell cached")
+        let startPosRow=0, startPosCol=0, rowIndex=0, colIndex=0;
+        for(rowIndex=0; rowIndex<this.rowSizes.length; rowIndex++){
+            if(this.tableDiv.scrollTop <= startPosRow+this.rowSizes[rowIndex]){
+                break;
+            }
+            startPosRow+=this.rowSizes[rowIndex]
+        }
+        for(colIndex=0; colIndex<this.colSizes.length; colIndex++){
+            if(this.tableDiv.scrollLeft <= startPosCol+this.colSizes[colIndex]){
+                break;
+            }
+            startPosCol+=this.colSizes[colIndex]
+        }
+
+        this.firstCellInViewCache = {rowIndex:rowIndex, colIndex:colIndex, startPosRow:startPosRow, startPosCol:startPosCol};
+    }
+
+    /**
      * Pointer down handler for range selection on canvas sheet
      * @param {PointerEvent} e 
      */
     canvasPointerDown(e){
+        if(e.pointerType=="mouse" && e.button==0){e.preventDefault();}
         this.lineDashOffset = null;
         if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
         this.drawLoopId = null
         let {startPosRow : startPosRowDown, startPosCol:startPosColDown, rowIndex:rowIndexDown, colIndex:colIndexDown} = this.getCellClickIndex(e);
+        // this.getCellClickIndexFromCache({offsetX:e.offsetX, offsetY:e.offsetY});
         // console.log(startPosRowDown, startPosColDown)
         if(e.shiftKey){
             if(this.selectedRangeStart){
@@ -822,10 +885,12 @@ export class Sheet{
          * @param {PointerEvent} eMove 
          */
         let canvasPointerMove = (eMove)=>{
+            eMove.preventDefault();
             let newX = (e.offsetX + eMove.clientX - e.clientX)
             let newY = (e.offsetY + eMove.clientY - e.clientY)
             // console.log(eMove.offsetX, this.tableDiv.clientWidth)
-            let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex({offsetX:newX, offsetY:newY});
+            // let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndex({offsetX:newX, offsetY:newY});
+            let {startPosRow : startPosRowMove, startPosCol:startPosColMove, rowIndex:rowIndexMove, colIndex:colIndexMove} = this.getCellClickIndexFromCache({offsetX:newX, offsetY:newY});
             if(eMove.offsetX >= this.tableDiv.clientWidth-50){
                 this.tableDiv.scrollBy(50,0)
             }
@@ -1247,7 +1312,7 @@ export class Sheet{
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosX = e.offsetX + this.tableDiv.scrollLeft
         let boundary = firstCellInView.startPosCol + this.colSizes[firstCellInView.colIndex];
-        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length && (boundary<currPosX || Math.abs(boundary-currPosX)<=5); i++,boundary+=this.colSizes[i]){
+        for(var i=firstCellInView.colIndex; boundary<this.tableDiv.scrollLeft+this.tableDiv.clientWidth && i<this.colSizes.length ; i++,boundary+=this.colSizes[i]){
             if(Math.abs(currPosX-boundary)<=3){
                 e.target.style.cursor = "col-resize";
                 // console.log(`near boundary of cell ${i}`);
@@ -1265,7 +1330,7 @@ export class Sheet{
         let firstCellInView = this.getCellClickIndex({offsetX:0, offsetY:0});
         let currPosY = e.offsetY + this.tableDiv.scrollTop
         let boundary = firstCellInView.startPosRow + this.rowSizes[firstCellInView.rowIndex];
-        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length && (boundary<currPosY || Math.abs(boundary-currPosY)<=5); i++,boundary+=this.rowSizes[i]){
+        for(var i=firstCellInView.rowIndex; boundary<this.tableDiv.scrollTop+this.tableDiv.clientHeight && i<this.rowSizes.length; i++,boundary+=this.rowSizes[i]){
             if(Math.abs(currPosY-boundary)<=3){
                 e.target.style.cursor = "row-resize";
                 break;
@@ -1674,12 +1739,12 @@ export class Sheet{
         // console.log(this.selectedRangeStart)
         for(let i=0; i<Sheet.cellsCopiedArray[Sheet.cellsCopiedArray.length - 1][0]; i++){
             this.selectedRangeEnd.row +=1;
-            this.selectedRangeEnd.rowStart += this.rowSizes[firstRow+i]
+            this.selectedRangeEnd.rowStart += (this.rowSizes[firstRow+i] || this.defaultConfig.rowHeight)
             // console.log("added to row",this.rowSizes[firstRow+i])
         }
         for(let i=0; i<Sheet.cellsCopiedArray[Sheet.cellsCopiedArray.length - 1][1]; i++){
             this.selectedRangeEnd.col +=1;
-            this.selectedRangeEnd.colStart += this.colSizes[firstCol+i]
+            this.selectedRangeEnd.colStart += (this.colSizes[firstCol+i] || this.defaultConfig.colWidth)
         }
     }
 
@@ -1838,7 +1903,7 @@ export class Sheet{
             let wrappedText = [];
             this.tableContext.save();
             this.tableContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`
-            for(let x of this.data[r][colIndex].text){
+            for(let x of (this.data[r][colIndex].text || "")){
                 w+=this.tableContext.measureText(x).width
                 if(w > this.colSizes[colIndex]-this.defaultConfig.fontPadding){
                     // console.log(s1)
