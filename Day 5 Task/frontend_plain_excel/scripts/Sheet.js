@@ -53,15 +53,15 @@ export class Sheet{
 
     /**
      * Object to store selected cell details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
-     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+     * @type {{row:number, col:number, rowStart: number, colStart: number}} */
     selectedCell;
     /**
      * Object to store selected range start details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
-     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+     * @type {{row:number, col:number, rowStart: number, colStart: number}} */
     selectedRangeStart;
     /**
      * Object to store selected range ending details - row index, column index, pixel offset from left and top called colStart and rowStart respectively
-     * @type {(null|{row:number, col:number, rowStart: number, colStart: number})} */
+     * @type {{row:number, col:number, rowStart: number, colStart: number}} */
     selectedRangeEnd;
     /**
      * stores the offset for drawing marching ants lines
@@ -240,9 +240,9 @@ export class Sheet{
         this.inputEditor.querySelector("input").addEventListener("keyup",(e)=>{
             this.inputEditorKeyHandler(e)
         })
-        this.inputEditor.querySelector("input").addEventListener("focus",(e)=>{
-            console.log("focused at cell", e.target.value)
-        })
+        // this.inputEditor.querySelector("input").addEventListener("focus",(e)=>{
+        //     console.log("focused at cell", e.target.value)
+        // })
 
         this.tableRef.addEventListener("pointerdown",(e)=>{
             this.canvasPointerDown(e);
@@ -892,8 +892,8 @@ export class Sheet{
         this.inputEditor.style.height = (this.rowSizes[rowIndex])+"px"
         let inputRef = this.inputEditor.querySelector("input")
         inputRef.value = this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : ""
-        this.cellPreviousvalue = this.data?.[this.selectedCell.row]?.[this.selectedCell.col] || null;
-        console.log(this.cellPreviousvalue)
+        this.cellPreviousvalue = this.data?.[this.selectedCell.row]?.[this.selectedCell.col] ? JSON.parse(JSON.stringify(this.data?.[this.selectedCell.row]?.[this.selectedCell.col])) : null;
+        // console.log(this.cellPreviousvalue)
         // console.log(this.data[this.selectedCell.row] && this.data[this.selectedCell.row][this.selectedCell.col] ? this.data[this.selectedCell.row][this.selectedCell.col]['text'] : "nope")
         inputRef.focus();
         
@@ -943,6 +943,15 @@ export class Sheet{
             // window.localStorage.setItem('data',JSON.stringify(this.data));
         }
         else if(e.key=="Escape"){
+            if(this.cellPreviousvalue==null){
+                if(Object.keys(this.data[this.selectedCell.row]).length==1){delete this.data[this.selectedCell.row]}
+                else{delete this.data[this.selectedCell.row][this.selectedCell.col]}
+            }
+            // if(this.data?.[this.selectedCell.row]?.[this.selectedCell.col]){
+            else{
+                this.data[this.selectedCell.row][this.selectedCell.col] = this.cellPreviousvalue;
+                this.cellPreviousvalue = null;
+            }
             this.inputEditor.style.display = "none";
         }
         else{
@@ -1006,19 +1015,20 @@ export class Sheet{
      * @param {KeyboardEvent} e 
      */
     canvasKeyHandler(e){
-        // console.log("window",e.key)
         // if(e.target===this.inputEditor.querySelector("input")){return;}
         if(e.key=="ArrowLeft" && this.selectedCell){
             this.lineDashOffset = null;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
-            if(this.selectedCell.col==0){return;}
+            if(!e.shiftKey && this.selectedCell.col==0){return;}
             if(e.shiftKey){
                 if(this.selectedRangeEnd.col==0){return;}
                 this.selectedRangeEnd.col = this.selectedRangeEnd.col-1;
                 this.selectedRangeEnd.colStart = this.selectedRangeEnd.colStart - this.colSizes[this.selectedRangeEnd.col]
-                if(this.selectedRangeEnd.colStart<this.tableDiv.scrollLeft){
-                    this.tableDiv.scrollBy(-this.colSizes[this.selectedRangeEnd.col],0)
+                if(this.selectedRangeEnd.colStart<this.tableDiv.scrollLeft ||
+                    this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth
+                ){
+                    this.tableDiv.scrollTo(this.selectedRangeEnd.colStart, this.tableDiv.scrollTop)
                 }
             }
             else{
@@ -1027,8 +1037,10 @@ export class Sheet{
                 this.selectedCell.colStart = this.selectedCell.colStart - this.colSizes[this.selectedCell.col]
                 this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
                 this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-                if(this.selectedCell.colStart<this.tableDiv.scrollLeft){
-                    this.tableDiv.scrollBy(-this.colSizes[this.selectedCell.col],0)
+                if(this.selectedCell.colStart<this.tableDiv.scrollLeft ||
+                    this.selectedCell.colStart+this.colSizes[this.selectedCell.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth
+                ){
+                    this.tableDiv.scrollTo(this.selectedCell.colStart, this.tableDiv.scrollTop)
                 }
             }
             this.drawHeader();
@@ -1043,8 +1055,10 @@ export class Sheet{
             if(e.shiftKey){
                 this.selectedRangeEnd.colStart = this.selectedRangeEnd.colStart + this.colSizes[this.selectedRangeEnd.col]
                 this.selectedRangeEnd.col = this.selectedRangeEnd.col+1;
-                if(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                    this.tableDiv.scrollBy(this.colSizes[this.selectedRangeEnd.col],0)
+                if(this.selectedRangeEnd.colStart<this.tableDiv.scrollLeft ||
+                    this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth
+                ){
+                    this.tableDiv.scrollTo(this.selectedRangeEnd.colStart+this.colSizes[this.selectedRangeEnd.col]-this.tableDiv.clientWidth, this.tableDiv.scrollTop)
                 }
             }
             else{
@@ -1052,8 +1066,10 @@ export class Sheet{
                 this.selectedCell.col = this.selectedCell.col+1
                 this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
                 this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-                if(this.selectedCell.colStart+this.colSizes[this.selectedCell.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth){
-                    this.tableDiv.scrollBy(this.colSizes[this.selectedCell.col],0)
+                if(this.selectedCell.colStart<this.tableDiv.scrollLeft ||
+                    this.selectedCell.colStart+this.colSizes[this.selectedCell.col]>this.tableDiv.scrollLeft+this.tableDiv.clientWidth
+                ){
+                    this.tableDiv.scrollTo(this.selectedCell.colStart+this.colSizes[this.selectedCell.col]-this.tableDiv.clientWidth, this.tableDiv.scrollTop)
                 }
             }
             e.preventDefault();
@@ -1065,13 +1081,15 @@ export class Sheet{
             this.lineDashOffset = null;
             if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
             this.drawLoopId = null
-            if(this.selectedCell.row==0){return;}
+            if(!e.shiftKey && this.selectedCell.row==0){return;}
             if(e.shiftKey){
                 if(this.selectedRangeEnd.row==0){return;}
                 this.selectedRangeEnd.row = this.selectedRangeEnd.row-1;
                 this.selectedRangeEnd.rowStart = this.selectedRangeEnd.rowStart - this.rowSizes[this.selectedRangeEnd.row]
-                if(this.selectedRangeEnd.rowStart<this.tableDiv.scrollTop){
-                    this.tableDiv.scrollBy(0,-this.rowSizes[this.selectedRangeEnd.row])
+                if(this.selectedRangeEnd.rowStart<this.tableDiv.scrollTop ||
+                    this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row]>this.tableDiv.scrollTop + this.tableDiv.clientHeight
+                ){
+                    this.tableDiv.scrollTo(this.tableDiv.scrollLeft,this.selectedRangeEnd.rowStart)
                 }
             }
             else{
@@ -1079,8 +1097,10 @@ export class Sheet{
                 this.selectedCell.rowStart = this.selectedCell.rowStart - this.rowSizes[this.selectedCell.row]
                 this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
                 this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-                if(this.selectedCell.rowStart<this.tableDiv.scrollTop){
-                    this.tableDiv.scrollBy(0,-this.rowSizes[this.selectedCell.row])
+                if(this.selectedCell.rowStart<this.tableDiv.scrollTop ||
+                    this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop + this.tableDiv.clientHeight
+                ){
+                    this.tableDiv.scrollTo(this.tableDiv.scrollLeft,this.selectedCell.rowStart)
                 }
             }
             e.preventDefault();
@@ -1095,8 +1115,10 @@ export class Sheet{
             if(e.shiftKey){
                 this.selectedRangeEnd.rowStart = this.selectedRangeEnd.rowStart + this.rowSizes[this.selectedRangeEnd.row]
                 this.selectedRangeEnd.row = this.selectedRangeEnd.row+1;
-                if(this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                    this.tableDiv.scrollBy(0,this.rowSizes[this.selectedRangeEnd.row])
+                if(this.selectedRangeEnd.rowStart<this.tableDiv.scrollTop ||
+                    this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row]>this.tableDiv.scrollTop + this.tableDiv.clientHeight
+                ){
+                    this.tableDiv.scrollTo(this.tableDiv.scrollLeft,this.selectedRangeEnd.rowStart+this.rowSizes[this.selectedRangeEnd.row]-this.tableDiv.clientHeight)
                 }
             }
             else{
@@ -1104,8 +1126,10 @@ export class Sheet{
                 this.selectedCell.row = this.selectedCell.row+1
                 this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
                 this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-                if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                    this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+                if(this.selectedCell.rowStart<this.tableDiv.scrollTop ||
+                    this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop + this.tableDiv.clientHeight
+                ){
+                    this.tableDiv.scrollTo(this.tableDiv.scrollLeft,this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]-this.tableDiv.clientHeight)
                 }
             }
             e.preventDefault();
@@ -1194,6 +1218,7 @@ export class Sheet{
             this.drawLoopId = null
         // else if(e.keyCode>=48 && e.keyCode<=90){
             // if user types directly
+            this.cellPreviousvalue = this.data?.[this.selectedCell.row]?.[this.selectedCell.col] ? JSON.parse(JSON.stringify(this.data?.[this.selectedCell.row]?.[this.selectedCell.col])) : null;
             this.inputEditor.style.display="grid";
             this.inputEditor.style.left = (this.selectedCell.colStart) + "px"
             this.inputEditor.style.top = (this.selectedCell.rowStart) + "px"
