@@ -1298,6 +1298,7 @@ export class Sheet{
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key.toLowerCase()==="v" && e.ctrlKey){
+            e.preventDefault();
             if(this.drawLoopId) {window.cancelAnimationFrame(this.drawLoopId)}
             this.drawLoopId = null
             this.lineDashOffset = null;
@@ -1307,6 +1308,19 @@ export class Sheet{
             this.draw();
             this.drawHeader();
             this.drawRowIndices();
+        }
+        else if(e.key.toLowerCase()=="x" && e.ctrlKey){
+            this.lineDashOffset = 0;
+            if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
+            this.drawLoopId = null
+            if(this.selectedRangeEnd.colStart==Infinity  || this.selectedRangeEnd.rowStart==Infinity){
+                window.alert("Cannot copy infnite cells")
+                return;
+            }
+            this.copyRangeToClipboard;
+            this.deleteRangeSelection();
+            e.preventDefault();
+            if(!this.drawLoopId) this.draw();
         }
         else if(e.key==="Escape"){
             this.lineDashOffset = null;
@@ -1343,16 +1357,7 @@ export class Sheet{
             if(!this.drawLoopId) this.draw();
         }
         else if(e.key==="Delete"){
-            let rowsInSelection = Object.keys(this.data).filter(r=> r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
-            rowsInSelection.forEach(r=>{
-                let colsInSelectionInRow = Object.keys(this.data[r]).filter(c=> c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col))
-                colsInSelectionInRow.forEach(c=>{
-                    // console.log(r,c)
-                    delete this.data[r][c].text;
-                    if(Object.keys(this.data[r][c]).length==0){delete this.data[r][c]}
-                    if(Object.keys(this.data[r]).length==0){delete this.data[r]}
-                })
-            })
+            this.deleteRangeSelection();
             e.preventDefault();
             this.drawHeader();
             this.drawRowIndices();
@@ -2191,8 +2196,20 @@ export class Sheet{
         window.dispatchEvent(e)
     }
 
-    storeTempCellDataBeforeEditing(){
-
+    /**
+     * Delete cells in currently selected range
+     */
+    deleteRangeSelection(){
+        let rowsInSelection = Object.keys(this.data).filter(r=> r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
+        rowsInSelection.forEach(r=>{
+            let colsInSelectionInRow = Object.keys(this.data[r]).filter(c=> c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col))
+            colsInSelectionInRow.forEach(c=>{
+                // console.log(r,c)
+                delete this.data[r][c].text;
+                if(Object.keys(this.data[r][c]).length==0){delete this.data[r][c]}
+                if(Object.keys(this.data[r]).length==0){delete this.data[r]}
+            })
+        })
     }
 
 }
