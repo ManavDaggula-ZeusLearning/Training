@@ -1,13 +1,17 @@
 ﻿using System.Globalization;
 using System.Text;
 using CsvHelper;
+using Microsoft.Extensions.Options;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Tasks.Model;
+using Receiver;
+using System.Diagnostics;
 
 var factory = new ConnectionFactory { HostName = "localhost" };
 using var connection = factory.CreateConnection();
 using var channel = connection.CreateModel();
+var dataAccessor = new DataAccessor();
 
 channel.QueueDeclare(queue: "hello",
                      durable: false,
@@ -20,6 +24,8 @@ Console.WriteLine(" [*] Waiting for messages.");
 var consumer = new EventingBasicConsumer(channel);
 consumer.Received += (model, ea) =>
 {
+    Stopwatch sw = new Stopwatch();
+    sw.Start();
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
     if(File.Exists(message)){
@@ -55,7 +61,7 @@ consumer.Received += (model, ea) =>
             //     // Thread.Sleep(3000);
             // }*/
 
-            var countOfRecordsInAChunk = 3;
+            var countOfRecordsInAChunk = 1000;
             var currentCount = 0;
             var chunkCount = 0;
             var records = csv.GetRecords<Todo>();
@@ -63,32 +69,38 @@ consumer.Received += (model, ea) =>
 
             foreach (var item in records)
             {
-                if(item.Id!=string.Empty && todoContext.Todos.Find(item.Id)==null){
+                if(item.Id != null && item.Id!=string.Empty){
+                    // Console.WriteLine(item.Id);
+                    todoContext.Todos.Add(item);
                     newTasks.Add(item);
-                    // todoContext.SaveChanges();
-                }
-                currentCount++;
-                if(currentCount==countOfRecordsInAChunk){
-                    todoContext.AddRange(newTasks);
-                    todoContext.SaveChanges();
-                    newTasks.Clear();
-                    Console.WriteLine($"saved chunk {chunkCount}");
-                    Thread.Sleep(3000);
-                    currentCount=0;
-                    chunkCount++;
+                    currentCount++;
+                    if(currentCount==countOfRecordsInAChunk){
+                        // dataAccessor.BulkInsert(newTasks);
+                        // todoContext.AddRange(newTasks);
+                        todoContext.SaveChanges();
+                        newTasks.Clear();
+                        // Console.WriteLine($"saved chunk {chunkCount}");
+                        // Thread.Sleep(3000);
+                        currentCount=0;
+                        chunkCount++;
+                    }
                 }
             }
             if(currentCount!=0){
-                todoContext.AddRange(newTasks);
+                dataAccessor.BulkInsert(newTasks);
+                // todoContext.AddRange(newTasks);
                 todoContext.SaveChanges();
-                Console.WriteLine($"saved chunk {chunkCount}");
+                // Console.WriteLine($"saved chunk {chunkCount}");
                 // Thread.Sleep(3000);
                 chunkCount++;
             }
-            Console.WriteLine(chunkCount);
+            // Console.WriteLine(chunkCount);
         }
         File.Delete(message);
     }
+    sw.Stop();
+
+    Console.WriteLine("Elapsed={0}",sw.Elapsed);
     Console.WriteLine($" [x] Received {message}");
     
 };

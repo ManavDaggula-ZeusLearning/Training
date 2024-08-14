@@ -41,7 +41,7 @@ namespace Tasks.Controllers
 
         // GET: api/TodoItems/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Todo>> GetTodo(int id)
+        public async Task<ActionResult<Todo>> GetTodo(string id)
         {
             var todo = await _context.Todos.FindAsync(id);
 
@@ -97,7 +97,7 @@ namespace Tasks.Controllers
 
         // DELETE: api/TodoItems/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteTodo(int id)
+        public async Task<IActionResult> DeleteTodo(string id)
         {
             var todo = await _context.Todos.FindAsync(id);
             if (todo == null)
