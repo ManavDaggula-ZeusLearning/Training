@@ -7,6 +7,8 @@ using RabbitMQ.Client.Events;
 using Tasks.Model;
 using Receiver;
 using System.Diagnostics;
+using Sheets.Model;
+using CsvHelper.Configuration;
 
 var factory = new ConnectionFactory { HostName = "localhost" };
 using var connection = factory.CreateConnection();
@@ -25,13 +27,18 @@ var consumer = new EventingBasicConsumer(channel);
 consumer.Received += (model, ea) =>
 {
     Stopwatch sw = new Stopwatch();
-    sw.Start();
+    Console.Write("received new file to process : ");
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
     if(File.Exists(message)){
+        // Console.WriteLine(message);
         var todoContext = new TodoContext();
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        {
+            PrepareHeaderForMatch = args => args.Header.ToLower(),
+        };
         using (var reader = new StreamReader(message))
-        using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+        using (var csv = new CsvReader(reader, config))
         {
             /*// var records = csv.GetRecords<Todo>();
             // var records = new List<Todo>();
@@ -61,23 +68,27 @@ consumer.Received += (model, ea) =>
             //     // Thread.Sleep(3000);
             // }*/
 
-            var countOfRecordsInAChunk = 1000;
+            // var countOfRecordsInAChunk = 10000;
             var currentCount = 0;
             var chunkCount = 0;
-            var records = csv.GetRecords<Todo>();
-            List<Todo> newTasks = new();
+            var countOfRecordsInAChunk = 1000;
+            // foreach (var countOfRecordsInAChunk in new List<int>{100,1000,10000,100000})
+            // {
+            sw.Start();
+            var records = csv.GetRecords<SheetModelWithoutSheetID>();
+            List<SheetModelWithoutSheetID> newTasks = new();
 
             foreach (var item in records)
             {
-                if(item.Id != null && item.Id!=string.Empty){
+                // Console.WriteLine(item);){
                     // Console.WriteLine(item.Id);
-                    todoContext.Todos.Add(item);
+                    // todoContext.Todos.Add(item);
                     newTasks.Add(item);
                     currentCount++;
                     if(currentCount==countOfRecordsInAChunk){
-                        // dataAccessor.BulkInsert(newTasks);
+                        dataAccessor.BulkInsert(newTasks,message);
                         // todoContext.AddRange(newTasks);
-                        todoContext.SaveChanges();
+                        // todoContext.SaveChanges();
                         newTasks.Clear();
                         // Console.WriteLine($"saved chunk {chunkCount}");
                         // Thread.Sleep(3000);
@@ -85,23 +96,25 @@ consumer.Received += (model, ea) =>
                         chunkCount++;
                     }
                 }
-            }
+            
             if(currentCount!=0){
-                dataAccessor.BulkInsert(newTasks);
+                dataAccessor.BulkInsert(newTasks, message);
                 // todoContext.AddRange(newTasks);
-                todoContext.SaveChanges();
+                // todoContext.SaveChanges();
                 // Console.WriteLine($"saved chunk {chunkCount}");
                 // Thread.Sleep(3000);
                 chunkCount++;
             }
+            sw.Stop();
+            Console.WriteLine($"Elapsed for {countOfRecordsInAChunk}={sw.Elapsed}");
+            }
             // Console.WriteLine(chunkCount);
         }
+        // Thread.Sleep(3000);
         File.Delete(message);
-    }
-    sw.Stop();
+    // }
 
-    Console.WriteLine("Elapsed={0}",sw.Elapsed);
-    Console.WriteLine($" [x] Received {message}");
+    // Console.WriteLine($" [x] Received {message}");
     
 };
 channel.BasicConsume(queue: "hello",
