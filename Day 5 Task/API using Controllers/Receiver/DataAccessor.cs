@@ -23,35 +23,40 @@ namespace Receiver{
             conn.Open();
             // Console.WriteLine("Connection open..");
         }
-        public void PrintTable(string tableName){
-            string query = $"SELECT * FROM {tableName} LIMIT 10;";
-            MySqlCommand cmd = new(query,conn);
-            MySqlDataReader reader = cmd.ExecuteReader();
-            while(reader.Read())
-            {
-                Console.Write("| ");
-                // var t = reader.Cast<Todo>();
-                // Console.Write(t.);
+        // public void PrintTable(string tableName){
+        //     string query = $"SELECT * FROM {tableName} LIMIT 10;";
+        //     MySqlCommand cmd = new(query,conn);
+        //     MySqlDataReader reader = cmd.ExecuteReader();
+        //     while(reader.Read())
+        //     {
+        //         Console.Write("| ");
+        //         // var t = reader.Cast<Todo>();
+        //         // Console.Write(t.);
 
-                for(int i=0; i<reader.FieldCount; i++){
+        //         for(int i=0; i<reader.FieldCount; i++){
                     
-                    Console.Write(reader[i]+" | ");
-                }
-                Console.WriteLine();
-            }
-        }
+        //             Console.Write(reader[i]+" | ");
+        //         }
+        //         Console.WriteLine();
+        //     }
+        // }
 
-        public void EnterSingleTodo(Todo t)
-        {
-            // var obj = new {Id="1",Name="V@gmail.com"};
-            string query = $"insert into todos (Id , Name) values('{t.Id}','{t.Name}');";
-            Console.WriteLine(query);
-            MySqlCommand cmd = new MySqlCommand(query,conn);
-            cmd.ExecuteNonQuery();
-        }
+        // public void EnterSingleTodo(Todo t)
+        // {
+        //     // var obj = new {Id="1",Name="V@gmail.com"};
+        //     string query = $"insert into todos (Id , Name) values('{t.Id}','{t.Name}');";
+        //     Console.WriteLine(query);
+        //     MySqlCommand cmd = new MySqlCommand(query,conn);
+        //     cmd.ExecuteNonQuery();
+        // }
 
-        public void BulkInsert(List<SheetModelWithoutSheetID> sheetsData, string sheetName)
+        public async Task BulkInsert(List<SheetModelWithoutSheetID> sheetsData, string sheetName, double percentageIncrementPerChunk)
         {
+            // string connectionString = "server=localhost;user=root;database=task5;password=root";
+            // MySqlConnection conn = new MySqlConnection(connectionString);
+            // conn.Open();
+            // var sw = new Stopwatch();
+            // sw.Start();
            /*  var queryPart1 = "insert into todos (id,name) values ";
             var queryPart3 = " as newValues on duplicate key update name=newValues.name";
             var queryPart2 = new StringBuilder();
@@ -72,6 +77,7 @@ namespace Receiver{
             // var query = $"INSERT INTO SHEETS (Sheet_ID, Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ('{sheetName}',@email,@name,@country,@state,@city,@telephone,@address1,@address2,@dob,@fy2019,@fy2020,@fy2021,@fy2022,@fy2023) AS NEWVALUES ON DUPLICATE KEY UPDATE Name=NEWVALUES.Name, Country=NEWVALUES.Country, State=NEWVALUES.State, City=NEWVALUES.City, Telephone_no=NEWVALUES.Telephone_no, Address_Line_1=NEWVALUES.Address_Line_1, Address_Line_2=NEWVALUES.Address_Line_2, Date_of_Birth=NEWVALUES.Date_of_Birth, FY_2019_20=NEWVALUES.FY_2019_20, FY_2020_21=NEWVALUES.FY_2020_21, FY_2021_22=NEWVALUES.FY_2021_22, FY_2022_23=NEWVALUES.FY_2022_23, FY_2023_24=NEWVALUES.FY_2023_24;";
             foreach (var item in sheetsData)
             {
+                if(item.Email_Id!=string.Empty){
                 // using (MySqlCommand cmd = new MySqlCommand(query,conn)){
                 //     cmd.Parameters.AddWithValue("@email",item.Email_Id);
                 //     cmd.Parameters.AddWithValue("@name",item.Name);
@@ -92,14 +98,34 @@ namespace Receiver{
                 //     cmd.ExecuteNonQuery();
 
                 // }
-                queryPart2.Append(@$"('{sheetName}','{item.Email_Id.Replace("'","\\\'")}','{item.Name?.Replace("'","\\\'")}','{item.Country?.Replace("'","\\\'")}','{item.State?.Replace("'","\\\'")}','{item.City?.Replace("'","\\\'")}','{item.Telephone_no?.Replace("'","\\\'")}','{item.Address_Line_1?.Replace("'","\\\'")}','{item.Address_Line_2?.Replace("'","\\\'")}','{item.Date_of_Birth?.ToString("yyyy-MM-dd")}',{item.FY_2019_20},{item.FY_2020_21},{item.FY_2021_22},{item.FY_2022_23},{item.FY_2023_24})
+                queryPart2.Append(@$"('{MySqlHelper.EscapeString(sheetName)}','{MySqlHelper.EscapeString(item.Email_Id)}','{MySqlHelper.EscapeString(item.Name)}','{MySqlHelper.EscapeString(item.Country)}','{MySqlHelper.EscapeString(item.State)}','{MySqlHelper.EscapeString(item.City)}','{MySqlHelper.EscapeString(item.Telephone_no)}','{MySqlHelper.EscapeString(item.Address_Line_1)}','{MySqlHelper.EscapeString(item.Address_Line_2)}','{item.Date_of_Birth?.ToString("yyyy-MM-dd")}',{item.FY_2019_20},{item.FY_2020_21},{item.FY_2021_22},{item.FY_2022_23},{item.FY_2023_24})
                 ,");
+                }
             }
-            queryPart2.Remove(queryPart2.Length-1,1);
-            string query = queryPart1+queryPart2+queryPart3;
-            // Console.WriteLine(queryPart2);
-            MySqlCommand cmd = new MySqlCommand(query,conn);
-            cmd.ExecuteNonQuery();
+            if(queryPart2.Length!=0){
+                // string connectionString = "server=localhost;user=root;database=task5;password=root";
+                // var conn = new MySqlConnection(connectionString);
+                // conn = new MySqlConnection(connectionString);
+                // await conn.OpenAsync();
+                queryPart2.Remove(queryPart2.Length-1,1);
+                // var qp2 = MySqlHelper.EscapeString(queryPart2.ToString());
+                string query = queryPart1+queryPart2+queryPart3;
+                // Console.WriteLine(queryPart2);
+                MySqlCommand cmd = new MySqlCommand(query,conn);
+                await cmd.ExecuteNonQueryAsync();
+
+                query = $"UPDATE FILESTATUSES SET COMPLETIONPERCENTAGE = COMPLETIONPERCENTAGE + {percentageIncrementPerChunk} WHERE FILEID='{MySqlHelper.EscapeString(sheetName)}';";
+                cmd = new MySqlCommand(query,conn);
+                await cmd.ExecuteNonQueryAsync();
+                // await conn.CloseAsync();
+            }
+            // sw.Stop();
+            // Console.WriteLine(sw.Elapsed);
+            // conn.Close();
+        }
+
+        public async Task CloseAsync(){
+            await conn.CloseAsync();
         }
         
         /* public static void Main(string[] args){

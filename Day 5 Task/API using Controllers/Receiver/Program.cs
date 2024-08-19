@@ -13,7 +13,7 @@ using CsvHelper.Configuration;
 var factory = new ConnectionFactory { HostName = "localhost" };
 using var connection = factory.CreateConnection();
 using var channel = connection.CreateModel();
-var dataAccessor = new DataAccessor();
+// var dataAccessor = new DataAccessor();
 
 channel.QueueDeclare(queue: "hello",
                      durable: false,
@@ -24,20 +24,23 @@ channel.QueueDeclare(queue: "hello",
 Console.WriteLine(" [*] Waiting for messages.");
 
 var consumer = new EventingBasicConsumer(channel);
-consumer.Received += (model, ea) =>
+consumer.Received += async (model, ea) =>
 {
     Stopwatch sw = new Stopwatch();
     Console.Write("received new file to process : ");
     var body = ea.Body.ToArray();
     var message = Encoding.UTF8.GetString(body);
-    if(File.Exists(message)){
+    if(File.Exists(Path.Combine("../tempFiles", message))){
+        var taskList = new List<Task>();
+        // var dataAccessor = new DataAccessor();
         // Console.WriteLine(message);
-        var todoContext = new TodoContext();
+        // var taskList = new List<Task>();
+        // var todoContext = new TodoContext();
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             PrepareHeaderForMatch = args => args.Header.ToLower(),
         };
-        using (var reader = new StreamReader(message))
+        using (var reader = new StreamReader(Path.Combine("../tempFiles", message)))
         using (var csv = new CsvReader(reader, config))
         {
             /*// var records = csv.GetRecords<Todo>();
@@ -69,49 +72,64 @@ consumer.Received += (model, ea) =>
             // }*/
 
             // var countOfRecordsInAChunk = 10000;
-            var currentCount = 0;
-            var chunkCount = 0;
+            // var currentCount = 0;
+            // var chunkCount = 0;
             var countOfRecordsInAChunk = 1000;
             // foreach (var countOfRecordsInAChunk in new List<int>{100,1000,10000,100000})
             // {
             sw.Start();
-            var records = csv.GetRecords<SheetModelWithoutSheetID>();
+            var records = csv.GetRecords<SheetModelWithoutSheetID>().ToList();
+            
             List<SheetModelWithoutSheetID> newTasks = new();
+            var percentageIncrementPerChunk = countOfRecordsInAChunk / (double)records.Count;
+            Console.WriteLine(records.Count);
+            Console.WriteLine(countOfRecordsInAChunk);
+            Console.WriteLine(percentageIncrementPerChunk);
 
-            foreach (var item in records)
+            /*for each (var item in records)
             {
-                // Console.WriteLine(item);){
-                    // Console.WriteLine(item.Id);
-                    // todoContext.Todos.Add(item);
+                if(item.Email_Id!=string.Empty){
+
                     newTasks.Add(item);
                     currentCount++;
                     if(currentCount==countOfRecordsInAChunk){
-                        dataAccessor.BulkInsert(newTasks,message);
+                        // var dataAccessor = new DataAccessor();
+                        await dataAccessor.BulkInsert(newTasks,message);
                         // todoContext.AddRange(newTasks);
                         // todoContext.SaveChanges();
                         newTasks.Clear();
                         // Console.WriteLine($"saved chunk {chunkCount}");
                         // Thread.Sleep(3000);
                         currentCount=0;
-                        chunkCount++;
+                        // chunkCount++;
                     }
                 }
+            }
             
             if(currentCount!=0){
-                dataAccessor.BulkInsert(newTasks, message);
+                // var dataAccessor = new DataAccessor();
+                await dataAccessor.BulkInsert(newTasks, message);
                 // todoContext.AddRange(newTasks);
                 // todoContext.SaveChanges();
                 // Console.WriteLine($"saved chunk {chunkCount}");
                 // Thread.Sleep(3000);
-                chunkCount++;
+                // chunkCount++;
+            } */
+
+            for(int i=0; i<records.Count; i+=countOfRecordsInAChunk){
+                var dataAccessor = new DataAccessor();
+                var chunkList = records.Skip(i).Take(countOfRecordsInAChunk).ToList();
+                taskList.Add(dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk));
             }
-            sw.Stop();
-            Console.WriteLine($"Elapsed for {countOfRecordsInAChunk}={sw.Elapsed}");
-            }
-            // Console.WriteLine(chunkCount);
         }
+        // Console.WriteLine(chunkCount);
+        await Task.WhenAll(taskList);
+        // await dataAccessor.CloseAsync();
+        File.Delete(Path.Combine("../tempFiles", message));
+        sw.Stop();
+        Console.WriteLine($"total Elapsed for={sw.Elapsed}");
+    }
         // Thread.Sleep(3000);
-        File.Delete(message);
     // }
 
     // Console.WriteLine($" [x] Received {message}");

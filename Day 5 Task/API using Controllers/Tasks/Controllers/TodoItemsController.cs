@@ -124,12 +124,14 @@ namespace Tasks.Controllers
             string filePath;
             if (file.Length > 0)
             {
-                filePath = Path.Combine("../tempFiles", Path.GetRandomFileName()+".csv");
+                filePath = Path.GetRandomFileName()+".csv";
                 Console.WriteLine(filePath);
-                using (var stream = System.IO.File.Create(filePath))
+                using (var stream = System.IO.File.Create(Path.Combine("../tempFiles", filePath)))
                 {
                     await file.CopyToAsync(stream);
                 }
+                _context.FileStatuses.Add(new Sheets.Model.FileStatus{FileId=filePath});
+                await _context.SaveChangesAsync();
                 var body = Encoding.UTF8.GetBytes($"{filePath}");
                 _channel.BasicPublish(exchange: string.Empty,
                         routingKey: "hello",
