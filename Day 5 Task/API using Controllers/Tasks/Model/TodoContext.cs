@@ -2,16 +2,17 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Sheets.Model;
+using Tasks.Model;
 
-namespace Tasks.Model{
+namespace Sheets.Model{
 
-    public partial class TodoContext : DbContext
+    public partial class SheetsContext : DbContext
     {
-        public TodoContext()
+        public SheetsContext()
         {
         }
 
-        public TodoContext(DbContextOptions<TodoContext> options)
+        public SheetsContext(DbContextOptions<SheetsContext> options)
             : base(options)
         {
         }

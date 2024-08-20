@@ -1,12 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using Tasks.Model;
+using Sheets.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddDbContext<TodoContext>(opt =>
+builder.Services.AddDbContext<SheetsContext>(opt =>
     opt.UseMySQL("server=localhost;database=task5;user=root;password=root"));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

@@ -117,11 +117,12 @@ namespace Receiver{
                 query = $"UPDATE FILESTATUSES SET COMPLETIONPERCENTAGE = COMPLETIONPERCENTAGE + {percentageIncrementPerChunk} WHERE FILEID='{MySqlHelper.EscapeString(sheetName)}';";
                 cmd = new MySqlCommand(query,conn);
                 await cmd.ExecuteNonQueryAsync();
+                // Console.WriteLine("chunk added");
                 // await conn.CloseAsync();
             }
             // sw.Stop();
             // Console.WriteLine(sw.Elapsed);
-            // conn.Close();
+            await conn.CloseAsync();
         }
 
         public async Task CloseAsync(){
