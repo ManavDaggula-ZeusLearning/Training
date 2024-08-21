@@ -113,7 +113,7 @@
         }
     }
 
-    $tabNames: ("Text":"text", "Data":"data","Graph":"graph");
+    $tabNames: ("File":"file","Text":"text", "Data":"data","Graph":"graph");
     @each $value,$className in $tabNames{
         &:has(.menuTabDiv input[type="radio"][value=#{$value}]:checked){
             & .#{$className}{

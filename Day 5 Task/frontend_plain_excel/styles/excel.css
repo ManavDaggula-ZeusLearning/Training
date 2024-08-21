@@ -70,6 +70,9 @@
   align-items: center;
   gap: 1em;
 }
+.menuDiv:has(.menuTabDiv input[type=radio][value=File]:checked) .file {
+  display: flex;
+}
 .menuDiv:has(.menuTabDiv input[type=radio][value=Text]:checked) .text {
   display: flex;
 }

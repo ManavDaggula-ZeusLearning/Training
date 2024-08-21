@@ -8,6 +8,9 @@ using RabbitMQ.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sheets.Model;
+using System.Text.Json;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using MySql.Data.MySqlClient;
 
 namespace Sheets.Controllers
 {
@@ -81,12 +84,12 @@ namespace Sheets.Controllers
                 }
                 _context.FileStatuses.Add(new Sheets.Model.FileStatus{FileId=filePath});
                 await _context.SaveChangesAsync();
-                var body = Encoding.UTF8.GetBytes($"{filePath}");
-                _channel.BasicPublish(exchange: string.Empty,
-                        routingKey: "hello",
-                        basicProperties: null,
-                        body: body);
-                Console.WriteLine($" [x] Sent {filePath}");
+                // var body = Encoding.UTF8.GetBytes($"{filePath}");
+                // _channel.BasicPublish(exchange: string.Empty,
+                //         routingKey: "hello",
+                //         basicProperties: null,
+                //         body: body);
+                // Console.WriteLine($" [x] Sent {filePath}");
                 return Ok(file.FileName);
             }
             else{
@@ -103,28 +106,108 @@ namespace Sheets.Controllers
         }
 
         [HttpPatch("updateRow")]
-        public async Task<IActionResult> UpdateRow(string sheetId, string emailId, [FromBody]Sheet newValues){
-            var oldValues = await _context.Sheets.Where(x=>x.Email_Id==emailId && x.Sheet_Id==sheetId).ToListAsync();
-            if(oldValues.Count!=0){
-                oldValues[0].Address_Line_1 = newValues.Address_Line_1;
-                oldValues[0].Address_Line_2 = newValues.Address_Line_2;
-                oldValues[0].City = newValues.City;
-                oldValues[0].Country = newValues.Country;
-                oldValues[0].State = newValues.State;
-                oldValues[0].Date_of_Birth = newValues.Date_of_Birth;
-                oldValues[0].FY_2019_20 = newValues.FY_2019_20;
-                oldValues[0].FY_2020_21 = newValues.FY_2020_21;
-                oldValues[0].FY_2021_22 = newValues.FY_2021_22;
-                oldValues[0].FY_2022_23 = newValues.FY_2022_23;
-                oldValues[0].FY_2023_24 = newValues.FY_2023_24;
-                oldValues[0].Name = newValues.Name;
-                oldValues[0].Telephone_no = newValues.Telephone_no;
-                await _context.SaveChangesAsync();
+        public async Task<IActionResult> UpdateRow(string sheetId, [FromBody]Dictionary<string,Dictionary<string,Object>> newValues)
+        {
+            foreach (var key in newValues.Keys.ToList())
+            {
+                Console.WriteLine(key);
+                // var oldValues = await _context.Sheets.Where(x=>x.Email_Id==key && x.Sheet_Id==sheetId).ToListAsync();
+                var oldValue = _context.Sheets.Find(sheetId, key);
+                if(oldValue!=null){
+                    foreach (var item in newValues[key].Keys.ToList())
+                    {
+                        Console.WriteLine(newValues[key][item]);
+                        switch (item.ToLower())
+                        {
+                            case "name":
+                            oldValue.Name = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "city":
+                            oldValue.City = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "state":
+                            oldValue.State = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "country":
+                            oldValue.Country = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "address_line_1":
+                            oldValue.Address_Line_1 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "address_line_2":
+                            oldValue.Address_Line_2 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "date_of_birth":
+                            oldValue.Date_of_Birth = newValues[key][item]!=null ? Convert.ToDateTime(newValues[key][item].ToString()) : null;
+                            break;
+                            case "telephone_no":
+                            oldValue.Telephone_no = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            break;
+                            case "fy_2019_20":
+                            oldValue.FY_2019_20 = Convert.ToSingle(newValues[key][item].ToString());
+                            break;
+                            case "fy_2020_21":
+                            oldValue.FY_2020_21 = Convert.ToSingle(newValues[key][item].ToString());
+                            break;
+                            case "fy_2021_22":
+                            oldValue.FY_2021_22 = Convert.ToSingle(newValues[key][item].ToString());
+                            break;
+                            case "fy_2022_23":
+                            oldValue.FY_2022_23 = Convert.ToSingle(newValues[key][item].ToString());
+                            break;
+                            case "fy_2023_24":
+                            oldValue.FY_2023_24 = Convert.ToSingle(newValues[key][item].ToString());
+                            break;
+                            
+                            default:break;
+                        }
+                    }
+
+                }
+                /* if(oldValue!=null){
+                    oldValue.Address_Line_1 = newValues[key].Address_Line_1;
+                    oldValue.Address_Line_2 = newValues[key].Address_Line_2;
+                    oldValue.City = newValues[key].City;
+                    oldValue.Country = newValues[key].Country;
+                    oldValue.State = newValues[key].State;
+                    oldValue.Date_of_Birth = newValues[key].Date_of_Birth;
+                    oldValue.FY_2019_20 = newValues[key].FY_2019_20;
+                    oldValue.FY_2020_21 = newValues[key].FY_2020_21;
+                    oldValue.FY_2021_22 = newValues[key].FY_2021_22;
+                    oldValue.FY_2022_23 = newValues[key].FY_2022_23;
+                    oldValue.FY_2023_24 = newValues[key].FY_2023_24;
+                    oldValue.Telephone_no = newValues[key].Telephone_no;
+                    oldValue.Name = newValues[key].Name;
+                } */
             }
+            await _context.SaveChangesAsync();
             
             return NoContent();
         }
 
-
+        [HttpGet("find")]
+        public async Task<ActionResult<List<Sheet>>> SearchInSheet(string sheetId, string searchText, [FromQuery]int page=0)
+        {
+            int pageSize = 5;
+            // var query = "SELECT * FROM SHEETS WHERE SHEET_ID=@SHEET_ID AND MATCH(*) AGAINST(@SEARCHTEXT IN BOOLEAN MODE);";
+            // return await _context.Sheets.FromSqlRaw(query, [new MySqlParameter("@SHEET_ID",sheetId),new MySqlParameter("@SEARCHTEXT", searchText)]).ToListAsync();
+            // return await _context.Sheets.Where(x => x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
+            var query = _context.Sheets.Where(x => x.Sheet_Id==sheetId && 
+            (x.Name.Contains(searchText) ||
+            x.City.Contains(searchText) ||
+            x.State.Contains(searchText) ||
+            x.Country.Contains(searchText) ||
+            x.Telephone_no.Contains(searchText) ||
+            x.Address_Line_1.Contains(searchText) ||
+            x.Address_Line_2.Contains(searchText) ||
+            x.Date_of_Birth.ToString().Contains(searchText) ||
+            x.FY_2019_20.ToString().Contains(searchText) ||
+            x.FY_2020_21.ToString().Contains(searchText) ||
+            x.FY_2021_22.ToString().Contains(searchText) ||
+            x.FY_2022_23.ToString().Contains(searchText) ||
+            x.FY_2023_24.ToString().Contains(searchText))
+            ).Skip(page*pageSize).Take(pageSize);
+            return await query.ToListAsync();
+        }    
     }
 }

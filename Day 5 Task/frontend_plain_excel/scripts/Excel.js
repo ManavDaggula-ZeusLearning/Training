@@ -20,7 +20,7 @@ export class Excel{
      * Array of menu to be added to the top menu tab bar
      * @type {String[]}
      */
-    menuTabsArray = ["Text","Data","Graph"]
+    menuTabsArray = ["File", "Text","Data","Graph"]
     /**
      * menu div that holds entire menu
      * @type {HTMLDivElement}
@@ -338,6 +338,54 @@ export class Excel{
      * @param {HTMLElement} menuTabsContainer - container to which the prepared menu tabs will be appended
      */
     prepareMenuTabs(menuTabsContainer){
+        /* File menu tab*/
+        let fileMenuPanel = document.createElement("div");
+        fileMenuPanel.classList.add("menu-tab-container", "file")
+        let fileUploadForm = document.createElement("form")
+        // fileUploadForm.formAction = "http://localhost:5003/api/Sheets/uploadFile"
+        // fileUploadForm.formMethod="POST"
+        let fileInput = document.createElement("input")
+        fileInput.type = "file"
+        fileInput.accept = ".csv"
+        fileInput.name = "fileInput"
+        let uploadButton = document.createElement("button")
+        uploadButton.textContent = "Upload"
+        fileUploadForm.appendChild(fileInput)
+        fileUploadForm.appendChild(uploadButton)
+
+        fileUploadForm.addEventListener("submit",(e)=>{
+            e.preventDefault();
+            let file = e.target.fileInput.files?.[0]
+            if(file!=null){
+                let formData = new FormData();
+                formData.append("file",file);
+                console.log(formData);
+                fetch('/api/Sheets/uploadFile', {
+                    method: 'POST',
+                    body: formData
+                  })
+                  .then(response => {
+                    if (response.ok) {
+                      return response.json();
+                    } else {
+                      throw new Error('File upload failed');
+                    }
+                  })
+                  .then(data => {
+                    console.log('Server response:', data);
+                  })
+                  .catch(error => {
+                    console.error('Error uploading file:', error);
+                  });
+            }
+            else{
+                window.alert("Upload a file");
+            }
+        })
+        
+        fileMenuPanel.appendChild(fileUploadForm)
+        menuTabsContainer.appendChild(fileMenuPanel)
+
         /* Text menu tab */
         let textWrapperControl = document.createElement("div")
         textWrapperControl.classList.add("menu-tab-container", "text")

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using Sheets.Model;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // app.UseHttpsRedirection();
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "../../frontend_plain_excel")),
+    RequestPath = "/StaticFiles"
+});
 
 app.UseAuthorization();
 
