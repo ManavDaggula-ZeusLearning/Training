@@ -124,7 +124,6 @@
 .sheetArrayChanger .sheetTabs input.sheetTab {
   font-family: "Segoe UI";
   background: hsl(147, 50%, 85%);
-  max-width: 50px;
   padding: 4px;
   border-radius: 4px 4px 4px 4px;
   border: none;

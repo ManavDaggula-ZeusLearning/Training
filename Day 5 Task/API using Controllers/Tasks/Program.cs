@@ -26,7 +26,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "../../frontend_plain_excel")),
-    RequestPath = "/StaticFiles"
+    RequestPath = "/frontend"
 });
 
 app.UseAuthorization();

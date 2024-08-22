@@ -1,7 +1,7 @@
 .tableContainer{
     display: grid;
     grid-template-columns: 50px calc(100% - 50px);
-    grid-template-rows: 30px calc(100% - 30px);
+    grid-template-rows: 30px calc(100% - 60px) 30px;
     // &>*{
     //     outline: 1px solid blue;
     // }
@@ -123,4 +123,8 @@
         right:0px;
         background-color: #107c41;
     }
+}
+
+.page-div{
+    grid-column: 1/3;
 }

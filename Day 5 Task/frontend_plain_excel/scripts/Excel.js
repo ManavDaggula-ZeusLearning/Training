@@ -88,11 +88,11 @@ export class Excel{
         /* Preparing menu panel */
         let sheetArrayChanger = document.createElement("div")
         sheetArrayChanger.classList.add("sheetArrayChanger")
-        let newSheetBtn = document.createElement("button")
-        newSheetBtn.textContent = "+"
-        newSheetBtn.title = "New Sheet"
-        newSheetBtn.addEventListener("click",()=>this.newSheet())
-        sheetArrayChanger.appendChild(newSheetBtn)
+        // let newSheetBtn = document.createElement("button")
+        // newSheetBtn.textContent = "+"
+        // newSheetBtn.title = "New Sheet"
+        // newSheetBtn.addEventListener("click",()=>this.newSheet())
+        // sheetArrayChanger.appendChild(newSheetBtn)
         let deleteSheetBtn = document.createElement("button")
         deleteSheetBtn.textContent = "-"
         deleteSheetBtn.title = "Delete Sheet"
@@ -184,7 +184,7 @@ export class Excel{
         // this.loadSheet(0);
         // let sheet_2 = new Sheet(this.sheetContainer);
         // this.sheets.push(sheet_2);
-        this.newSheet()
+        // this.newSheet()
 
         window.addEventListener("keydown",(e)=>{
             this.excelKeyHandler(e)
@@ -356,6 +356,7 @@ export class Excel{
         fileUploadForm.addEventListener("submit",(e)=>{
             e.preventDefault();
             let file = e.target.fileInput.files?.[0]
+            console.log(file)
             if(file!=null){
                 let formData = new FormData();
                 formData.append("file",file);
@@ -366,13 +367,30 @@ export class Excel{
                   })
                   .then(response => {
                     if (response.ok) {
-                      return response.json();
+                      return response.text();
                     } else {
                       throw new Error('File upload failed');
                     }
                   })
-                  .then(data => {
-                    console.log('Server response:', data);
+                  .then(response => {
+                    console.log('Server response:', response);
+                    let pollingId = setInterval(()=>{
+                        fetch(`/api/FileStatus/status/${response}`)
+                        .then(response=>response.text())
+                        .then(data=>{
+                            console.log(data);
+                            if(data>=1){
+                                console.log("clearing poller");
+                                clearInterval(pollingId);
+                                this.newSheet(response);
+                            }
+                        })
+                        .catch(err=>{
+                            console.log("Error in polling request");
+                            console.log(err);
+                            clearInterval(pollingId);
+                        })
+                    },500)
                   })
                   .catch(error => {
                     console.error('Error uploading file:', error);
@@ -382,8 +400,33 @@ export class Excel{
                 window.alert("Upload a file");
             }
         })
-        
         fileMenuPanel.appendChild(fileUploadForm)
+
+        let openFileBtn = document.createElement("button");
+        openFileBtn.textContent = "Open"
+        openFileBtn.addEventListener("click",()=>{
+            let fileId = window.prompt("Enter file id");
+            console.log(fileId)
+            if(fileId==null || fileId.trim()==""){
+                window.alert("Enter valid file id");
+                return;
+            }
+            fetch(`/api/FileStatus/doesExist?fileId=${fileId}`)
+            .then(response=>response.json())
+            .then(data=>{
+                if(!data){
+                    window.alert("No file found.")
+                    return
+                }
+                this.newSheet(fileId);
+            })
+            .catch(err=>{
+                console.log("err occured");
+                console.log(err);
+            })
+
+        })
+        fileMenuPanel.appendChild(openFileBtn);
         menuTabsContainer.appendChild(fileMenuPanel)
 
         /* Text menu tab */
@@ -466,8 +509,8 @@ export class Excel{
     /**
      * Creates a new sheet and loads it to the component
      */
-    newSheet(){
-        let newSheet = new Sheet()
+    newSheet(sheetId){
+        let newSheet = new Sheet(sheetId)
         this.sheets.push(newSheet);
         this.loadSheet(this.sheets.length - 1)
         let newSheetTab = document.createElement("input")
@@ -480,10 +523,11 @@ export class Excel{
         this.sheetTabContainer.appendChild(newSheetTab)
         let tabs=this.sheetTabContainer.querySelectorAll("input")
         tabs[this.currentSheetIndex].click();
-        for(var i=0; i<this.sheets.length;i++){
-            if(![...tabs].map(x=>x.value).includes(`Sheet ${i+1}`)){break;}
-        }
-        newSheetTab.value=`Sheet ${i+1}`;
+        // for(var i=0; i<this.sheets.length;i++){
+        //     if(![...tabs].map(x=>x.value).includes(`Sheet ${i+1}`)){break;}
+        // }
+        // newSheetTab.value=`Sheet ${i+1}`;
+        newSheetTab.value = sheetId
         this.sheetTabContainer.scrollTo(this.sheetTabContainer.scrollWidth,0)
     }
 

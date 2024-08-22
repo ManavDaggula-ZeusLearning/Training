@@ -2,7 +2,7 @@
 
 // let data = await fetch("./tempData.json")
 // data = await data.json();
-import {data} from "../tempData.js"
+// import {data} from "../tempData.js"
 import { Graph } from "./Graph.js"
 // console.log(data);
 
@@ -12,7 +12,7 @@ export class Sheet{
      * Array of all column widths
      * @type {Number[]}
      */
-    colSizes = Array(20).fill(100)
+    colSizes = Array(14).fill(100)
     /**
      * Array of all row heights
      * @type {Number[]}
@@ -140,20 +140,41 @@ export class Sheet{
     */
     cellPreviousvalue;
     
+    /**
+     * Id of the sheet in the database that the sheet component represents
+     * @type {String}
+     */
+    sheetId;
+
+    /**
+     * Page no the sheet is currently at
+     * @type {Number}
+     */
+    pageNo=0;
+
+    /**
+     * Page size i.e. number of rows in a single page
+     * @type {Number}
+     */
+    pageSize=100;
     
     
-    constructor(){
+    
+    constructor(sheetId){
+        this.sheetId = sheetId;
         // creating canvas elements and contexts
         // this.data = window.localStorage.getItem('data') ? JSON.parse(window.localStorage.getItem('data')) : data;
-        this.data = JSON.parse(JSON.stringify(data));
+        // this.data = JSON.parse(JSON.stringify(data));
+        this.data = {};
         let rows = Object.keys(this.data)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
-        this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
+        // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
+        this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
         let numOfColumns = Math.max(...rows.map(x=>{
             let cols = Object.keys(this.data[x])
             return cols[cols.length-1]
         }))
-        this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
+        this.colSizes = Array(Math.max(numOfColumns,14)).fill(this.defaultConfig.columnWidth)
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -169,6 +190,7 @@ export class Sheet{
         this.headerContext = this.headerRef.getContext("2d")
         this.rowContext = this.rowRef.getContext("2d")
         this.tableContext = this.tableRef.getContext("2d")
+        this.pageinationDiv = document.createElement("div");
         this.containerDiv.classList.add("tableContainer")
         this.headerRef.classList.add("headerRef")
         this.rowRef.classList.add("rowRef")
@@ -178,6 +200,7 @@ export class Sheet{
         this.tableDiv.classList.add("tableDiv")
         this.selectButton.classList.add("selectAllButton")
         this.selectButton.setAttribute("data-showdot","")
+        this.pageinationDiv.classList.add("page-div");
 
 
         // this.headerRef.style.display = "block"
@@ -206,6 +229,7 @@ export class Sheet{
         this.sizeDiv.appendChild(this.inputEditor)
         this.tableDiv.appendChild(this.sizeDiv)
         this.containerDiv.appendChild(this.tableDiv)
+        this.containerDiv.appendChild(this.pageinationDiv)
         // divRef.appendChild(this.containerDiv)
 
         this.selectedCell = {row: 0, col: 0, rowStart: 0, colStart: 0}
@@ -221,9 +245,10 @@ export class Sheet{
 
         // console.log(this)
         this.tableDiv.addEventListener("scroll", ()=>{
+            document.activeElement.blur();
             this.updateFirstCellCache()
             this.checkIfReachedEndOfColumns();
-            this.checkIfReachedEndOfRows();
+            // this.checkIfReachedEndOfRows();
             this.drawHeader();
             this.drawRowIndices();
             if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId);this.drawLoopId=null;}
@@ -280,6 +305,142 @@ export class Sheet{
         })
         // this.find("dummy")
         // Object.keys(this).forEach(x=>console.log(x))
+        
+        // let loadData = async (sheetId)=>{
+        //     this.data = await this.fetchPagedData(sheetId);
+        //     let rows = Object.keys(this.data)
+        //     // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
+        //     // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
+        //     this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
+        //     let numOfColumns = Math.max(...rows.map(x=>{
+        //         let cols = Object.keys(this.data[x])
+        //         return cols[cols.length-1]
+        //     }))
+        //     this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
+        //     this.fixCanvasSize();
+        //     this.drawHeader();
+        //     this.drawRowIndices();
+        //     this.draw();
+        //     this.updateFirstCellCache();
+        // }
+        this.loadData(sheetId);
+        this.preparePaginator();
+
+    }
+
+    preparePaginator(){
+        let prevBtn = document.createElement("button")
+        prevBtn.textContent = "Prev"
+        let nextBtn = document.createElement("button")
+        nextBtn.textContent = "Next"
+        let pageInput = document.createElement("input");
+        pageInput.value = 0;
+
+        let goToPrevFn = async ()=>{
+            let currPage = Number(pageInput.value);
+            if(currPage>0){
+                this.pageNo = currPage-1
+                await this.loadData(this.sheetId, currPage-1)
+                pageInput.value = currPage-1;
+            }
+        }
+        let goToNextFn = async ()=>{
+            let currPage = Number(pageInput.value);
+            this.pageNo = currPage+1
+            await this.loadData(this.sheetId, currPage+1);
+            pageInput.value = currPage+1;
+        }
+        let goToPageFn = async (e)=>{
+            let currPage = Number(pageInput.value);
+            
+            if(e.key=="Enter"){
+                if(isNaN(currPage)){
+                    pageInput.value=0;
+                }
+                else{
+                    this.pageNo = currPage
+                    console.log(currPage);
+                    await this.loadData(this.sheetId, currPage);
+                }
+            }
+        }
+
+        prevBtn.addEventListener("click",goToPrevFn);
+        nextBtn.addEventListener("click",goToNextFn);
+        pageInput.addEventListener("keydown",goToPageFn);
+        this.pageinationDiv.appendChild(prevBtn);
+        this.pageinationDiv.appendChild(pageInput);
+        this.pageinationDiv.appendChild(nextBtn);
+        
+    }
+
+    /**
+     * helper function that Fetches the paginated data from the database and parses it to required data format
+     * @param {String} sheetId - sheetId of sheet to fetch the data from the database
+     * @param {number} page - Page number for request
+     */
+    async fetchPagedData(sheetId, page=0){
+        let colHeaderMap = new Map();
+        colHeaderMap.set("email_id",0);
+        colHeaderMap.set("name",1);
+        colHeaderMap.set("country",2);
+        colHeaderMap.set("state",3);
+        colHeaderMap.set("city",4);
+        colHeaderMap.set("telephone_no",5);
+        colHeaderMap.set("address_line_1",6);
+        colHeaderMap.set("address_line_2",7);
+        colHeaderMap.set("date_of_birth",8);
+        colHeaderMap.set("fy_2019_20",9);
+        colHeaderMap.set("fy_2020_21",10);
+        colHeaderMap.set("fy_2021_22",11);
+        colHeaderMap.set("fy_2022_23",12);
+        colHeaderMap.set("fy_2023_24",13);
+        // pageSize - fixed number of rows per page
+        // let pageSize = 5;
+        let parsedData = {};
+        try{
+            let responseData = await fetch(`/api/Sheets/${sheetId}?page=${page}`);
+            responseData = await responseData.json();
+            // console.log(responseData);
+            for(let i=0; i<responseData.length; i++){
+                parsedData[i] = {};
+                Object.keys(responseData[i]).forEach(colHeader => {
+                    // console.log(colHeader, responseData[i][colHeader])
+                    if(colHeaderMap.get(colHeader.toLowerCase())!=undefined){
+                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())] = {};
+                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = responseData[i][colHeader];
+                    }
+                });
+            }
+            // console.log(parsedData);
+        }
+        catch(err){
+            console.log(err);
+        }
+        return parsedData;
+    }
+
+    /**
+     * Function to load the data and set the fetched data to the component
+     * @param {String} sheetId - Id of the sheet to fetch data from the database
+     * @param {number} page - Page number for request
+     */
+    async loadData(sheetId, page=0){
+        this.data = await this.fetchPagedData(sheetId, page);
+        let rows = Object.keys(this.data)
+        // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
+        // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
+        this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
+        let numOfColumns = Math.max(...rows.map(x=>{
+            let cols = Object.keys(this.data[x])
+            return cols[cols.length-1]
+        }))
+        this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
+        this.fixCanvasSize();
+        this.drawHeader();
+        this.drawRowIndices();
+        this.draw();
+        this.updateFirstCellCache();
     }
 
     /**
@@ -427,7 +588,7 @@ export class Sheet{
                 this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 // this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
-                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
+                this.rowContext.fillText(this.pageNo*this.pageSize + i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
                 // this.rowContext.beginPath()
                 // this.rowContext.moveTo(this.defaultConfig.colWidth-0.5, sumRowSizes);
                 // this.rowContext.lineTo(this.defaultConfig.colWidth-0.5, sumRowSizes+this.rowSizes[i])
@@ -439,7 +600,7 @@ export class Sheet{
                 this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
-                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
+                this.rowContext.fillText(this.pageNo*this.pageSize + i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
             }
             sumRowSizes+=this.rowSizes[i];
             this.rowContext.restore();
@@ -755,12 +916,12 @@ export class Sheet{
     fixCanvasSize(){
         // console.log(this.colSizes.reduce((prev,curr)=>prev+curr,0));
         // console.log("fixing canvas size");
-        if(this.firstCellInViewCache?.rowIndex>=90000){
-            this.defaultConfig.colWidth = 70;
-        }
-        else{
-            this.defaultConfig.colWidth = 50;
-        }
+        // if(this.firstCellInViewCache?.rowIndex>=90000){
+        //     this.defaultConfig.colWidth = 70;
+        // }
+        // else{
+        //     this.defaultConfig.colWidth = 50;
+        // }
 
         this.sizeDiv.style.width = this.colSizes.reduce((prev,curr)=>prev+curr,0) + "px";
         this.sizeDiv.style.height = this.rowSizes.reduce((prev,curr)=>prev+curr,0) + "px";
@@ -897,7 +1058,7 @@ export class Sheet{
      * @param {PointerEvent} e 
      */
     canvasPointerDown(e){
-        if(e.pointerType=="mouse" && e.button==0){e.preventDefault();}
+        // if(e.pointerType=="mouse" && e.button==0){e.preventDefault();}
         this.lineDashOffset = null;
         if(this.drawLoopId) window.cancelAnimationFrame(this.drawLoopId)
         this.drawLoopId = null

@@ -38,7 +38,7 @@ namespace Sheets.Controllers
         [HttpGet("{sheetId}")]
         public async Task<ActionResult<IEnumerable<Sheet>>> GetRowsInSheet(string sheetId, int page=0)
         {
-            int pageSize = 5;
+            int pageSize = 100;
             return await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
         }
 
@@ -84,13 +84,13 @@ namespace Sheets.Controllers
                 }
                 _context.FileStatuses.Add(new Sheets.Model.FileStatus{FileId=filePath});
                 await _context.SaveChangesAsync();
-                // var body = Encoding.UTF8.GetBytes($"{filePath}");
-                // _channel.BasicPublish(exchange: string.Empty,
-                //         routingKey: "hello",
-                //         basicProperties: null,
-                //         body: body);
-                // Console.WriteLine($" [x] Sent {filePath}");
-                return Ok(file.FileName);
+                var body = Encoding.UTF8.GetBytes($"{filePath}");
+                _channel.BasicPublish(exchange: string.Empty,
+                        routingKey: "hello",
+                        basicProperties: null,
+                        body: body);
+                Console.WriteLine($" [x] Sent {filePath}");
+                return Ok(filePath);
             }
             else{
                 return BadRequest("Invalid file/corrupted file.");
@@ -188,7 +188,7 @@ namespace Sheets.Controllers
         [HttpGet("find")]
         public async Task<ActionResult<List<Sheet>>> SearchInSheet(string sheetId, string searchText, [FromQuery]int page=0)
         {
-            int pageSize = 5;
+            int pageSize = 100;
             // var query = "SELECT * FROM SHEETS WHERE SHEET_ID=@SHEET_ID AND MATCH(*) AGAINST(@SEARCHTEXT IN BOOLEAN MODE);";
             // return await _context.Sheets.FromSqlRaw(query, [new MySqlParameter("@SHEET_ID",sheetId),new MySqlParameter("@SEARCHTEXT", searchText)]).ToListAsync();
             // return await _context.Sheets.Where(x => x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
