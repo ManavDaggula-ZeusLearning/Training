@@ -115,52 +115,57 @@ namespace Sheets.Controllers
             {
                 // Console.WriteLine(key);
                 // var oldValues = await _context.Sheets.Where(x=>x.Email_Id==key && x.Sheet_Id==sheetId).ToListAsync();
-                var oldValue = _context.Sheets.Find(sheetId, key);
-                if(oldValue!=null){
+                var oldValue = await _context.Sheets.Where(x=> x.Sheet_Id==sheetId && x.Email_Id==key).ToListAsync();
+                if(oldValue.Count!=0){
                     foreach (var item in newValues[key].Keys.ToList())
                     {
                         // Console.WriteLine(newValues[key][item]);
                         switch (item.ToLower())
                         {
                             case "name":
-                            oldValue.Name = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].Name = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "city":
-                            oldValue.City = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].City = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "state":
-                            oldValue.State = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].State = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "country":
-                            oldValue.Country = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].Country = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "address_line_1":
-                            oldValue.Address_Line_1 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].Address_Line_1 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "address_line_2":
-                            oldValue.Address_Line_2 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].Address_Line_2 = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "date_of_birth":
-                            oldValue.Date_of_Birth = newValues[key][item]!=null ? Convert.ToDateTime(newValues[key][item].ToString()) : null;
+                            oldValue[0].Date_of_Birth = newValues[key][item]!=null ? Convert.ToDateTime(newValues[key][item].ToString()) : null;
                             break;
                             case "telephone_no":
-                            oldValue.Telephone_no = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
+                            oldValue[0].Telephone_no = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "fy_2019_20":
-                            oldValue.FY_2019_20 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
+                            oldValue[0].FY_2019_20 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2020_21":
-                            oldValue.FY_2020_21 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
+                            oldValue[0].FY_2020_21 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2021_22":
-                            oldValue.FY_2021_22 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
+                            oldValue[0].FY_2021_22 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2022_23":
-                            oldValue.FY_2022_23 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
+                            oldValue[0].FY_2022_23 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2023_24":
-                            oldValue.FY_2023_24 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
+                            oldValue[0].FY_2023_24 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
+                            case "email_id":
+                                if(newValues[key][item]!=null){
+                                    oldValue[0].Email_Id = newValues[key][item].ToString();
+                                }
+                                break;
                             
                             default:break;
                         }

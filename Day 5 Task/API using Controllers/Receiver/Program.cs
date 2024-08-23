@@ -77,7 +77,7 @@ consumer.Received += async (model, ea) =>
             // foreach (var countOfRecordsInAChunk in new List<int>{100,1000,10000,100000})
             // {
             sw.Start();
-            var records = csv.GetRecords<SheetModelWithoutSheetID>().DistinctBy(x=>x.Email_Id).ToList();
+            var records = csv.GetRecords<SheetCSVData>().DistinctBy(x=>x.Email_Id).ToList();
             // var emailHashSet = records.DistinctBy().ToList();
             // foreach (var item in emailHashSet)
             // {
@@ -85,7 +85,7 @@ consumer.Received += async (model, ea) =>
             // }
             
             var countOfRecordsInAChunk = 1000;
-            List<SheetModelWithoutSheetID> newTasks = new();
+            List<SheetCSVData> newTasks = new();
             var percentageIncrementPerChunk = countOfRecordsInAChunk/(double)Math.Max(records.Count,countOfRecordsInAChunk);
             // Console.WriteLine(records.Count);
             // Console.WriteLine(countOfRecordsInAChunk);
@@ -124,7 +124,7 @@ consumer.Received += async (model, ea) =>
             for(int i=0; i<records.Count; i+=countOfRecordsInAChunk){
                 var dataAccessor = new DataAccessor();
                 var chunkList = records.Skip(i).Take(countOfRecordsInAChunk).ToList();
-                taskList.Add(dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk));
+                taskList.Add(dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk,i));
                 // Console.WriteLine(i/countOfRecordsInAChunk);
                 // await dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk);
             }

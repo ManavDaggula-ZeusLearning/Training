@@ -1226,13 +1226,6 @@ export class Sheet{
             let tempCellData = {text: e.target.value}
             // console.log(data[this.selectedCell.row]);
             if(this.data[this.selectedCell.row]){
-                if(this.data[this.selectedCell.row][this.selectedCell.col]){
-                    this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
-                }
-                else{
-                    this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
-                }
-                // cell update
                 let requestBody = {};
                 requestBody[this.data[this.selectedCell.row][0].text] = {}
                 requestBody[this.data[this.selectedCell.row][0].text][this.colIndexMap[this.selectedCell.col]] = e.target.value;
@@ -1246,16 +1239,25 @@ export class Sheet{
                 .then(response=>{
                     console.log("cell update successful")
                     console.log(response)
+                    if(this.data[this.selectedCell.row][this.selectedCell.col]){
+                        this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+                    }
+                    else{
+                        this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+                    }
                     this.wrapText(e.target.value)
                 })
                 .catch(err=>{
                     console.log("error in cell update")
                     console.log(err)
                 })
+                
+                // cell update
             }
             else{
                 if(this.selectedCell.col==0){
-                    let requestBody = {"email_id":e.target.value, "sheet_id":this.sheetId};
+                    let newRow = Math.max(...Object.keys(this.data).map(r=> this.pageNo*this.pageSize + r))+1
+                    let requestBody = {"email_id":e.target.value, "sheet_id":this.sheetId,"row_id":newRow};
                     console.log(requestBody);
                     fetch(`/api/Sheets`,{
                         method: "POST",

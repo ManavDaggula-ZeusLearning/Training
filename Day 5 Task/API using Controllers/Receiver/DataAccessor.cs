@@ -50,7 +50,7 @@ namespace Receiver{
         //     cmd.ExecuteNonQuery();
         // }
 
-        public async Task BulkInsert(List<SheetModelWithoutSheetID> sheetsData, string sheetName, double percentageIncrementPerChunk)
+        public async Task BulkInsert(List<SheetCSVData> sheetsData, string sheetName, double percentageIncrementPerChunk, int rowStartIndex)
         {
             // string connectionString = "server=localhost;user=root;database=task5;password=root";
             // MySqlConnection conn = new MySqlConnection(connectionString);
@@ -71,7 +71,7 @@ namespace Receiver{
             MySqlCommand cmd = new MySqlCommand(query,conn);
             cmd.ExecuteNonQuery(); */
 
-            var queryPart1 = @"INSERT INTO SHEETS (Sheet_ID, Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ";
+            var queryPart1 = @"INSERT INTO SHEETS (Sheet_ID, Row_Id,Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ";
             var queryPart3 = @" AS NEWVALUES ON DUPLICATE KEY UPDATE Name=NEWVALUES.Name, Country=NEWVALUES.Country, State=NEWVALUES.State, City=NEWVALUES.City, Telephone_no=NEWVALUES.Telephone_no, Address_Line_1=NEWVALUES.Address_Line_1, Address_Line_2=NEWVALUES.Address_Line_2, Date_of_Birth=NEWVALUES.Date_of_Birth, FY_2019_20=NEWVALUES.FY_2019_20, FY_2020_21=NEWVALUES.FY_2020_21, FY_2021_22=NEWVALUES.FY_2021_22, FY_2022_23=NEWVALUES.FY_2022_23, FY_2023_24=NEWVALUES.FY_2023_24;";
             var queryPart2 = new StringBuilder();
             // var query = $"INSERT INTO SHEETS (Sheet_ID, Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ('{sheetName}',@email,@name,@country,@state,@city,@telephone,@address1,@address2,@dob,@fy2019,@fy2020,@fy2021,@fy2022,@fy2023) AS NEWVALUES ON DUPLICATE KEY UPDATE Name=NEWVALUES.Name, Country=NEWVALUES.Country, State=NEWVALUES.State, City=NEWVALUES.City, Telephone_no=NEWVALUES.Telephone_no, Address_Line_1=NEWVALUES.Address_Line_1, Address_Line_2=NEWVALUES.Address_Line_2, Date_of_Birth=NEWVALUES.Date_of_Birth, FY_2019_20=NEWVALUES.FY_2019_20, FY_2020_21=NEWVALUES.FY_2020_21, FY_2021_22=NEWVALUES.FY_2021_22, FY_2022_23=NEWVALUES.FY_2022_23, FY_2023_24=NEWVALUES.FY_2023_24;";
@@ -98,7 +98,7 @@ namespace Receiver{
                 //     cmd.ExecuteNonQuery();
 
                 // }
-                queryPart2.Append(@$"('{MySqlHelper.EscapeString(sheetName)}','{MySqlHelper.EscapeString(item.Email_Id)}','{MySqlHelper.EscapeString(item.Name)}','{MySqlHelper.EscapeString(item.Country)}','{MySqlHelper.EscapeString(item.State)}','{MySqlHelper.EscapeString(item.City)}','{MySqlHelper.EscapeString(item.Telephone_no)}','{MySqlHelper.EscapeString(item.Address_Line_1)}','{MySqlHelper.EscapeString(item.Address_Line_2)}','{item.Date_of_Birth?.ToString("yyyy-MM-dd")}',{item.FY_2019_20},{item.FY_2020_21},{item.FY_2021_22},{item.FY_2022_23},{item.FY_2023_24})
+                queryPart2.Append(@$"('{MySqlHelper.EscapeString(sheetName)}',{rowStartIndex++},'{MySqlHelper.EscapeString(item.Email_Id)}','{MySqlHelper.EscapeString(item.Name)}','{MySqlHelper.EscapeString(item.Country)}','{MySqlHelper.EscapeString(item.State)}','{MySqlHelper.EscapeString(item.City)}','{MySqlHelper.EscapeString(item.Telephone_no)}','{MySqlHelper.EscapeString(item.Address_Line_1)}','{MySqlHelper.EscapeString(item.Address_Line_2)}','{item.Date_of_Birth?.ToString("yyyy-MM-dd")}',{item.FY_2019_20},{item.FY_2020_21},{item.FY_2021_22},{item.FY_2022_23},{item.FY_2023_24})
                 ,");
                 }
             }

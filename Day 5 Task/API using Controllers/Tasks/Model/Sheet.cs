@@ -6,11 +6,12 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace Sheets.Model{
-    [PrimaryKey(nameof(Sheet_Id), nameof(Email_Id))]
+    [PrimaryKey(nameof(Sheet_Id),nameof(Row_Id),nameof(Email_Id))]
     // [Table(name:"Sheet")]
-    public partial class Sheet : SheetModelWithoutSheetID
+    public partial class Sheet : SheetCSVData
     {
         public string Sheet_Id {get; set;} 
+        public int Row_Id {get; set;}
 
         // [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
         // public string Email_Id { get; set; }
@@ -30,7 +31,7 @@ namespace Sheets.Model{
     }
 
     // [NotMapped]
-    public partial class SheetModelWithoutSheetID{
+    public partial class SheetCSVData{
         [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
         public string Email_Id { get; set; }
         public string? Name { get; set; }
