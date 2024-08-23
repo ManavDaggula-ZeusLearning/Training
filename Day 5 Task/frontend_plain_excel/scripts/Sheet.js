@@ -157,6 +157,12 @@ export class Sheet{
      * @type {Number}
      */
     pageSize=100;
+
+    /**
+     * Array to map the index of column to its corresponding header in the database
+     * @type {String[]}
+     */
+    colIndexMap = ["email_id","name","country","state","city","telephone_no","address_line_1","address_line_2","date_of_birth","fy_2019_20","fy_2020_21","fy_2021_22","fy_2022_23","fy_2023_24"]
     
     
     
@@ -359,7 +365,7 @@ export class Sheet{
                 }
                 else{
                     this.pageNo = currPage
-                    console.log(currPage);
+                    // console.log(currPage);
                     await this.loadData(this.sheetId, currPage);
                 }
             }
@@ -427,15 +433,15 @@ export class Sheet{
      */
     async loadData(sheetId, page=0){
         this.data = await this.fetchPagedData(sheetId, page);
-        let rows = Object.keys(this.data)
+        // let rows = Object.keys(this.data)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
         this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
-        let numOfColumns = Math.max(...rows.map(x=>{
-            let cols = Object.keys(this.data[x])
-            return cols[cols.length-1]
-        }))
-        this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
+        // let numOfColumns = Math.max(...rows.map(x=>{
+        //     let cols = Object.keys(this.data[x])
+        //     return cols[cols.length-1]
+        // }))
+        // this.colSizes = Array(Math.max(numOfColumns,26)).fill(this.defaultConfig.columnWidth)
         this.fixCanvasSize();
         this.drawHeader();
         this.drawRowIndices();
@@ -483,12 +489,12 @@ export class Sheet{
                 // this.headerContext.lineWidth = 5;
                 // this.headerContext.stroke();
                 this.headerContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
-                this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (sumColSizes+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
+                this.headerContext.fillText(this.colIndexMap[i] ? this.colIndexMap[i] : Sheet.numToBase26ForHeader(i), (sumColSizes+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             }
             else{
                 this.headerContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.headerContext.fillStyle = `${this.defaultConfig.fontColor}`;
-                this.headerContext.fillText(Sheet.numToBase26ForHeader(i), (sumColSizes+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
+                this.headerContext.fillText(this.colIndexMap[i] ? this.colIndexMap[i] : Sheet.numToBase26ForHeader(i), (sumColSizes+(this.colSizes[i]/2)), this.defaultConfig.rowHeight-this.defaultConfig.fontPadding)
             }
             // tempArr.push(i)
             // this.headerContext.moveTo(prev+curr, 0);
@@ -1226,16 +1232,64 @@ export class Sheet{
                 else{
                     this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
                 }
+                // cell update
+                let requestBody = {};
+                requestBody[this.data[this.selectedCell.row][0].text] = {}
+                requestBody[this.data[this.selectedCell.row][0].text][this.colIndexMap[this.selectedCell.col]] = e.target.value;
+                fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+                    method: "PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                })
+                .then(response=>{
+                    console.log("cell update successful")
+                    console.log(response)
+                    this.wrapText(e.target.value)
+                })
+                .catch(err=>{
+                    console.log("error in cell update")
+                    console.log(err)
+                })
             }
             else{
-                let tempRowData = {};
-                tempRowData[this.selectedCell.col] = tempCellData
-                this.data[this.selectedCell.row] = tempRowData
+                if(this.selectedCell.col==0){
+                    let requestBody = {"email_id":e.target.value, "sheet_id":this.sheetId};
+                    console.log(requestBody);
+                    fetch(`/api/Sheets`,{
+                        method: "POST",
+                        headers: {
+                            "Content-Type":"application/json"
+                        },
+                        body: JSON.stringify(requestBody)
+                    })
+                    .then(response=>{
+                        if(response.status==400){
+                            window.alert("Enter valid email.");
+                        }
+                        else{
+                            console.log("new row added successfully")
+                            console.log(response)
+                            this.loadData(this.sheetId, this.pageNo);
+                            let tempRowData = {};
+                            tempRowData[this.selectedCell.col] = tempCellData
+                            this.data[this.selectedCell.row] = tempRowData
+                            this.wrapText(e.target.value)
+                        }
+                    })
+                    .catch(err=>{
+                        console.log("error in new row insertion");
+                        console.log(err);
+                    })
+                }
+                else{
+                    window.alert("Please first enter email for the new row.")
+                }
             }
             // data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
             // console.log(this.data);
             this.inputEditor.style.display = "none"
-            this.wrapText(e.target.value)
             this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
             this.selectedCell.row = this.selectedCell.row+1
             this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
@@ -1263,21 +1317,21 @@ export class Sheet{
             this.inputEditor.style.display = "none";
         }
         else{
-            let tempCellData = {text: e.target.value}
-            // console.log(data[this.selectedCell.row]);
-            if(this.data[this.selectedCell.row]){
-                if(this.data[this.selectedCell.row][this.selectedCell.col]){
-                    this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
-                }
-                else{
-                    this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
-                }
-            }
-            else{
-                let tempRowData = {};
-                tempRowData[this.selectedCell.col] = tempCellData
-                this.data[this.selectedCell.row] = tempRowData
-            }
+            // let tempCellData = {text: e.target.value}
+            // // console.log(data[this.selectedCell.row]);
+            // if(this.data[this.selectedCell.row]){
+            //     if(this.data[this.selectedCell.row][this.selectedCell.col]){
+            //         this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+            //     }
+            //     else{
+            //         this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+            //     }
+            // }
+            // else{
+            //     let tempRowData = {};
+            //     tempRowData[this.selectedCell.col] = tempCellData
+            //     this.data[this.selectedCell.row] = tempRowData
+            // }
         }
         if(!this.drawLoopId) this.draw();
     }
@@ -1971,6 +2025,7 @@ export class Sheet{
      */
     pasteRangeToClipboard(){
         if(Sheet.cellsCopiedArray.length==0){return}
+        // let requestData = {}
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
         for(let cellData of Sheet.cellsCopiedArray){
@@ -2361,16 +2416,59 @@ export class Sheet{
      * Delete cells in currently selected range
      */
     deleteRangeSelection(){
-        let rowsInSelection = Object.keys(this.data).filter(r=> r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
-        rowsInSelection.forEach(r=>{
-            let colsInSelectionInRow = Object.keys(this.data[r]).filter(c=> c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col))
-            colsInSelectionInRow.forEach(c=>{
-                // console.log(r,c)
-                delete this.data[r][c].text;
-                if(Object.keys(this.data[r][c]).length==0){delete this.data[r][c]}
-                if(Object.keys(this.data[r]).length==0){delete this.data[r]}
+        if(this.selectedRangeEnd.colStart==Infinity || this.selectedRangeStart.colStart==Infinity){
+            let minRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row)
+            let maxRow = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
+            // console.log(`row deletion to be done from ${minRow} - ${maxRow}`);
+            let requestString = `/api/Sheets?&sheetId=${this.sheetId}`
+            for(let i=minRow; i<=maxRow; i++){
+                requestString+=`&emailId=${this.data[i][0]["text"]}`
+            }
+            fetch(requestString,{method:"DELETE"})
+            .then(()=>{
+                // console.log("successful deletion")
+                // console.log(response)
+                this.loadData(this.sheetId, this.pageNo);
             })
-        })
+            .catch(err=>{
+                console.log("Error in delete request")
+                console.log(err)
+            })
+        }
+        else{
+            let deleteRequestBody = {}
+            let rowsInSelection = Object.keys(this.data).filter(r=> r<=Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row) && r>=Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row))
+            rowsInSelection.forEach(r=>{
+                deleteRequestBody[this.data[r][0].text] = {};
+                let colsInSelectionInRow = Object.keys(this.data[r]).filter(c=> c<=Math.max(this.selectedRangeStart.col, this.selectedRangeEnd.col) && c>=Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col))
+                colsInSelectionInRow.forEach(c=>{
+                    if(c!=0){
+                        deleteRequestBody[this.data[r][0].text][this.colIndexMap[c]] = null;
+                        delete this.data[r][c].text;
+                        if(Object.keys(this.data[r][c]).length==0){delete this.data[r][c]}
+                        if(Object.keys(this.data[r]).length==0){delete this.data[r]}
+                    }
+                    // console.log(r,c)
+                })
+            })
+
+            // console.log(JSON.stringify(deleteRequestBody))
+            fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+                method:"PATCH",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body:JSON.stringify(deleteRequestBody)
+            })
+            .then(()=>{
+                // console.log("cell deletion successfull")
+                // console.log(response)
+            })
+            .catch(err=>{
+                console.log("error in cell deletion")
+                console.error(err)
+            })
+        }
     }
 
 }

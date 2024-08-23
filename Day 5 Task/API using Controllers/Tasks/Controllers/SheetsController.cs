@@ -99,9 +99,12 @@ namespace Sheets.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteRow(string sheetId, string emailId)
+        public async Task<IActionResult> DeleteRow(string sheetId, [FromQuery]List<string> emailId)
         {
-            await _context.Sheets.Where(x=>x.Sheet_Id==sheetId && x.Email_Id==emailId).ExecuteDeleteAsync();
+            // var query = _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id));
+            // Console.WriteLine(query.ToQueryString());
+            await _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id)).ExecuteDeleteAsync();
+            // await _context.Sheets.Where(x=>x.Sheet_Id==sheetId && x.Email_Id==emailId).ExecuteDeleteAsync();
             return NoContent();
         }
 
@@ -110,13 +113,13 @@ namespace Sheets.Controllers
         {
             foreach (var key in newValues.Keys.ToList())
             {
-                Console.WriteLine(key);
+                // Console.WriteLine(key);
                 // var oldValues = await _context.Sheets.Where(x=>x.Email_Id==key && x.Sheet_Id==sheetId).ToListAsync();
                 var oldValue = _context.Sheets.Find(sheetId, key);
                 if(oldValue!=null){
                     foreach (var item in newValues[key].Keys.ToList())
                     {
-                        Console.WriteLine(newValues[key][item]);
+                        // Console.WriteLine(newValues[key][item]);
                         switch (item.ToLower())
                         {
                             case "name":
@@ -144,19 +147,19 @@ namespace Sheets.Controllers
                             oldValue.Telephone_no = newValues[key][item]!=null ? newValues[key][item].ToString() : null;
                             break;
                             case "fy_2019_20":
-                            oldValue.FY_2019_20 = Convert.ToSingle(newValues[key][item].ToString());
+                            oldValue.FY_2019_20 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2020_21":
-                            oldValue.FY_2020_21 = Convert.ToSingle(newValues[key][item].ToString());
+                            oldValue.FY_2020_21 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2021_22":
-                            oldValue.FY_2021_22 = Convert.ToSingle(newValues[key][item].ToString());
+                            oldValue.FY_2021_22 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2022_23":
-                            oldValue.FY_2022_23 = Convert.ToSingle(newValues[key][item].ToString());
+                            oldValue.FY_2022_23 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             case "fy_2023_24":
-                            oldValue.FY_2023_24 = Convert.ToSingle(newValues[key][item].ToString());
+                            oldValue.FY_2023_24 = newValues[key][item]!=null ? Convert.ToSingle(newValues[key][item].ToString()) : null;
                             break;
                             
                             default:break;
