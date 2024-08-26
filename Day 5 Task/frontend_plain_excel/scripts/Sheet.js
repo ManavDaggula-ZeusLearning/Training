@@ -2027,10 +2027,14 @@ export class Sheet{
      */
     pasteRangeToClipboard(){
         if(Sheet.cellsCopiedArray.length==0){return}
-        // let requestData = {}
+        let requestData = {}
+        console.log(Sheet.cellsCopiedArray)
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
         for(let cellData of Sheet.cellsCopiedArray){
+            if(!requestData[this.data[firstRow+cellData[0]][0].text]){
+                requestData[this.data[firstRow+cellData[0]][0].text]={}
+            }
             if(cellData[2]==null){
                 if(this.data[firstRow+cellData[0]]){
                     delete this.data[firstRow+cellData[0]][firstCol+cellData[1]]
@@ -2045,7 +2049,9 @@ export class Sheet{
                     this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
                 }
             }
+            requestData[this.data[firstRow+cellData[0]][0].text][this.colIndexMap[firstCol+cellData[1]]] = cellData[2].text;
         }
+        console.log(requestData)
         this.selectedRangeStart.row = firstRow;
         this.selectedRangeStart.col = firstCol;
         this.selectedRangeStart.rowStart = Math.min(this.selectedRangeStart.rowStart, this.selectedRangeEnd.rowStart);
@@ -2061,6 +2067,22 @@ export class Sheet{
             this.selectedRangeEnd.col +=1;
             this.selectedRangeEnd.colStart += (this.colSizes[firstCol+i] || this.defaultConfig.colWidth)
         }
+
+        // sending paste updates to server
+        fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+            method:"PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:JSON.stringify(requestData)
+        })
+        .then(()=>{
+            console.log("cell updates (paste) successful");
+        })
+        .catch(err=>{
+            console.log("error in paste");
+            console.error(err);
+        })
     }
 
     /**
