@@ -103,7 +103,9 @@ namespace Sheets.Controllers
         {
             // var query = _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id));
             // Console.WriteLine(query.ToQueryString());
+            // int firstRowId = (await _context.Sheets.Where(x=> x.Email_Id==emailId[0] && x.Sheet_Id==sheetId).ToListAsync())[0].Row_Id;
             await _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id)).ExecuteDeleteAsync();
+            // await _context.Sheets.Where(x=>x.Row_Id>=firstRowId).ExecuteUpdateAsync(setters=> setters.SetProperty(x=>x.Row_Id, x=>x.Row_Id-emailId.Count));
             // await _context.Sheets.Where(x=>x.Sheet_Id==sheetId && x.Email_Id==emailId).ExecuteDeleteAsync();
             return NoContent();
         }

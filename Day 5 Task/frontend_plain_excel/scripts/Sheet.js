@@ -12,7 +12,7 @@ export class Sheet{
      * Array of all column widths
      * @type {Number[]}
      */
-    colSizes = Array(14).fill(100)
+    colSizes = Array(20).fill(100)
     /**
      * Array of all row heights
      * @type {Number[]}
@@ -180,7 +180,7 @@ export class Sheet{
             let cols = Object.keys(this.data[x])
             return cols[cols.length-1]
         }))
-        this.colSizes = Array(Math.max(numOfColumns,14)).fill(this.defaultConfig.columnWidth)
+        this.colSizes = Array(Math.max(numOfColumns,20)).fill(this.defaultConfig.columnWidth)
         // this.colSizes = window.localStorage.getItem('colSizes') ? JSON.parse(window.localStorage.getItem('colSizes')) : Array(20).fill(100);
         // this.rowSizes = window.localStorage.getItem('rowSizes') ? JSON.parse(window.localStorage.getItem('rowSizes')) : Array(100).fill(40);
         // this.data = data;
@@ -253,8 +253,9 @@ export class Sheet{
         this.tableDiv.addEventListener("scroll", ()=>{
             document.activeElement.blur();
             this.updateFirstCellCache()
+            this.setCurrentPageinView();
             this.checkIfReachedEndOfColumns();
-            // this.checkIfReachedEndOfRows();
+            this.checkIfReachedEndOfRows();
             this.drawHeader();
             this.drawRowIndices();
             if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId);this.drawLoopId=null;}
@@ -330,7 +331,7 @@ export class Sheet{
         //     this.updateFirstCellCache();
         // }
         this.loadData(sheetId);
-        this.preparePaginator();
+        // this.preparePaginator();
 
     }
 
@@ -416,6 +417,9 @@ export class Sheet{
                         parsedData[i][colHeaderMap.get(colHeader.toLowerCase())] = {};
                         parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = responseData[i][colHeader];
                     }
+                    else if(colHeader.toLowerCase()=="row_id"){
+                        parsedData[i]["row_id"]=responseData[i][colHeader]
+                    }
                 });
             }
             // console.log(parsedData);
@@ -432,11 +436,15 @@ export class Sheet{
      * @param {number} page - Page number for request
      */
     async loadData(sheetId, page=0){
-        this.data = await this.fetchPagedData(sheetId, page);
+        let newData = await this.fetchPagedData(sheetId, page);
         // let rows = Object.keys(this.data)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
-        this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
+        let currRow = page*this.pageSize
+        Object.keys(newData).forEach((element,index) => {
+            this.data[currRow+index] = newData[element]
+        });
+        // this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
         // let numOfColumns = Math.max(...rows.map(x=>{
         //     let cols = Object.keys(this.data[x])
         //     return cols[cols.length-1]
@@ -594,7 +602,7 @@ export class Sheet{
                 this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 // this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
-                this.rowContext.fillText(this.pageNo*this.pageSize + i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
+                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
                 // this.rowContext.beginPath()
                 // this.rowContext.moveTo(this.defaultConfig.colWidth-0.5, sumRowSizes);
                 // this.rowContext.lineTo(this.defaultConfig.colWidth-0.5, sumRowSizes+this.rowSizes[i])
@@ -606,7 +614,7 @@ export class Sheet{
                 this.rowContext.font = `${this.defaultConfig.fontSize}px ${this.defaultConfig.font}`;
                 this.rowContext.fillStyle = `${this.defaultConfig.fontColor}`;
                 this.rowContext.textAlign = "right"
-                this.rowContext.fillText(this.pageNo*this.pageSize + i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
+                this.rowContext.fillText(i, this.defaultConfig.colWidth-this.defaultConfig.fontPadding, sumRowSizes+this.rowSizes[i]/2)
             }
             sumRowSizes+=this.rowSizes[i];
             this.rowContext.restore();
@@ -971,16 +979,74 @@ export class Sheet{
     /**
      * Function to check if we reach end of rows and adds more rows
      */
-    checkIfReachedEndOfRows(){
+    async checkIfReachedEndOfRows(){
         let status = this.tableDiv.scrollHeight - this.tableDiv.clientHeight - this.tableDiv.scrollTop > 50 ? false : true;
         if(status){
+            // console.log("row checked to increment")
+            await this.loadNextPage();
+            // console.log("fetched ", this.pageNo)
             // this.rowSizes = [...this.rowSizes, ...Array(50).fill(this.defaultConfig.rowHeight)]
-            this.rowSizes = this.rowSizes.concat(Array(50).fill(this.defaultConfig.rowHeight))
+            // this.rowSizes = this.rowSizes.concat(Array(100).fill(this.defaultConfig.rowHeight))
             this.fixCanvasSize();
             if(!this.drawLoopId) this.draw();
             this.drawHeader();
             this.drawRowIndices();
         }
+    }
+
+    /**
+     * Function to update the page number currently in view on scroll
+     */
+    setCurrentPageinView(){
+        // let pgNo = Math.floor(this.firstCellInViewCache.rowIndex/100)
+        let currCenterRow = this.getCellClickIndexFromCache({offsetX:0, offsetY: this.tableDiv.clientHeight}).rowIndex
+        let pgNo = Math.floor(currCenterRow/100)
+        // console.clear();
+        // console.log(pgNo)
+        if(this.pageNo>pgNo){
+            //load previous page
+            // console.log("load previous page", pgNo)
+            this.loadData(this.sheetId, pgNo-1 >=0 ? pgNo-1 : 0)
+            .then(()=>{
+                Object.keys(this.data).filter(x=>Number(x) >= (pgNo+1)*this.pageSize).forEach(x=>delete this.data[x])
+            })
+        }
+        else if(this.pageNo<pgNo){
+            // load next page
+            // console.log("load next page", pgNo)
+            this.loadData(this.sheetId, pgNo)
+            .then(()=>{
+                // console.log((this.pageNo-1)*this.pageSize)
+                Object.keys(this.data).filter(x => Number(x) < (this.pageNo-1)*this.pageSize).forEach(x=>delete this.data[x])
+            })
+        }
+        this.pageNo = pgNo;
+    }
+
+    /**
+     * Function to load the next page
+     */
+    loadNextPage(){
+        // let newData = await this.fetchPagedData(this.sheetId, this.pageNo+1)
+        // let currentMaxRow = Object.keys(this.data).length
+        // // console.log(currentMaxRow)
+        // Object.keys(newData).forEach((element,index) => {
+        //     this.data[currentMaxRow+index] = newData[element]
+        // });
+        if(this.data[this.pageNo*this.pageSize]!=undefined){
+            this.pageNo++;
+            this.loadData(this.sheetId, this.pageNo);
+            console.log(this.data[this.pageNo*this.pageSize])
+            console.log("loaded next page", this.pageNo)
+            this.rowSizes = this.rowSizes.concat(Array(100).fill(this.defaultConfig.rowHeight))
+        }
+    }
+
+    /**
+     * Function to load the previous page
+     */
+    loadPreviousPage(){
+
     }
 
     /**
