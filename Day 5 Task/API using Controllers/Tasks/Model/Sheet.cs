@@ -6,6 +6,13 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace Sheets.Model{
+
+    // public partial class SheetWithIndex{
+    //     public Sheet Element {get; set;}
+    //     public int Index {get; set;}
+    // }
+
+
     [PrimaryKey(nameof(Sheet_Id),nameof(Row_Id),nameof(Email_Id))]
     // [Table(name:"Sheet")]
     public partial class Sheet : SheetCSVData

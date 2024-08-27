@@ -163,7 +163,19 @@ export class Sheet{
      * @type {String[]}
      */
     colIndexMap = ["email_id","name","country","state","city","telephone_no","address_line_1","address_line_2","date_of_birth","fy_2019_20","fy_2020_21","fy_2021_22","fy_2022_23","fy_2023_24"]
-    
+
+    /**
+    * Search object to store the search params and the result of the search
+    * @type {{
+    * text:String,
+    * resultArray: Array<[Number,Number]>,
+    * currentIndex: Number}}
+    */
+    searchObject = {
+        text:"",
+        resultArray:[],
+        currentIndex:null
+    };
     
     
     constructor(sheetId){
@@ -436,6 +448,7 @@ export class Sheet{
      * @param {number} page - Page number for request
      */
     async loadData(sheetId, page=0){
+        // this.data = await this.fetchPagedData(sheetId, page);
         let newData = await this.fetchPagedData(sheetId, page);
         // let rows = Object.keys(this.data)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
@@ -1006,9 +1019,10 @@ export class Sheet{
         if(this.pageNo>pgNo){
             //load previous page
             // console.log("load previous page", pgNo)
+            this.loadData(this.sheetId, pgNo)
             this.loadData(this.sheetId, pgNo-1 >=0 ? pgNo-1 : 0)
             .then(()=>{
-                Object.keys(this.data).filter(x=>Number(x) >= (pgNo+1)*this.pageSize).forEach(x=>delete this.data[x])
+                Object.keys(this.data).filter(x=>Number(x) >= (pgNo+1)*this.pageSize  && (Number(x)>Math.max(this.selectedRangeStart.row,this.selectedRangeEnd.row) || Number(x)<Math.min(this.selectedRangeStart.row,this.selectedRangeEnd.row))).forEach(x=>delete this.data[x])
             })
         }
         else if(this.pageNo<pgNo){
@@ -1017,7 +1031,7 @@ export class Sheet{
             this.loadData(this.sheetId, pgNo)
             .then(()=>{
                 // console.log((this.pageNo-1)*this.pageSize)
-                Object.keys(this.data).filter(x => Number(x) < (this.pageNo-1)*this.pageSize).forEach(x=>delete this.data[x])
+                Object.keys(this.data).filter(x => Number(x) < (this.pageNo-1)*this.pageSize  && (Number(x)>Math.max(this.selectedRangeStart.row,this.selectedRangeEnd.row) || Number(x)<Math.min(this.selectedRangeStart.row,this.selectedRangeEnd.row))).forEach(x=>delete this.data[x])
             })
         }
         this.pageNo = pgNo;
@@ -1358,13 +1372,13 @@ export class Sheet{
             // data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
             // console.log(this.data);
             this.inputEditor.style.display = "none"
-            this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
-            this.selectedCell.row = this.selectedCell.row+1
-            this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
-            this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
-            if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
-                this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
-            }
+            // this.selectedCell.rowStart = this.selectedCell.rowStart + this.rowSizes[this.selectedCell.row]
+            // this.selectedCell.row = this.selectedCell.row+1
+            // this.selectedRangeStart = JSON.parse(JSON.stringify(this.selectedCell))
+            // this.selectedRangeEnd = JSON.parse(JSON.stringify(this.selectedCell))
+            // if(this.selectedCell.rowStart+this.rowSizes[this.selectedCell.row]>this.tableDiv.scrollTop+this.tableDiv.clientHeight){
+            //     this.tableDiv.scrollBy(0,this.rowSizes[this.selectedCell.row])
+            // }
             this.drawHeader();
             this.drawRowIndices();
             if(!this.drawLoopId) this.draw();
@@ -2420,21 +2434,44 @@ export class Sheet{
      * @param {String} textContent - string to search within the sheet data
      * @returns {[Number, Number]}
      */
-    find(textContent){
+    find(textContent, pagedData = this.data){
         if(!textContent){return []}
         // console.clear();
         let arr = [];
-        for(let r of Object.keys(this.data)){
+        for(let r of Object.keys(pagedData)){
             // console.log(r);
-            for(let c of Object.keys(this.data[r])){
+            for(let c of Object.keys(pagedData[r])){
                 // console.log(r,c);
-                if(JSON.stringify(this.data[r][c].text).includes(textContent)){
+                if(c!="row_id" && JSON.stringify(pagedData[r][c].text).includes(textContent)){
                     arr.push([r,c])
                 }
             }
         }
         // console.log(arr);
         return arr;
+    }
+
+    /**Generator Function to search  */
+    async *findFromDb(text){
+        if(this.searchObject.text!=text){
+            // new search
+            // this.searchObject.text = text;
+            if(!this.data[0]){
+                let pageData = await this.fetchPagedData(this.sheetId, 0);
+                let pageArr = this.find(text, pageData)
+                console.log("searching in pg:0 from db");
+                console.log(pageArr)
+            }
+            else{
+                let pageArr = this.find(text, this.data);
+                console.log("searching in pg:0 from local");
+                console.log(pageArr)
+            }
+        }
+        else{
+            //continued search
+        }
+        yield null;
     }
 
     /**
@@ -2483,6 +2520,24 @@ export class Sheet{
         text = text.replaceAll(partText, newText)
         // console.log(text);
         this.data[row][col].text = text
+        let requestBody = {}
+        requestBody[this.data[row][0].text] = {}
+        requestBody[this.data[row][0].text][this.colIndexMap[col]] = text
+        fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+            method:"PATCH",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body:JSON.stringify(requestBody)
+        })
+        .then(()=>{
+            // console.log("cell deletion successfull")
+            // console.log(response)
+        })
+        .catch(err=>{
+            console.log("error in cell deletion")
+            console.error(err)
+        })
         this.wrapCell(row,col)
         
         // window.localStorage.setItem("rowSizes", JSON.stringify(this.rowSizes))
@@ -2511,10 +2566,12 @@ export class Sheet{
             let maxRow = Math.max(this.selectedRangeStart.row, this.selectedRangeEnd.row)
             // console.log(`row deletion to be done from ${minRow} - ${maxRow}`);
             let requestString = `/api/Sheets?&sheetId=${this.sheetId}`
+            let deleteRowArray = []
             for(let i=minRow; i<=maxRow; i++){
-                requestString+=`&emailId=${this.data[i][0]["text"]}`
+                // requestString+=`&emailId=${this.data[i][0]["text"]}`
+                deleteRowArray.push(this.data[i][0]["text"])
             }
-            fetch(requestString,{method:"DELETE"})
+            fetch(requestString,{method:"DELETE", headers: {"Content-Type":"application/json"}, body: JSON.stringify(deleteRowArray)})
             .then(()=>{
                 // console.log("successful deletion")
                 // console.log(response)

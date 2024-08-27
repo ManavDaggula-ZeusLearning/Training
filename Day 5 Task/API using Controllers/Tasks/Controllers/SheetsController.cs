@@ -11,6 +11,7 @@ using Sheets.Model;
 using System.Text.Json;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using MySql.Data.MySqlClient;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Sheets.Controllers
 {
@@ -99,12 +100,13 @@ namespace Sheets.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteRow(string sheetId, [FromQuery]List<string> emailId)
+        public async Task<IActionResult> DeleteRow(string sheetId, [FromBody]List<string> emailId)
         {
             // var query = _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id));
             // Console.WriteLine(query.ToQueryString());
-            // int firstRowId = (await _context.Sheets.Where(x=> x.Email_Id==emailId[0] && x.Sheet_Id==sheetId).ToListAsync())[0].Row_Id;
+            int firstRowId = (await _context.Sheets.Where(x=> x.Email_Id==emailId[0] && x.Sheet_Id==sheetId).ToListAsync())[0].Row_Id;
             await _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id)).ExecuteDeleteAsync();
+            // await _context.Database.ExecuteSqlRawAsync($"call update_row_ids({firstRowId},{emailId.Count});");
             // await _context.Sheets.Where(x=>x.Row_Id>=firstRowId).ExecuteUpdateAsync(setters=> setters.SetProperty(x=>x.Row_Id, x=>x.Row_Id-emailId.Count));
             // await _context.Sheets.Where(x=>x.Sheet_Id==sheetId && x.Email_Id==emailId).ExecuteDeleteAsync();
             return NoContent();
@@ -165,7 +167,13 @@ namespace Sheets.Controllers
                             break;
                             case "email_id":
                                 if(newValues[key][item]!=null){
-                                    oldValue[0].Email_Id = newValues[key][item].ToString();
+                                    // oldValue[0].Email_Id = newValues[key][item].ToString();
+                                    var oldRecord = oldValue[0];
+                                    _context.Remove(oldRecord);
+                                    await _context.SaveChangesAsync();
+                                    oldRecord.Email_Id = newValues[key][item].ToString();
+                                    await _context.SaveChangesAsync();
+                                    _context.Add(oldRecord);
                                 }
                                 break;
                             
@@ -218,6 +226,32 @@ namespace Sheets.Controllers
             x.FY_2023_24.ToString().Contains(searchText))
             ).Skip(page*pageSize).Take(pageSize);
             return await query.ToListAsync();
-        }    
+        }
+
+        // [HttpGet("find/getindices")]
+        // public async Task<NoContentResult> SearchInSheetAndGetIndices(string sheetId, string searchText, [FromQuery]int page=0)
+        // {
+        //     int pageSize = 100;
+        //     var query = _context.Sheets.Skip(page*pageSize).Take(pageSize).Select((x,index)=>new SheetWithIndex{Element=x, Index=index}).Where(x => x.Element.Sheet_Id==sheetId && 
+        //     (x.Element.Name.Contains(searchText) ||
+        //     x.Element.City.Contains(searchText) ||
+        //     x.Element.State.Contains(searchText) ||
+        //     x.Element.Country.Contains(searchText) ||
+        //     x.Element.Telephone_no.Contains(searchText) ||
+        //     x.Element.Address_Line_1.Contains(searchText) ||
+        //     x.Element.Address_Line_2.Contains(searchText) ||
+        //     x.Element.Date_of_Birth.ToString().Contains(searchText) ||
+        //     x.Element.FY_2019_20.ToString().Contains(searchText) ||
+        //     x.Element.FY_2020_21.ToString().Contains(searchText) ||
+        //     x.Element.FY_2021_22.ToString().Contains(searchText) ||
+        //     x.Element.FY_2022_23.ToString().Contains(searchText) ||
+        //     x.Element.FY_2023_24.ToString().Contains(searchText))
+        //     );
+        //     // Console.WriteLine(query.ToQueryString());
+            
+        //     var results = await query.ToListAsync();
+        //     return NoContent();
+            
+        // }
     }
 }
