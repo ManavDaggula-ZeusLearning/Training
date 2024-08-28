@@ -1,17 +1,8 @@
-using System;
 using System.Text;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using RabbitMQ.Client;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sheets.Model;
-using System.Text.Json;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using MySql.Data.MySqlClient;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Sheets.Controllers
 {
@@ -37,10 +28,15 @@ namespace Sheets.Controllers
         }
         
         [HttpGet("{sheetId}")]
-        public async Task<ActionResult<IEnumerable<Sheet>>> GetRowsInSheet(string sheetId, int page=0)
+        public async Task<ActionResult<Dictionary<string, object>>> GetRowsInSheet(string sheetId, int page=0)
         {
-            int pageSize = 100;
-            return await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
+            int pageSize = 1000;
+            // return await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
+            var result = new Dictionary<string, object>();
+            result.Add("data", await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync());
+            result.Add("totalCount", await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).CountAsync());
+            return result;
+
         }
 
         [HttpGet("getRow")]
@@ -206,7 +202,7 @@ namespace Sheets.Controllers
         [HttpGet("find")]
         public async Task<ActionResult<List<Sheet>>> SearchInSheet(string sheetId, string searchText, [FromQuery]int page=0)
         {
-            int pageSize = 100;
+            int pageSize = 1000;
             // var query = "SELECT * FROM SHEETS WHERE SHEET_ID=@SHEET_ID AND MATCH(*) AGAINST(@SEARCHTEXT IN BOOLEAN MODE);";
             // return await _context.Sheets.FromSqlRaw(query, [new MySqlParameter("@SHEET_ID",sheetId),new MySqlParameter("@SEARCHTEXT", searchText)]).ToListAsync();
             // return await _context.Sheets.Where(x => x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
@@ -231,7 +227,7 @@ namespace Sheets.Controllers
         // [HttpGet("find/getindices")]
         // public async Task<NoContentResult> SearchInSheetAndGetIndices(string sheetId, string searchText, [FromQuery]int page=0)
         // {
-        //     int pageSize = 100;
+        //     int pageSize = 1000;
         //     var query = _context.Sheets.Skip(page*pageSize).Take(pageSize).Select((x,index)=>new SheetWithIndex{Element=x, Index=index}).Where(x => x.Element.Sheet_Id==sheetId && 
         //     (x.Element.Name.Contains(searchText) ||
         //     x.Element.City.Contains(searchText) ||

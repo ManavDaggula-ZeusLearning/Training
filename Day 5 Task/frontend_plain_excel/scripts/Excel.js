@@ -11,11 +11,11 @@ export class Excel{
      * resultArray: Array<[Number,Number]>,
      * currentIndex: Number}}
      */
-    searchObject = {
-        text:"",
-        resultArray:[],
-        currentIndex:null
-    };
+    // searchObject = {
+    //     text:"",
+    //     resultArray:[],
+    //     currentIndex:null
+    // };
     /**
      * Array of menu to be added to the top menu tab bar
      * @type {String[]}
@@ -184,7 +184,7 @@ export class Excel{
         // this.loadSheet(0);
         // let sheet_2 = new Sheet(this.sheetContainer);
         // this.sheets.push(sheet_2);
-        // this.newSheet()
+        this.newSheet("atlcilhf.aix.csv")
 
         window.addEventListener("keydown",(e)=>{
             this.excelKeyHandler(e)
@@ -243,7 +243,7 @@ export class Excel{
             f.remove();
         })
 
-        findBtn.addEventListener("click",(e)=>{
+        /* findBtn.addEventListener("click",(e)=>{
             // console.log(findBtn.form.find.value)
             if(this.searchObject.text!=findBtn.form.find.value){
                 // console.log(findBtn.form.find.value, this.searchObject)
@@ -269,9 +269,23 @@ export class Excel{
                 this.searchObject.currentIndex = !e.shiftKey ? (this.searchObject.currentIndex+1)%this.searchObject.resultArray.length : (this.searchObject.currentIndex>0 ? this.searchObject.currentIndex-1 : this.searchObject.resultArray.length-1);
                 this.sheets[this.currentSheetIndex].scrollCellInView(this.searchObject.resultArray[this.searchObject.currentIndex][0],this.searchObject.resultArray[this.searchObject.currentIndex][1])
             }
+        }) */
+
+        findBtn.addEventListener("click",()=>{
+            let searchText = findBtn.form.find.value;
+            this.sheets[this.currentSheetIndex].findFromDb(searchText).next().then(data => {
+                console.log(data)
+                if(!data.done){
+                    console.log(data.value);
+                    this.sheets[this.currentSheetIndex].scrollCellInView(data.value[0], data.value[1])
+                }
+                else{
+                    window.alert("Reached end of document. No more occurences found.");
+                }
+            })
         })
 
-        replaceBtn.addEventListener("click",()=>{
+        /* replaceBtn.addEventListener("click",()=>{
             if(this.searchObject?.resultArray?.length > 0 && this.searchObject?.text === replaceBtn.form.find.value){
                 // console.log("should replace")
                 let r = this.searchObject.resultArray[this.searchObject.currentIndex][0], c = this.searchObject.resultArray[this.searchObject.currentIndex][1];
@@ -285,7 +299,28 @@ export class Excel{
             else{
                 window.alert("cannot replace (did not find)")
             }
+        }) */
+
+        replaceBtn.addEventListener("click",()=>{
+            let searchText = findBtn.form.find.value;
+            let replaceText = findBtn.form.replace.value;
+            let currSheet = this.sheets[this.currentSheetIndex]
+            console.log(`searchText : ${searchText}, replaceText: ${replaceText}`)
+            currSheet.replaceCellText(currSheet.selectedCell.row, currSheet.selectedCell.col, replaceText, searchText);
+            currSheet.searchObject.currentIndex-=1;
+            currSheet.searchObject.resultArray = currSheet.searchObject.resultArray.slice(0,currSheet.searchObject.currentIndex).concat(currSheet.searchObject.resultArray.slice(currSheet.searchObject.currentIndex+1))
+            currSheet.findFromDb(searchText).next().then(data=>{
+                console.log(data)
+                if(!data.done){
+                    console.log(data.value);
+                    this.sheets[this.currentSheetIndex].scrollCellInView(data.value[0], data.value[1])
+                }
+                else{
+                    window.alert("Reached end of document. No more occurences found.");
+                }
+            })
         })
+
         f.addEventListener("keydown",(e)=>{
             // console.log(e)
             if(e.key==="Escape"){

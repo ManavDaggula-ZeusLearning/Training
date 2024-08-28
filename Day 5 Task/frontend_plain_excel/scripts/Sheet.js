@@ -156,7 +156,7 @@ export class Sheet{
      * Page size i.e. number of rows in a single page
      * @type {Number}
      */
-    pageSize=100;
+    pageSize=1000;
 
     /**
      * Array to map the index of column to its corresponding header in the database
@@ -169,12 +169,14 @@ export class Sheet{
     * @type {{
     * text:String,
     * resultArray: Array<[Number,Number]>,
-    * currentIndex: Number}}
+    * currentIndex: Number,
+    * currentPage: Number}}
     */
     searchObject = {
         text:"",
         resultArray:[],
-        currentIndex:null
+        currentIndex:null,
+        currentPage:null
     };
     
     
@@ -187,7 +189,7 @@ export class Sheet{
         let rows = Object.keys(this.data)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],40)).fill(this.defaultConfig.rowHeight)
         // this.rowSizes = Array(Math.max(rows[rows.length-1],1e5)).fill(this.defaultConfig.rowHeight)
-        this.rowSizes = Array(100).fill(this.defaultConfig.rowHeight)
+        this.rowSizes = Array(this.pageSize).fill(this.defaultConfig.rowHeight)
         let numOfColumns = Math.max(...rows.map(x=>{
             let cols = Object.keys(this.data[x])
             return cols[cols.length-1]
@@ -420,17 +422,20 @@ export class Sheet{
         try{
             let responseData = await fetch(`/api/Sheets/${sheetId}?page=${page}`);
             responseData = await responseData.json();
+            if(this.rowSizes.length<responseData.totalCount){
+                this.rowSizes = Array(responseData.totalCount).fill(this.defaultConfig.rowHeight)
+            }
             // console.log(responseData);
-            for(let i=0; i<responseData.length; i++){
+            for(let i=0; i<responseData.data.length; i++){
                 parsedData[i] = {};
-                Object.keys(responseData[i]).forEach(colHeader => {
-                    // console.log(colHeader, responseData[i][colHeader])
+                Object.keys(responseData.data[i]).forEach(colHeader => {
+                    // console.log(colHeader, responseData.data[i][colHeader])
                     if(colHeaderMap.get(colHeader.toLowerCase())!=undefined){
                         parsedData[i][colHeaderMap.get(colHeader.toLowerCase())] = {};
-                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = responseData[i][colHeader];
+                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = responseData.data[i][colHeader];
                     }
                     else if(colHeader.toLowerCase()=="row_id"){
-                        parsedData[i]["row_id"]=responseData[i][colHeader]
+                        parsedData[i]["row_id"]=responseData.data[i][colHeader]
                     }
                 });
             }
@@ -466,7 +471,7 @@ export class Sheet{
         this.fixCanvasSize();
         this.drawHeader();
         this.drawRowIndices();
-        this.draw();
+        if(!this.drawLoopId){this.draw();}
         this.updateFirstCellCache();
     }
 
@@ -1013,7 +1018,7 @@ export class Sheet{
     setCurrentPageinView(){
         // let pgNo = Math.floor(this.firstCellInViewCache.rowIndex/100)
         let currCenterRow = this.getCellClickIndexFromCache({offsetX:0, offsetY: this.tableDiv.clientHeight}).rowIndex
-        let pgNo = Math.floor(currCenterRow/100)
+        let pgNo = Math.floor(currCenterRow/this.pageSize)
         // console.clear();
         // console.log(pgNo)
         if(this.pageNo>pgNo){
@@ -1028,6 +1033,7 @@ export class Sheet{
         else if(this.pageNo<pgNo){
             // load next page
             // console.log("load next page", pgNo)
+            this.loadData(this.sheetId, pgNo-1)
             this.loadData(this.sheetId, pgNo)
             .then(()=>{
                 // console.log((this.pageNo-1)*this.pageSize)
@@ -1052,7 +1058,7 @@ export class Sheet{
             this.loadData(this.sheetId, this.pageNo);
             console.log(this.data[this.pageNo*this.pageSize])
             console.log("loaded next page", this.pageNo)
-            this.rowSizes = this.rowSizes.concat(Array(100).fill(this.defaultConfig.rowHeight))
+            this.rowSizes = this.rowSizes.concat(Array(this.pageSize).fill(this.defaultConfig.rowHeight))
         }
     }
 
@@ -1326,6 +1332,8 @@ export class Sheet{
                         this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
                     }
                     this.wrapText(e.target.value)
+                    if(!this.drawLoopId) this.draw();
+                    
                 })
                 .catch(err=>{
                     console.log("error in cell update")
@@ -1336,8 +1344,10 @@ export class Sheet{
             }
             else{
                 if(this.selectedCell.col==0){
-                    let newRow = Math.max(...Object.keys(this.data).map(r=> this.pageNo*this.pageSize + r))+1
-                    let requestBody = {"email_id":e.target.value, "sheet_id":this.sheetId,"row_id":newRow};
+                    let newRowIndex = Math.max(...Object.keys(this.data).map(r => Number(r)))
+                    let newRow = this.data[newRowIndex].row_id
+                    console.log(newRow)
+                    let requestBody = {"email_id":e.target.value, "sheet_id":this.sheetId,"row_id":newRow+1};
                     console.log(requestBody);
                     fetch(`/api/Sheets`,{
                         method: "POST",
@@ -2455,23 +2465,60 @@ export class Sheet{
     async *findFromDb(text){
         if(this.searchObject.text!=text){
             // new search
-            // this.searchObject.text = text;
+            this.searchObject.text = text;
+            this.searchObject.currentPage=0;
             if(!this.data[0]){
                 let pageData = await this.fetchPagedData(this.sheetId, 0);
                 let pageArr = this.find(text, pageData)
-                console.log("searching in pg:0 from db");
-                console.log(pageArr)
+                this.searchObject.resultArray = pageArr;
+                this.searchObject.currentIndex = 0;
+                // console.log("searching in pg:0 from db");
+                // console.log(pageArr)
+                if(this.searchObject.currentIndex < this.searchObject.resultArray.length){
+                    yield this.searchObject.resultArray[this.searchObject.currentIndex++]
+                }
             }
             else{
                 let pageArr = this.find(text, this.data);
-                console.log("searching in pg:0 from local");
-                console.log(pageArr)
+                // console.log("searching in pg:0 from local");
+                // console.log(pageArr)
+                this.searchObject.resultArray = pageArr;
+                this.searchObject.currentIndex = 0;
+                if(this.searchObject.currentIndex < this.searchObject.resultArray.length){
+                    yield this.searchObject.resultArray[this.searchObject.currentIndex++]
+                }
             }
         }
         else{
             //continued search
+            if(this.searchObject.currentIndex<this.searchObject.resultArray.length){
+                // no need to fetch another page
+                yield this.searchObject.resultArray[this.searchObject.currentIndex++]
+            }
+            else{
+                // need to fetch another page
+                // console.log("need to fetch next page data")
+                do{
+                    this.searchObject.currentPage+=1;
+                    var pageData = await this.fetchPagedData(this.sheetId, this.searchObject.currentPage);
+                    // if(Object.keys(pageData).length==0){break}
+                    let currRow = this.searchObject.currentPage*this.pageSize;
+                    let newPageData = {};
+                    Object.keys(pageData).forEach((element,index) => {
+                        newPageData[currRow+index] = pageData[element]
+                    });
+                    var pageArr = this.find(text, newPageData)
+                }
+                while(pageArr.length==0 && Object.keys(pageData).length!=0);
+                this.searchObject.resultArray = this.searchObject.resultArray.concat(pageArr);
+                if(this.searchObject.currentIndex < this.searchObject.resultArray.length){
+                    yield this.searchObject.resultArray[this.searchObject.currentIndex++]
+                }
+
+            }
+
         }
-        yield null;
+        // yield null;
     }
 
     /**
@@ -2567,15 +2614,18 @@ export class Sheet{
             // console.log(`row deletion to be done from ${minRow} - ${maxRow}`);
             let requestString = `/api/Sheets?&sheetId=${this.sheetId}`
             let deleteRowArray = []
-            for(let i=minRow; i<=maxRow; i++){
+            for(let i=minRow; i<=maxRow && this.data[i]; i++){
                 // requestString+=`&emailId=${this.data[i][0]["text"]}`
                 deleteRowArray.push(this.data[i][0]["text"])
+                delete this.data[i];
             }
             fetch(requestString,{method:"DELETE", headers: {"Content-Type":"application/json"}, body: JSON.stringify(deleteRowArray)})
             .then(()=>{
                 // console.log("successful deletion")
                 // console.log(response)
+                Object.keys(this.data).filter(x=>Number(x) >= (this.pageNo>0 ? this.pageNo-1 : 0)*this.pageSize).forEach(x=> delete this.data[x])
                 this.loadData(this.sheetId, this.pageNo);
+                if(this.pageNo-1>=0){this.loadData(this.sheetId, this.pageNo-1)}
             })
             .catch(err=>{
                 console.log("Error in delete request")
