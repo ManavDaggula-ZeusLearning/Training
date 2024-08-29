@@ -156,7 +156,7 @@ export class Sheet{
      * Page size i.e. number of rows in a single page
      * @type {Number}
      */
-    pageSize=1000;
+    pageSize=100;
 
     /**
      * Array to map the index of column to its corresponding header in the database
@@ -432,7 +432,7 @@ export class Sheet{
                     // console.log(colHeader, responseData.data[i][colHeader])
                     if(colHeaderMap.get(colHeader.toLowerCase())!=undefined){
                         parsedData[i][colHeaderMap.get(colHeader.toLowerCase())] = {};
-                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = responseData.data[i][colHeader];
+                        parsedData[i][colHeaderMap.get(colHeader.toLowerCase())]["text"] = colHeader.toLowerCase()=="date_of_birth" ? responseData.data[i][colHeader].split("T")[0] : responseData.data[i][colHeader];
                     }
                     else if(colHeader.toLowerCase()=="row_id"){
                         parsedData[i]["row_id"]=responseData.data[i][colHeader]
@@ -1325,14 +1325,19 @@ export class Sheet{
                 .then(response=>{
                     console.log("cell update successful")
                     console.log(response)
-                    if(this.data[this.selectedCell.row][this.selectedCell.col]){
-                        this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+                    if(response.status==500 || response.status==400){
+                        window.alert("Invalid data");
                     }
                     else{
-                        this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+                        if(this.data[this.selectedCell.row][this.selectedCell.col]){
+                            this.data[this.selectedCell.row][this.selectedCell.col]['text'] = e.target.value;
+                        }
+                        else{
+                            this.data[this.selectedCell.row][this.selectedCell.col] = tempCellData;
+                        }
+                        this.wrapText(e.target.value)
+                        if(!this.drawLoopId) this.draw();
                     }
-                    this.wrapText(e.target.value)
-                    if(!this.drawLoopId) this.draw();
                     
                 })
                 .catch(err=>{
@@ -1609,12 +1614,14 @@ export class Sheet{
             if(this.drawLoopId) {window.cancelAnimationFrame(this.drawLoopId)}
             this.drawLoopId = null
             this.lineDashOffset = null;
-            this.pasteRangeToClipboard();
-            if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId)}
-            this.drawLoopId = null
-            this.draw();
-            this.drawHeader();
-            this.drawRowIndices();
+            this.pasteRangeToClipboard()
+            .then(()=>{
+                if(this.drawLoopId){window.cancelAnimationFrame(this.drawLoopId)}
+                this.drawLoopId = null
+                this.draw();
+                this.drawHeader();
+                this.drawRowIndices();
+            })
         }
         else if(e.key.toLowerCase()=="x" && e.ctrlKey){
             this.lineDashOffset = 0;
@@ -2115,10 +2122,19 @@ export class Sheet{
     /**
      * Function to paste copied cells data to the sheet
      */
-    pasteRangeToClipboard(){
+    async pasteRangeToClipboard(){
         if(Sheet.cellsCopiedArray.length==0){return}
+        // making sure pasted data is present for getting email of updated rows
+        let currMaxRow = Math.max(...Object.keys(this.data))
+        let pasteRowCount = Math.max(...Sheet.cellsCopiedArray.map(x=>x[0]))
+        // console.log(pasteRowCount)
+        for (let i=this.pageNo;this.selectedCell.row+pasteRowCount>currMaxRow;i++){
+            await this.loadData(this.sheetId, i+1);
+            currMaxRow+=this.pageSize;
+        }
+
         let requestData = {}
-        console.log(Sheet.cellsCopiedArray)
+        // console.log(Sheet.cellsCopiedArray)
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
         for(let cellData of Sheet.cellsCopiedArray){
@@ -2159,20 +2175,19 @@ export class Sheet{
         }
 
         // sending paste updates to server
-        fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
-            method:"PATCH",
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body:JSON.stringify(requestData)
-        })
-        .then(()=>{
-            console.log("cell updates (paste) successful");
-        })
-        .catch(err=>{
+        try{
+            await fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+                method:"PATCH",
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body:JSON.stringify(requestData)
+            })
+        }
+        catch(err){
             console.log("error in paste");
             console.error(err);
-        })
+        }
     }
 
     /**
@@ -2461,6 +2476,29 @@ export class Sheet{
         return arr;
     }
 
+    async findFromAPI(sheetId, findText, pageNo){
+        let arr = [];
+        try{
+            let response = await fetch(`/api/Sheets/find/getIndices?&sheetId=${sheetId}&searchText=${findText}&page_no=${pageNo}`)
+            let data = await response.json();
+            // console.log(data)
+            data.forEach(d=>{
+                // console.log(d.index)
+                let colArr = Object.keys(d.element).filter(x=>new String(d.element[x]).includes(findText))
+                colArr.forEach(c=>{
+                    arr.push([d.index, this.colIndexMap.indexOf(c.toLowerCase())])
+                })
+
+            })
+            console.log(arr)
+        }
+        catch(err){
+            console.log("Error in find from api");
+            throw err;
+        }
+        return arr;
+    }
+
     /**Generator Function to search  */
     async *findFromDb(text){
         if(this.searchObject.text!=text){
@@ -2468,8 +2506,8 @@ export class Sheet{
             this.searchObject.text = text;
             this.searchObject.currentPage=0;
             if(!this.data[0]){
-                let pageData = await this.fetchPagedData(this.sheetId, 0);
-                let pageArr = this.find(text, pageData)
+                
+                let pageArr = await this.findFromAPI(this.sheetId, text, 0);
                 this.searchObject.resultArray = pageArr;
                 this.searchObject.currentIndex = 0;
                 // console.log("searching in pg:0 from db");
@@ -2498,18 +2536,25 @@ export class Sheet{
             else{
                 // need to fetch another page
                 // console.log("need to fetch next page data")
+                // do{
+                //     this.searchObject.currentPage+=1;
+                //     var pageData = await this.fetchPagedData(this.sheetId, this.searchObject.currentPage);
+                //     // if(Object.keys(pageData).length==0){break}
+                //     let currRow = this.searchObject.currentPage*this.pageSize;
+                //     let newPageData = {};
+                //     Object.keys(pageData).forEach((element,index) => {
+                //         newPageData[currRow+index] = pageData[element]
+                //     });
+                //     var pageArr = this.find(text, newPageData)
+                // }
+                // while(pageArr.length==0 && Object.keys(pageData).length!=0);
+                let shouldStop = false;
                 do{
                     this.searchObject.currentPage+=1;
-                    var pageData = await this.fetchPagedData(this.sheetId, this.searchObject.currentPage);
-                    // if(Object.keys(pageData).length==0){break}
-                    let currRow = this.searchObject.currentPage*this.pageSize;
-                    let newPageData = {};
-                    Object.keys(pageData).forEach((element,index) => {
-                        newPageData[currRow+index] = pageData[element]
-                    });
-                    var pageArr = this.find(text, newPageData)
+                    var pageArr = await this.findFromAPI(this.sheetId, text, this.searchObject.currentPage)
+                    
                 }
-                while(pageArr.length==0 && Object.keys(pageData).length!=0);
+                while(!shouldStop && pageArr.length==0)
                 this.searchObject.resultArray = this.searchObject.resultArray.concat(pageArr);
                 if(this.searchObject.currentIndex < this.searchObject.resultArray.length){
                     yield this.searchObject.resultArray[this.searchObject.currentIndex++]

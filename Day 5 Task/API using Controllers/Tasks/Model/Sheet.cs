@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace Sheets.Model{
 
-    // public partial class SheetWithIndex{
-    //     public Sheet Element {get; set;}
-    //     public int Index {get; set;}
-    // }
+    public class SheetWithIndex{
+        public Sheet Element {get; set;}
+        public int Index {get; set;}
+    }
 
 
     [PrimaryKey(nameof(Sheet_Id),nameof(Row_Id),nameof(Email_Id))]
@@ -45,6 +41,8 @@ namespace Sheets.Model{
         public string? Country { get; set; }
         public string? State { get; set; }
         public string? City { get; set; }
+
+        [RegularExpression(@"^\d{10}$", ErrorMessage = "Telephone number must be exactly 10 digits.")]
         public string? Telephone_no { get; set; }
         public string? Address_Line_1 { get; set; }
         public string? Address_Line_2 { get; set; }
