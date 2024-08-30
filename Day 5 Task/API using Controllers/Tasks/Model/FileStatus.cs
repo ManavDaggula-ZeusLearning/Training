@@ -4,7 +4,7 @@ namespace Sheets.Model{
 
     [PrimaryKey(nameof(FileId))]
     public class FileStatus{
-        public string FileId {get; set;}
+        public required string FileId {get; set;}
         public double CompletionPercentage {get; set;} = 0;
     }
 }

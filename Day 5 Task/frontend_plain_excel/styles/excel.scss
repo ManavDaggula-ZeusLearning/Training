@@ -309,3 +309,25 @@
     }
     
 }
+
+.file-opener-div{
+    background-color: white;
+    width: 60%;
+    height: 70%;
+    position: relative;
+    top: 15%;
+    // left: 20%;
+    margin: auto;
+    pointer-events: all;
+
+    .file-card{
+        h2{
+            cursor: default;
+        }
+    }
+    .file-icon{
+        background-image: url("./../assets/xlsx.svg");
+        width: 1em;
+        aspect-ratio: 1/1;
+    }
+}

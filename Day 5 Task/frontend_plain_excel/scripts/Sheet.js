@@ -2124,6 +2124,7 @@ export class Sheet{
      */
     async pasteRangeToClipboard(){
         if(Sheet.cellsCopiedArray.length==0){return}
+        let bakupData = JSON.stringify(this.data);
         // making sure pasted data is present for getting email of updated rows
         let currMaxRow = Math.max(...Object.keys(this.data))
         let pasteRowCount = Math.max(...Sheet.cellsCopiedArray.map(x=>x[0]))
@@ -2138,24 +2139,26 @@ export class Sheet{
         let firstCol = Math.min(this.selectedRangeStart.col, this.selectedRangeEnd.col);
         let firstRow = Math.min(this.selectedRangeStart.row, this.selectedRangeEnd.row);
         for(let cellData of Sheet.cellsCopiedArray){
-            if(!requestData[this.data[firstRow+cellData[0]][0].text]){
-                requestData[this.data[firstRow+cellData[0]][0].text]={}
-            }
-            if(cellData[2]==null){
-                if(this.data[firstRow+cellData[0]]){
-                    delete this.data[firstRow+cellData[0]][firstCol+cellData[1]]
+            if(this.data[firstRow+cellData[0]]?.[0]){
+                if(!requestData[this.data[firstRow+cellData[0]][0].text]){
+                    requestData[this.data[firstRow+cellData[0]][0].text]={}
                 }
-            }
-            else{
-                if(this.data[firstRow+cellData[0]]){
-                    this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                if(cellData[2]==null){
+                    if(this.data[firstRow+cellData[0]]){
+                        delete this.data[firstRow+cellData[0]][firstCol+cellData[1]]
+                    }
                 }
                 else{
-                    this.data[firstRow+cellData[0]] = {}
-                    this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                    if(this.data[firstRow+cellData[0]]){
+                        this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                    }
+                    else{
+                        this.data[firstRow+cellData[0]] = {}
+                        this.data[firstRow+cellData[0]][firstCol+cellData[1]] = cellData[2]
+                    }
                 }
+                requestData[this.data[firstRow+cellData[0]][0].text][this.colIndexMap[firstCol+cellData[1]]] = cellData[2].text;
             }
-            requestData[this.data[firstRow+cellData[0]][0].text][this.colIndexMap[firstCol+cellData[1]]] = cellData[2].text;
         }
         console.log(requestData)
         this.selectedRangeStart.row = firstRow;
@@ -2176,13 +2179,19 @@ export class Sheet{
 
         // sending paste updates to server
         try{
-            await fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
-                method:"PATCH",
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body:JSON.stringify(requestData)
-            })
+            if(Object.keys(requestData).length!=0){
+                let response = await fetch(`/api/Sheets/updateRow?sheetId=${this.sheetId}`,{
+                    method:"PATCH",
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body:JSON.stringify(requestData)
+                })
+                if(response.status>=400){
+                    window.alert("Invalid data for paste.")
+                    this.data = JSON.parse(bakupData);
+                }
+            }
         }
         catch(err){
             console.log("error in paste");
@@ -2490,7 +2499,7 @@ export class Sheet{
                 })
 
             })
-            console.log(arr)
+            // console.log(arr)
         }
         catch(err){
             console.log("Error in find from api");
@@ -2552,6 +2561,9 @@ export class Sheet{
                 do{
                     this.searchObject.currentPage+=1;
                     var pageArr = await this.findFromAPI(this.sheetId, text, this.searchObject.currentPage)
+                    if(this.searchObject.currentPage*this.pageSize >= this.rowSizes.length){
+                        shouldStop=true;
+                    }
                     
                 }
                 while(!shouldStop && pageArr.length==0)

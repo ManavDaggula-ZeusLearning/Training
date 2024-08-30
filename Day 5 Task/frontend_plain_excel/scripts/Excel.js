@@ -71,6 +71,10 @@ export class Excel{
      * @type {Number}
      */
     currentSheetIndex;
+    /**
+     * File opener div to list the files from the DB
+     */
+    fileOpenerDiv;
 
 
     /**
@@ -175,6 +179,11 @@ export class Excel{
 
         this.findAndReplaceForm = this.createFindReplacePopup()
 
+        this.fileOpenerDiv = document.createElement("div")
+        this.fileOpenerDiv.classList.add("file-opener-div")
+        this.fileOpenerDiv.style.display = "none"
+        this.popupDiv.appendChild(this.fileOpenerDiv)
+
 
 
         // let sheet_1 = new Sheet(this.sheetContainer);
@@ -274,9 +283,9 @@ export class Excel{
         findBtn.addEventListener("click",()=>{
             let searchText = findBtn.form.find.value;
             this.sheets[this.currentSheetIndex].findFromDb(searchText).next().then(data => {
-                console.log(data)
+                // console.log(data)
                 if(!data.done){
-                    console.log(data.value);
+                    // console.log(data.value);
                     this.sheets[this.currentSheetIndex].scrollCellInView(data.value[0], data.value[1])
                 }
                 else{
@@ -439,26 +448,36 @@ export class Excel{
 
         let openFileBtn = document.createElement("button");
         openFileBtn.textContent = "Open"
-        openFileBtn.addEventListener("click",()=>{
-            let fileId = window.prompt("Enter file id");
-            console.log(fileId)
-            if(fileId==null || fileId.trim()==""){
-                window.alert("Enter valid file id");
-                return;
+        openFileBtn.addEventListener("click",(e)=>{
+            // openFileBtn.disabled = true;
+            // let fileId = window.prompt("Enter file id");
+            // console.log(fileId)
+            // if(fileId==null || fileId.trim()==""){
+            //     window.alert("Enter valid file id");
+            //     return;
+            // }
+            // fetch(`/api/FileStatus/doesExist?fileId=${fileId}`)
+            // .then(response=>response.json())
+            // .then(data=>{
+            //     if(!data){
+            //         window.alert("No file found.")
+            //         return
+            //     }
+            //     this.newSheet(fileId);
+            // })
+            // .catch(err=>{
+            //     console.log("err occured");
+            //     console.log(err);
+            // })
+            if(this.fileOpenerDiv.style.display=="none"){
+                this.openFileBrowser(e);
             }
-            fetch(`/api/FileStatus/doesExist?fileId=${fileId}`)
-            .then(response=>response.json())
-            .then(data=>{
-                if(!data){
-                    window.alert("No file found.")
-                    return
-                }
-                this.newSheet(fileId);
-            })
-            .catch(err=>{
-                console.log("err occured");
-                console.log(err);
-            })
+            else{
+                this.fileOpenerDiv.innerHTML = "";
+                // this.fileOpenerDiv.childNodes.forEach(x=>x.remove())
+                this.fileOpenerDiv.style.display = "none";
+                this.popupDiv.style.display = "none";
+            }
 
         })
         fileMenuPanel.appendChild(openFileBtn);
@@ -519,6 +538,36 @@ export class Excel{
         })
         menuTabsContainer.appendChild(graphTab)
 
+    }
+
+    async openFileBrowser(e){
+        let response = await fetch("/api/FileStatus/getFileList")
+        let data = await response.json()
+        // console.log(data)
+        for (const file of data) {
+            console.log(file)
+            let fileCard = document.createElement("div")
+            fileCard.classList.add("file-card")
+            let icon = document.createElement("span")
+            icon.classList.add("file-icon")
+            let name = document.createElement("h2")
+            name.textContent = file
+            fileCard.appendChild(icon)
+            fileCard.appendChild(name)
+            fileCard.addEventListener("click",()=>{
+                console.log(file)
+                this.fileOpenerDiv.innerHTML = "";
+                // this.fileOpenerDiv.childNodes.forEach(x=>x.remove())
+                this.fileOpenerDiv.style.display = "none";
+                this.popupDiv.style.display = "none";
+                // e.target.disabled = false;
+                this.newSheet(file);
+            })
+            this.fileOpenerDiv.appendChild(fileCard)
+
+        }
+        this.fileOpenerDiv.style.display = "block";
+        this.popupDiv.style.display = "block";
     }
     
     /**

@@ -229,4 +229,22 @@
 }
 .find-and-replace:has(#find-radio:checked) .replace-bar, .find-and-replace:has(#find-radio:checked) .replace-btn {
   display: none;
+}
+
+.file-opener-div {
+  background-color: white;
+  width: 60%;
+  height: 70%;
+  position: relative;
+  top: 15%;
+  margin: auto;
+  pointer-events: all;
+}
+.file-opener-div .file-card h2 {
+  cursor: default;
+}
+.file-opener-div .file-icon {
+  background-image: url("./../assets/xlsx.svg");
+  width: 1em;
+  aspect-ratio: 1/1;
 }/*# sourceMappingURL=excel.css.map */

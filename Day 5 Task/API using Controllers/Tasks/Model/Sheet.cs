@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Sheets.Model{
 
     public class SheetWithIndex{
-        public Sheet Element {get; set;}
+        public required Sheet Element {get; set;}
         public int Index {get; set;}
     }
 
@@ -13,7 +13,7 @@ namespace Sheets.Model{
     // [Table(name:"Sheet")]
     public partial class Sheet : SheetCSVData
     {
-        public string Sheet_Id {get; set;} 
+        public required string Sheet_Id {get; set;} 
         public int Row_Id {get; set;}
 
         // [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
@@ -36,7 +36,7 @@ namespace Sheets.Model{
     // [NotMapped]
     public partial class SheetCSVData{
         [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
-        public string Email_Id { get; set; }
+        public required string Email_Id { get; set; }
         public string? Name { get; set; }
         public string? Country { get; set; }
         public string? State { get; set; }

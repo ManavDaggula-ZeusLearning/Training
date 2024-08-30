@@ -45,6 +45,12 @@ namespace Sheets.Controllers
             }
             return false;
         }
+
+        [HttpGet("getFileList")]
+        public async Task<ActionResult<List<String>>> GetFileList()
+        {
+            return await _context.FileStatuses.Select(x=>x.FileId).ToListAsync();
+        }
           
     }
 }
