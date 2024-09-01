@@ -32,7 +32,7 @@ consumer.Received += async (model, ea) =>
     var message = Encoding.UTF8.GetString(body);
     if(File.Exists(Path.Combine("../tempFiles", message))){
         var taskList = new List<Task>();
-        // var dataAccessor = new DataAccessor();
+        var dataAccessor = new DataAccessor();
         // Console.WriteLine(message);
         // var taskList = new List<Task>();
         // var todoContext = new TodoContext();
@@ -122,16 +122,16 @@ consumer.Received += async (model, ea) =>
             } */
 
             for(int i=0; i<records.Count; i+=countOfRecordsInAChunk){
-                var dataAccessor = new DataAccessor();
+                // var dataAccessor = new DataAccessor();
                 var chunkList = records.Skip(i).Take(countOfRecordsInAChunk).ToList();
-                taskList.Add(dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk,i));
+                // taskList.Add(dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk,i));
                 // Console.WriteLine(i/countOfRecordsInAChunk);
-                // await dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk);
+                await dataAccessor.BulkInsert(chunkList, message, percentageIncrementPerChunk, i);
             }
         }
         // Console.WriteLine(chunkCount);
         await Task.WhenAll(taskList);
-        // await dataAccessor.CloseAsync();
+        await dataAccessor.CloseAsync();
         File.Delete(Path.Combine("../tempFiles", message));
         sw.Stop();
         Console.WriteLine($"total Elapsed for={sw.Elapsed}");

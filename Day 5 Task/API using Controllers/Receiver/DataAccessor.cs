@@ -71,7 +71,7 @@ namespace Receiver{
             MySqlCommand cmd = new MySqlCommand(query,conn);
             cmd.ExecuteNonQuery(); */
 
-            var queryPart1 = @"INSERT INTO SHEETS (Sheet_ID, Row_Id,Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ";
+            var queryPart1 = @"INSERT INTO Sheets (Sheet_ID, Row_Id,Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ";
             var queryPart3 = @" AS NEWVALUES ON DUPLICATE KEY UPDATE Name=NEWVALUES.Name, Country=NEWVALUES.Country, State=NEWVALUES.State, City=NEWVALUES.City, Telephone_no=NEWVALUES.Telephone_no, Address_Line_1=NEWVALUES.Address_Line_1, Address_Line_2=NEWVALUES.Address_Line_2, Date_of_Birth=NEWVALUES.Date_of_Birth, FY_2019_20=NEWVALUES.FY_2019_20, FY_2020_21=NEWVALUES.FY_2020_21, FY_2021_22=NEWVALUES.FY_2021_22, FY_2022_23=NEWVALUES.FY_2022_23, FY_2023_24=NEWVALUES.FY_2023_24;";
             var queryPart2 = new StringBuilder();
             // var query = $"INSERT INTO SHEETS (Sheet_ID, Email_ID, Name, Country, State, City, Telephone_no, Address_Line_1, Address_Line_2, Date_of_Birth, FY_2019_20, FY_2020_21, FY_2021_22, FY_2022_23, FY_2023_24) VALUES ('{sheetName}',@email,@name,@country,@state,@city,@telephone,@address1,@address2,@dob,@fy2019,@fy2020,@fy2021,@fy2022,@fy2023) AS NEWVALUES ON DUPLICATE KEY UPDATE Name=NEWVALUES.Name, Country=NEWVALUES.Country, State=NEWVALUES.State, City=NEWVALUES.City, Telephone_no=NEWVALUES.Telephone_no, Address_Line_1=NEWVALUES.Address_Line_1, Address_Line_2=NEWVALUES.Address_Line_2, Date_of_Birth=NEWVALUES.Date_of_Birth, FY_2019_20=NEWVALUES.FY_2019_20, FY_2020_21=NEWVALUES.FY_2020_21, FY_2021_22=NEWVALUES.FY_2021_22, FY_2022_23=NEWVALUES.FY_2022_23, FY_2023_24=NEWVALUES.FY_2023_24;";
@@ -114,7 +114,7 @@ namespace Receiver{
                 MySqlCommand cmd = new MySqlCommand(query,conn);
                 await cmd.ExecuteNonQueryAsync();
 
-                query = $"UPDATE FILESTATUSES SET COMPLETIONPERCENTAGE = COMPLETIONPERCENTAGE + {percentageIncrementPerChunk} WHERE FILEID='{MySqlHelper.EscapeString(sheetName)}';";
+                query = $"UPDATE FileStatuses SET COMPLETIONPERCENTAGE = COMPLETIONPERCENTAGE + {percentageIncrementPerChunk} WHERE FILEID='{MySqlHelper.EscapeString(sheetName)}';";
                 cmd = new MySqlCommand(query,conn);
                 await cmd.ExecuteNonQueryAsync();
                 // Console.WriteLine("chunk added");
@@ -122,7 +122,7 @@ namespace Receiver{
             }
             // sw.Stop();
             // Console.WriteLine(sw.Elapsed);
-            await conn.CloseAsync();
+            // await conn.CloseAsync();
         }
 
         public async Task CloseAsync(){

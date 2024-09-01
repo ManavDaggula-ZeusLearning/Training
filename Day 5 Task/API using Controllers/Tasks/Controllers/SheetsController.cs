@@ -31,16 +31,48 @@ namespace Sheets.Controllers
         }
         
         [HttpGet("{sheetId}")]
-        public async Task<ActionResult<Dictionary<string, object>>> GetRowsInSheet(string sheetId, int page=0)
+        public async Task<ActionResult<Dictionary<string, object>>> GetRowsInSheet(string sheetId, int page = 0)
         {
-            // int pageSize = 100;
-            // return await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).Skip(page*pageSize).Take(pageSize).ToListAsync();
-            var result = new Dictionary<string, object>();
-            result.Add("data", await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).OrderBy(x=>x.Row_Id).Skip(page*_pageSize).Take(_pageSize).ToListAsync());
-            result.Add("totalCount", await _context.Sheets.Where(x=>x.Sheet_Id==sheetId).CountAsync());
-            return result;
+            // Validate input parameters
+            if (string.IsNullOrWhiteSpace(sheetId))
+            {
+                return BadRequest("Sheet ID cannot be null or empty.");
+            }
+            if (page < 0)
+            {
+                return BadRequest("Page number cannot be negative.");
+            }
 
+            try
+            {
+                // Calculate total number of rows for the given sheet
+                int totalCount = await _context.Sheets
+                    .Where(x => x.Sheet_Id == sheetId)
+                    .CountAsync();
+
+                // Fetch the paginated rows
+                var sheetData = await _context.Sheets
+                    .Where(x => x.Sheet_Id == sheetId)
+                    .OrderBy(x => x.Row_Id)
+                    .Skip(page * _pageSize)
+                    .Take(_pageSize)
+                    .ToListAsync();
+
+                // Prepare the result
+                var result = new Dictionary<string, object>
+                {
+                    { "data", sheetData },
+                    { "totalCount", totalCount }
+                };
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while fetching the sheet data.");
+            }
         }
+
 
         [HttpGet("getRow")]
         public async Task<ActionResult<Sheet>> GetRow(string emailId, string sheetId){
@@ -56,25 +88,32 @@ namespace Sheets.Controllers
         [HttpPost]
         public async Task<ActionResult<Sheet>> PostSheet(Sheet sheet)
         {
-            _context.Sheets.Add(sheet);
-            await _context.SaveChangesAsync();
+            try{
+                _context.Sheets.Add(sheet);
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception e){
+                return StatusCode(500, "An error occurred at server.");
+            }
 
-            return CreatedAtAction("PostSheet", new { id = sheet.Email_Id }, sheet);
+            return CreatedAtAction("PostSheet", ModelState.IsValid, sheet);
         }
 
         // POST : /api/Sheets/uploadFile
         [HttpPost("uploadFile")]
         public async Task<IActionResult> FromFile(IFormFile file)
         {
-            // Console.WriteLine(file.ContentType);
-            // Console.WriteLine(file.FileName);
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Invalid file or corrupted file.");
+            }
             string ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (string.IsNullOrEmpty(ext) || !_permittedExtensions.Contains(ext)){
                 return BadRequest("Invalid file type for a csv file.");
             }
 
             string filePath;
-            if (file.Length > 0)
+            try
             {
                 filePath = Path.GetRandomFileName()+".csv";
                 Console.WriteLine(filePath);
@@ -92,24 +131,58 @@ namespace Sheets.Controllers
                 Console.WriteLine($" [x] Sent {filePath}");
                 return Ok(filePath);
             }
-            else{
-                return BadRequest("Invalid file/corrupted file.");
+            catch(Exception e){
+                return StatusCode(500,"Error processing file.");
             }
 
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteRow(string sheetId, [FromBody]List<string> emailId)
+        public async Task<IActionResult> DeleteRow(string sheetId, [FromBody] List<string> emailIds)
         {
-            // var query = _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id));
-            // Console.WriteLine(query.ToQueryString());
-            int firstRowId = (await _context.Sheets.Where(x=> x.Email_Id==emailId[0] && x.Sheet_Id==sheetId).ToListAsync())[0].Row_Id;
-            await _context.Sheets.Where(x=> x.Sheet_Id==sheetId && emailId.Contains(x.Email_Id)).ExecuteDeleteAsync();
-            // await _context.Database.ExecuteSqlRawAsync($"call update_row_ids({firstRowId},{emailId.Count});");
-            // await _context.Sheets.Where(x=>x.Row_Id>=firstRowId).ExecuteUpdateAsync(setters=> setters.SetProperty(x=>x.Row_Id, x=>x.Row_Id-emailId.Count));
-            // await _context.Sheets.Where(x=>x.Sheet_Id==sheetId && x.Email_Id==emailId).ExecuteDeleteAsync();
-            return NoContent();
+            // Validate input parameters
+            if (string.IsNullOrEmpty(sheetId))
+            {
+                return BadRequest("Sheet ID cannot be null or empty.");
+            }
+            if (emailIds == null || emailIds.Count == 0)
+            {
+                return BadRequest("Email ID list cannot be null or empty.");
+            }
+
+            try
+            {
+                // Get the first row ID for further processing
+                var firstRow = await _context.Sheets
+                    .Where(x => x.Sheet_Id == sheetId && emailIds.Contains(x.Email_Id))
+                    .OrderBy(x => x.Row_Id)
+                    .FirstOrDefaultAsync();
+
+                if (firstRow == null)
+                {
+                    return NotFound("No matching rows found for the provided sheet ID and email IDs.");
+                }
+
+                int firstRowId = firstRow.Row_Id;
+
+                // Perform deletion
+                await _context.Sheets
+                    .Where(x => x.Sheet_Id == sheetId && emailIds.Contains(x.Email_Id))
+                    .ExecuteDeleteAsync();
+
+                // Uncomment and modify the following lines if row ID updates are necessary:
+                // await _context.Database.ExecuteSqlRawAsync($"call update_row_ids({firstRowId}, {emailIds.Count});");
+                // await _context.Sheets.Where(x => x.Row_Id >= firstRowId)
+                //     .ExecuteUpdateAsync(setters => setters.SetProperty(x => x.Row_Id, x => x.Row_Id - emailIds.Count));
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request.");
+            }
         }
+
 
         /* [HttpPatch("updateRow")]
         public async Task<IActionResult> UpdateRow(string sheetId, [FromBody]Dictionary<string,Dictionary<string,Object>> newValues)

@@ -75,6 +75,11 @@ export class Excel{
      * File opener div to list the files from the DB
      */
     fileOpenerDiv;
+    /**
+     * Status toasts container that contains all toasts
+     * @type {HTMLDivElement}
+     */
+    statusToastsContainer;
 
 
     /**
@@ -184,16 +189,12 @@ export class Excel{
         this.fileOpenerDiv.style.display = "none"
         this.popupDiv.appendChild(this.fileOpenerDiv)
 
+        this.statusToastsContainer = document.createElement("div")
+        this.statusToastsContainer.classList.add("status-toast-container")
+        excelContainer.appendChild(this.statusToastsContainer)
 
-
-        // let sheet_1 = new Sheet(this.sheetContainer);
-        // window.s = sheet_1;
-        // this.sheets.push(sheet_1);
-        // this.currentSheetIndex = 0;
-        // this.loadSheet(0);
-        // let sheet_2 = new Sheet(this.sheetContainer);
-        // this.sheets.push(sheet_2);
-        this.newSheet("rmn0hfk4.t20.csv")
+        // Default sheet id to load
+        this.newSheet("hbhcurop.34b.csv")
 
         window.addEventListener("keydown",(e)=>{
             this.excelKeyHandler(e)
@@ -378,6 +379,41 @@ export class Excel{
     }
 
     /**
+     * Function used to add a toast to show the live status of the corresponding sheet
+     * @param {String} sheetId - Sheet Id for the corresponding sheet
+     */
+    addToast(sheetId){
+        let newToastDiv = document.createElement("div");
+        let name = document.createElement("span")
+        name.textContent = sheetId
+        let progressBar = document.createElement("progress")
+        progressBar.max = 1;
+        newToastDiv.appendChild(name)
+        newToastDiv.appendChild(progressBar)
+        this.statusToastsContainer.appendChild(newToastDiv)
+        let pollingId = setInterval(()=>{
+            fetch(`/api/FileStatus/status/${sheetId}`)
+            .then(response=>response.text())
+            .then(data=>{
+                console.log(data);
+                progressBar.value = data;
+                if(data>=1){
+                    console.log("clearing poller");
+                    clearInterval(pollingId);
+                    this.newSheet(sheetId);
+                    newToastDiv.remove();
+                }
+            })
+            .catch(err=>{
+                console.log("Error in polling request");
+                console.log(err);
+                clearInterval(pollingId);
+                newToastDiv.remove();
+            })
+        },500)
+    }
+
+    /**
      * Funtion to create and append tabs to the menu tab container
      * @param {HTMLElement} menuTabsContainer - container to which the prepared menu tabs will be appended
      */
@@ -418,23 +454,24 @@ export class Excel{
                   })
                   .then(response => {
                     console.log('Server response:', response);
-                    let pollingId = setInterval(()=>{
-                        fetch(`/api/FileStatus/status/${response}`)
-                        .then(response=>response.text())
-                        .then(data=>{
-                            console.log(data);
-                            if(data>=1){
-                                console.log("clearing poller");
-                                clearInterval(pollingId);
-                                this.newSheet(response);
-                            }
-                        })
-                        .catch(err=>{
-                            console.log("Error in polling request");
-                            console.log(err);
-                            clearInterval(pollingId);
-                        })
-                    },500)
+                    this.addToast(response)
+                    // let pollingId = setInterval(()=>{
+                    //     fetch(`/api/FileStatus/status/${response}`)
+                    //     .then(response=>response.text())
+                    //     .then(data=>{
+                    //         console.log(data);
+                    //         if(data>=1){
+                    //             console.log("clearing poller");
+                    //             clearInterval(pollingId);
+                    //             this.newSheet(response);
+                    //         }
+                    //     })
+                    //     .catch(err=>{
+                    //         console.log("Error in polling request");
+                    //         console.log(err);
+                    //         clearInterval(pollingId);
+                    //     })
+                    // },500)
                   })
                   .catch(error => {
                     console.error('Error uploading file:', error);

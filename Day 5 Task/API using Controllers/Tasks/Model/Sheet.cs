@@ -35,8 +35,10 @@ namespace Sheets.Model{
 
     // [NotMapped]
     public partial class SheetCSVData{
-        [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
-        public required string Email_Id { get; set; }
+        // [RegularExpression (@"^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$")]
+        [Required]
+        [EmailAddress]
+        public string Email_Id { get; set; }
         public string? Name { get; set; }
         public string? Country { get; set; }
         public string? State { get; set; }
