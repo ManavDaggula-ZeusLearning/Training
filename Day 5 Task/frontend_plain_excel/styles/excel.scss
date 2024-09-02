@@ -312,8 +312,10 @@
 
 .file-opener-div{
     background-color: white;
+    // border: 3px solid rgba($color: grey, $alpha: 0.5);
+    border-radius: 4px;
     width: 60%;
-    height: 70%;
+    height: max-content;
     position: relative;
     top: 15%;
     // left: 20%;
@@ -321,13 +323,18 @@
     pointer-events: all;
 
     .file-card{
+        display: flex;
+        align-items: center;
+        gap: 1em;
+        margin-left: 1em;
         h2{
             cursor: default;
         }
     }
     .file-icon{
         background-image: url("./../assets/xlsx.svg");
-        width: 1em;
+        display: inline-block;
+        width: 3em;
         aspect-ratio: 1/1;
     }
 }
@@ -335,10 +342,26 @@
 .status-toast-container{
     position: absolute;
     right: 0px;
+  div{
+    margin: 0.4em;
+    padding:1em;
+    display: flex;
+    gap: 0.4em;
+    align-items:center;
+    box-shadow: 0px 0px 2px 2px #107c4166;
+    background: white;
+    border-radius: 4px;
+  }
     span{
 
     }
-    progress{
-
+  progress{
+    appearance: none;
+    &::-webkit-progress-bar{
+      background:#eeeeee99;
     }
+    &::-webkit-progress-value{
+      background:#107c41;
+    }
+  }
 }

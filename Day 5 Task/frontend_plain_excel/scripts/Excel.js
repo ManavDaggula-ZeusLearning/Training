@@ -194,7 +194,7 @@ export class Excel{
         excelContainer.appendChild(this.statusToastsContainer)
 
         // Default sheet id to load
-        this.newSheet("hbhcurop.34b.csv")
+        // this.newSheet("hbhcurop.34b.csv")
 
         window.addEventListener("keydown",(e)=>{
             this.excelKeyHandler(e)
@@ -401,7 +401,9 @@ export class Excel{
                     console.log("clearing poller");
                     clearInterval(pollingId);
                     this.newSheet(sheetId);
-                    newToastDiv.remove();
+                    setTimeout(()=>{
+                        newToastDiv.remove();
+                    },1000)
                 }
             })
             .catch(err=>{
@@ -577,7 +579,7 @@ export class Excel{
 
     }
 
-    async openFileBrowser(e){
+    async openFileBrowser(){
         let response = await fetch("/api/FileStatus/getFileList")
         let data = await response.json()
         // console.log(data)
