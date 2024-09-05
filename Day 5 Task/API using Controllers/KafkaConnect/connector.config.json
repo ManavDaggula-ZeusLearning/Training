@@ -1,0 +1,21 @@
+{
+    "name": "debezium-trial",
+    "config": {
+      "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+      "database.user": "debezium",
+      "database.server.id": "184054",
+      "tasks.max": "1",
+      "database.history.kafka.bootstrap.servers": "kafka:9092",
+      "database.history.kafka.topic": "dbhistory.task5",
+      "database.server.name": "dbserver1",
+      "database.port": "3306",
+      "key.converter.schemas.enable": "false",
+      "database.hostname": "172.19.32.1",
+      "database.password": "root",
+      "value.converter.schemas.enable": "false",
+      "name": "debezium-trial",
+      "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+      "database.include.list": "task5"
+  }
+  }
