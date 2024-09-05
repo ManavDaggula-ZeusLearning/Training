@@ -12,33 +12,42 @@ namespace KafkaConnect.Sink{
 
         public IMongoCollection<Sheet> SheetCollection;
         public int ConnectorId;
+        public string _topic;
+        public string _groupId;
 
         public SinkConnector(string topic, string groupId)
         {
             ConnectorId = ConnectorCount++;
-            var config = new ConsumerConfig
-            {
-                // Fixed properties
-                GroupId         = groupId,
-                // User-specific properties that you must set
-                BootstrapServers = "localhost:9092",
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-            };
+            _topic = topic;
+            _groupId = groupId;
 
             // mongodb connection
             var mongoClient = new MongoClient("mongodb://localhost:27017");
             var dbName = mongoClient.GetDatabase("task5");
             SheetCollection = dbName.GetCollection<Sheet>("sheets");
 
+            BeginConsumption();
+
+        }
+
+        public async Task BeginConsumption()
+        {
+            var config = new ConsumerConfig
+            {
+                // Fixed properties
+                GroupId         = _groupId,
+                // User-specific properties that you must set
+                BootstrapServers = "localhost:9092",
+                AutoOffsetReset = AutoOffsetReset.Earliest,
+            };
             CancellationTokenSource cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, e) => {
                 e.Cancel = true; // prevent the process from terminating.
                 cts.Cancel();
             };
-
             using (var consumer = new ConsumerBuilder<byte[], byte[]>(config).Build())
             {
-                consumer.Subscribe(topic);
+                consumer.Subscribe(_topic);
                 Console.WriteLine($"{ConnectorId} Listening");
                 try
                 {
@@ -58,15 +67,17 @@ namespace KafkaConnect.Sink{
                             // Console.WriteLine(afterData);
                             if(jelement.op=="c"||jelement.op=="r"){
                                 // insert
+                                Console.WriteLine("insert");
                                 // await SheetCollection.InsertOneAsync(afterData);
-                                SheetCollection.InsertOne(afterData);
-                                consumer.Commit(cr);
+                                await SheetCollection.InsertOneAsync(afterData);
+                                // consumer.Commit(cr);
                             }
                             else if(jelement.op=="u"){
                                 // update
+                                Console.WriteLine("update");
                                 var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
-                                SheetCollection.ReplaceOne(filter,afterData);
-                                consumer.Commit(cr);
+                                await SheetCollection.ReplaceOneAsync(filter,afterData);
+                                // consumer.Commit(cr);
                             }
                             // Console.WriteLine();
                         }
@@ -74,14 +85,14 @@ namespace KafkaConnect.Sink{
                             Console.WriteLine("deleting row...");
                             // collection.DeleteOne(x=>x.Sheet_Id==)
                             var keyString = Encoding.UTF8.GetString(cr.Message.Key);
-                            Console.WriteLine("key:"+keyString);
+                            // Console.WriteLine("key:"+keyString);
                             var keyElement = JsonSerializer.Deserialize<KafkaConnectModelKey>(keyString);
-                            Console.WriteLine(keyElement.Email_Id);
-                            Console.WriteLine(string.IsNullOrEmpty(keyElement.Email_Id));
-                            Console.WriteLine($"Email:{keyElement.Email_Id}, Sheet:{keyElement.Sheet_Id}");
+                            // Console.WriteLine(keyElement.Email_Id);
+                            // Console.WriteLine(string.IsNullOrEmpty(keyElement.Email_Id));
+                            // Console.WriteLine($"Email:{keyElement.Email_Id}, Sheet:{keyElement.Sheet_Id}");
                             var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
-                            SheetCollection.DeleteOne(filter);
-                                consumer.Commit(cr);
+                            await SheetCollection.DeleteOneAsync(filter);
+                                // consumer.Commit(cr);
                         }
                         // var messageValue = JsonSerializer.Deserialize<JsonElement>(jsonString);
                         // Console.WriteLine();
@@ -117,19 +128,20 @@ namespace KafkaConnect.Sink{
                 catch (OperationCanceledException) {
                     // Ctrl-C was pressed.
                 }
+                catch (Exception e) {
+                    Console.WriteLine("Exception occurred");
+                }
                 finally{
                     consumer.Close();
                 }
             }
-
-
         }
 
         static void Main(string[] args){
             for (int i = 0; i < SinkConnector.MaxConnectorCount; i++)
             {
                 Console.WriteLine("New Connector");
-                new SinkConnector("dbserver1.task5.sheets","kafka-connector");
+                new SinkConnector("dbserver1.task5.Sheets","kafka-connector");
             }
         }
     }
