@@ -7,4 +7,10 @@ namespace KafkaConnect.Models{
         // public string before {get;set;}
         public JsonElement after {get; set;}
     }
+    class KafkaConnectModelKey{
+        public string Email_Id {get;set;}
+        // public string before {get;set;}
+        public string Sheet_Id {get; set;}
+        public int Row_Id {get; set;}
+    }
 }

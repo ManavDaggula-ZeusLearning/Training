@@ -29,7 +29,7 @@ Console.CancelKeyPress += (_, e) => {
     cts.Cancel();
 };
 
-using (var consumer = new ConsumerBuilder<Ignore, byte[]>(config)
+using (var consumer = new ConsumerBuilder<byte[], byte[]>(config)
             //.SetValueDeserializer(new ByteArrayDeserializer()) // Deserialize byte array to string
             .Build())
 {
@@ -46,11 +46,11 @@ using (var consumer = new ConsumerBuilder<Ignore, byte[]>(config)
             // Convert JSON string to custom object
             var jelement = JsonSerializer.Deserialize<KafkaConnectModelValue>(jsonString);
             if(jelement.op!="d"){
-                Console.WriteLine("new or changed row..");
-                Console.WriteLine(jelement.after);
+                // Console.WriteLine("new or changed row..");
+                // Console.WriteLine(jelement.after);
                 var afterData = JsonSerializer.Deserialize<Sheet>(jelement.after);
-                Console.WriteLine(afterData);
-                if(jelement.op=="c"){
+                // Console.WriteLine(afterData);
+                if(jelement.op=="c"||jelement.op=="r"){
                     // insert
                     collection.InsertOne(afterData);
                 }
@@ -59,12 +59,19 @@ using (var consumer = new ConsumerBuilder<Ignore, byte[]>(config)
                     var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
                     collection.ReplaceOne(filter,afterData);
                 }
-                Console.WriteLine();
+                // Console.WriteLine();
             }
             else{
                 Console.WriteLine("deleting row...");
                 // collection.DeleteOne(x=>x.Sheet_Id==)
-                Console.WriteLine();
+                var keyString = Encoding.UTF8.GetString(cr.Message.Key);
+                Console.WriteLine("key:"+keyString);
+                var keyElement = JsonSerializer.Deserialize<KafkaConnectModelKey>(keyString);
+                Console.WriteLine(keyElement.Email_Id);
+                Console.WriteLine(string.IsNullOrEmpty(keyElement.Email_Id));
+                Console.WriteLine($"Email:{keyElement.Email_Id}, Sheet:{keyElement.Sheet_Id}");
+                var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
+                await collection.DeleteOneAsync(filter);
             }
             // var messageValue = JsonSerializer.Deserialize<JsonElement>(jsonString);
             // Console.WriteLine();
