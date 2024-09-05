@@ -18,4 +18,4 @@
       "key.converter": "org.apache.kafka.connect.json.JsonConverter",
       "database.include.list": "task5"
   }
-  }
+}

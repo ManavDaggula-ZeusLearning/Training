@@ -11,7 +11,8 @@ var config = new ConsumerConfig
     GroupId         = "kafka-connector",
     // User-specific properties that you must set
     BootstrapServers = "localhost:9092",
-    AutoOffsetReset = AutoOffsetReset.Earliest
+    AutoOffsetReset = AutoOffsetReset.Earliest,
+    EnableAutoCommit=false
 };
 
 var mongoClient = new MongoClient("mongodb://localhost:27017");
@@ -52,12 +53,14 @@ using (var consumer = new ConsumerBuilder<byte[], byte[]>(config)
                 // Console.WriteLine(afterData);
                 if(jelement.op=="c"||jelement.op=="r"){
                     // insert
-                    collection.InsertOne(afterData);
+                    await collection.InsertOneAsync(afterData);
+                    consumer.Commit(cr);
                 }
                 else if(jelement.op=="u"){
                     // update
                     var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
-                    collection.ReplaceOne(filter,afterData);
+                    await collection.ReplaceOneAsync(filter,afterData);
+                    consumer.Commit(cr);
                 }
                 // Console.WriteLine();
             }
@@ -72,6 +75,7 @@ using (var consumer = new ConsumerBuilder<byte[], byte[]>(config)
                 Console.WriteLine($"Email:{keyElement.Email_Id}, Sheet:{keyElement.Sheet_Id}");
                 var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
                 await collection.DeleteOneAsync(filter);
+                    consumer.Commit(cr);
             }
             // var messageValue = JsonSerializer.Deserialize<JsonElement>(jsonString);
             // Console.WriteLine();
