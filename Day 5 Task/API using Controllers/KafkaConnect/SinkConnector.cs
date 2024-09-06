@@ -8,7 +8,7 @@ namespace KafkaConnect.Sink{
     class SinkConnector{
 
         static int ConnectorCount = 0;
-        static int MaxConnectorCount = 1;
+        static int MaxConnectorCount = 6;
 
         public IMongoCollection<Sheet> SheetCollection;
         public int ConnectorId;
@@ -22,17 +22,17 @@ namespace KafkaConnect.Sink{
             _groupId = groupId;
 
             // mongodb connection
-            var mongoClient = new MongoClient("mongodb://localhost:27017");
-            var dbName = mongoClient.GetDatabase("task5");
+            MongoClient mongoClient = new MongoClient("mongodb://localhost:27017");
+            IMongoDatabase dbName = mongoClient.GetDatabase("task5");
             SheetCollection = dbName.GetCollection<Sheet>("sheets");
 
-            BeginConsumption();
+            // Task.Run(BeginConsumption);
 
         }
 
         public async Task BeginConsumption()
         {
-            var config = new ConsumerConfig
+            ConsumerConfig config = new ConsumerConfig
             {
                 // Fixed properties
                 GroupId         = _groupId,
@@ -45,7 +45,7 @@ namespace KafkaConnect.Sink{
                 e.Cancel = true; // prevent the process from terminating.
                 cts.Cancel();
             };
-            using (var consumer = new ConsumerBuilder<byte[], byte[]>(config).Build())
+            using (IConsumer<byte[], byte[]> consumer = new ConsumerBuilder<byte[], byte[]>(config).Build())
             {
                 consumer.Subscribe(_topic);
                 Console.WriteLine($"{ConnectorId} Listening");
@@ -53,76 +53,47 @@ namespace KafkaConnect.Sink{
                 {
                     while (true) {
                         var cr = consumer.Consume(cts.Token);
-                        // Deserialize message value from byte array to string
-                        if(cr.Message.Value!=null){
-                            
-                        var jsonString = Encoding.UTF8.GetString(cr.Message.Value);
-                        // Console.WriteLine(jsonString);
-                        // Convert JSON string to custom object
-                        var jelement = JsonSerializer.Deserialize<KafkaConnectModelValue>(jsonString);
-                        if(jelement.op!="d"){
-                            // Console.WriteLine("new or changed row..");
-                            // Console.WriteLine(jelement.after);
-                            var afterData = JsonSerializer.Deserialize<Sheet>(jelement.after);
-                            // Console.WriteLine(afterData);
-                            if(jelement.op=="c"||jelement.op=="r"){
-                                // insert
-                                Console.WriteLine("insert");
-                                // await SheetCollection.InsertOneAsync(afterData);
-                                await SheetCollection.InsertOneAsync(afterData);
-                                // consumer.Commit(cr);
+                        // if(cr.Message.Value!=null){
+                            // Deserialize message value from byte array to string
+                            if(cr.Message.Value == null){continue;}
+                            var jsonString = Encoding.UTF8.GetString(cr.Message.Value);
+                            // Convert JSON string to custom object
+                            var jelement = JsonSerializer.Deserialize<KafkaConnectModelValue>(jsonString);
+                            if(jelement==null){
+                                //Empty Message
+                                Console.WriteLine("Empty Message");
                             }
-                            else if(jelement.op=="u"){
-                                // update
-                                Console.WriteLine("update");
-                                var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
-                                await SheetCollection.ReplaceOneAsync(filter,afterData);
-                                // consumer.Commit(cr);
+                            else{
+                                if(jelement.op=="c"||jelement.op=="r"){
+                                    // insert
+                                    // Console.WriteLine("insert");
+                                    var afterData = JsonSerializer.Deserialize<Sheet>(jelement.after);
+                                    if(afterData!=null){await SheetCollection.InsertOneAsync(afterData);}
+                                    // consumer.Commit(cr);
+                                }
+                                else if(jelement.op=="u"){
+                                    // update
+                                    // Console.WriteLine("update");
+                                    var afterData = JsonSerializer.Deserialize<Sheet>(jelement.after);
+                                    if(afterData!=null)
+                                    {
+                                        var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
+                                        await SheetCollection.ReplaceOneAsync(filter,afterData);
+                                    }
+                                    // consumer.Commit(cr);
+                                }
+                                else if(jelement.op=="d"){
+                                    // Console.WriteLine("deleting row...");
+                                    var keyString = Encoding.UTF8.GetString(cr.Message.Key);
+                                    var keyElement = JsonSerializer.Deserialize<KafkaConnectModelKey>(keyString);
+                                    if(keyElement!=null){
+                                        var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
+                                        await SheetCollection.DeleteOneAsync(filter);
+                                    }
+                                    // consumer.Commit(cr);
+                                }
                             }
-                            // Console.WriteLine();
-                        }
-                        else{
-                            Console.WriteLine("deleting row...");
-                            // collection.DeleteOne(x=>x.Sheet_Id==)
-                            var keyString = Encoding.UTF8.GetString(cr.Message.Key);
-                            // Console.WriteLine("key:"+keyString);
-                            var keyElement = JsonSerializer.Deserialize<KafkaConnectModelKey>(keyString);
-                            // Console.WriteLine(keyElement.Email_Id);
-                            // Console.WriteLine(string.IsNullOrEmpty(keyElement.Email_Id));
-                            // Console.WriteLine($"Email:{keyElement.Email_Id}, Sheet:{keyElement.Sheet_Id}");
-                            var filter = Builders<Sheet>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
-                            await SheetCollection.DeleteOneAsync(filter);
-                                // consumer.Commit(cr);
-                        }
-                        // var messageValue = JsonSerializer.Deserialize<JsonElement>(jsonString);
-                        // Console.WriteLine();
-                        // string json = messageValue.after.GetRawText();
-                        // Console.WriteLine(string.IsNullOrWhiteSpace(json)||string.IsNullOrEmpty(json));
-                        // Console.WriteLine("New  operation : "+messageValue.op);
-                        // Console.WriteLine(messageValue.op=="d");
-
-
-                        // Deserialize JSON string to custom object
-                        // if(messageValue.op!="d"){
-                        //     var messageValueAfter = JsonSerializer.Deserialize<Sheet?>(json);
-                        //     Type type = messageValueAfter.GetType();
-
-                        //     // Get all properties of the type
-                        //     PropertyInfo[] properties = type.GetProperties();
-
-                        //     foreach (PropertyInfo property in properties)
-                        //     {
-                        //         // Get the name of the property
-                        //         string propertyName = property.Name;
-
-                        //         // Get the value of the property for the given object
-                        //         object propertyValue = property.GetValue(messageValueAfter);
-
-                        //         // Print the property name and value
-                        //         Console.WriteLine($"{propertyName}: {propertyValue}");
-                        //     }
                         // }
-                        }
                     }
                 }
                 catch (OperationCanceledException) {
@@ -130,6 +101,7 @@ namespace KafkaConnect.Sink{
                 }
                 catch (Exception e) {
                     Console.WriteLine("Exception occurred");
+                    Console.WriteLine(e);
                 }
                 finally{
                     consumer.Close();
@@ -137,12 +109,15 @@ namespace KafkaConnect.Sink{
             }
         }
 
-        static void Main(string[] args){
+        static async Task Main(string[] args){
+            List<Task> tasks = [];
             for (int i = 0; i < SinkConnector.MaxConnectorCount; i++)
             {
                 Console.WriteLine("New Connector");
-                new SinkConnector("dbserver1.task5.Sheets","kafka-connector");
+                SinkConnector sinkConnector = new SinkConnector("dbserver1.task5.sheets","kafka-connector");
+                tasks.Add(Task.Run(sinkConnector.BeginConsumption));
             }
+            await Task.WhenAll(tasks);
         }
     }
 }

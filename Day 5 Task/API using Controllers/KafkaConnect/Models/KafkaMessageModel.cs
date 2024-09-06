@@ -5,6 +5,7 @@ namespace KafkaConnect.Models{
     class KafkaConnectModelValue{
         public string op {get;set;}
         // public string before {get;set;}
+        public JsonElement before {get; set;}
         public JsonElement after {get; set;}
     }
     class KafkaConnectModelKey{
