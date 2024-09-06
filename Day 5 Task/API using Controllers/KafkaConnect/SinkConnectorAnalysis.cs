@@ -6,7 +6,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
 namespace KafkaConnect.Sink{
-    class SinkConnector{
+    class SinkConnectorAnalysis{
 
         static int ConnectorCount = 0;
         static int MaxConnectorCount = 5;
@@ -16,7 +16,7 @@ namespace KafkaConnect.Sink{
         public string _topic;
         public string _groupId;
 
-        public SinkConnector(string topic, string groupId)
+        public SinkConnectorAnalysis(string topic, string groupId)
         {
             ConnectorId = ConnectorCount++;
             _topic = topic;
@@ -112,7 +112,7 @@ namespace KafkaConnect.Sink{
 
         static async Task Main(string[] args){
             List<Task> tasks = [];
-            for (int i = 0; i < SinkConnector.MaxConnectorCount; i++)
+            for (int i = 0; i < SinkConnectorAnalysis.MaxConnectorCount; i++)
             {
                 Console.WriteLine("New Connector");
                 SinkConnector sinkConnector = new SinkConnector("dbserver1.task5.sheets","kafka-connector");
