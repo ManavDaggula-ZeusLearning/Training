@@ -5,16 +5,31 @@ using KafkaConnect.Models;
 using MongoDB.Driver;
 using MongoDB.Driver.Linq;
 
+//calculate the current aggregate into static variables and 
+// recalculate at each change
+// insert - add to total age and update all 3
+// delete - subtract from total age and update all 3
+// update - update the total change and update all 3
+
 namespace KafkaConnect.Sink{
     class SinkConnectorAnalysis{
 
         static int ConnectorCount = 0;
         static int MaxConnectorCount = 5;
 
+        // stats for age aggregates
+        static int TotalAge=0;
+        static int MaxAge=0;
+        static int MinAge=0;
+        static int AverageAge = 0;
+        static int TotalRecordCount=0;
+
         public IMongoCollection<SheetMongoModel> SheetCollection;
-        public int ConnectorId;
-        public string _topic;
-        public string _groupId;
+        public IMongoCollection<Report> Reports;
+        
+        public int? ConnectorId=null;
+        public string? _topic=null;
+        public string? _groupId=null;
 
         public SinkConnectorAnalysis(string topic, string groupId)
         {
@@ -26,6 +41,7 @@ namespace KafkaConnect.Sink{
             MongoClient mongoClient = new MongoClient("mongodb://localhost:27017");
             IMongoDatabase dbName = mongoClient.GetDatabase("task5");
             SheetCollection = dbName.GetCollection<SheetMongoModel>("sheets");
+            Reports = dbName.GetCollection<Report>("reports");
 
             // Task.Run(BeginConsumption);
 
@@ -69,7 +85,26 @@ namespace KafkaConnect.Sink{
                                     // insert
                                     // Console.WriteLine("insert");
                                     var afterData = JsonSerializer.Deserialize<SheetMessage>(jelement.after);
-                                    if(afterData!=null){await SheetCollection.InsertOneAsync(afterData.ToMongoModel());}
+                                    if(afterData!=null){
+                                        SheetMongoModel s = afterData.ToMongoModel();
+                                        int yearGap=0;
+                                        var filter = Builders<Report>.Filter.Eq("AverageAge",0);
+                                        var prevReport = (await Reports.FindAsync(filter)).ToList()[0];
+                                        if(s.Date_of_Birth!=null){
+                                            yearGap = DateTime.Now.Year - ((DateTime)s.Date_of_Birth).Year;
+                                        }
+                                        TotalRecordCount++;
+                                        if(MaxAge<yearGap){
+                                            MaxAge=yearGap;
+                                        }
+                                        if(MinAge>yearGap){
+                                            MinAge=yearGap;
+                                        }
+                                        AverageAge = TotalAge/TotalRecordCount;
+                                        await SheetCollection.InsertOneAsync(s);
+                                        await Reports.ReplaceOneAsync(x=>x.AverageAge==prevReport.AverageAge, new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge});
+                                    }
+                                    
                                     // consumer.Commit(cr);
                                 }
                                 else if(jelement.op=="u"){
@@ -98,6 +133,7 @@ namespace KafkaConnect.Sink{
                     }
                 }
                 catch (OperationCanceledException) {
+                    Console.WriteLine($"MaxAge : {MaxAge}, MinAge:{MinAge}, AverageAge:{AverageAge}");
                     // Ctrl-C was pressed.
                 }
                 catch (Exception e) {
@@ -115,10 +151,11 @@ namespace KafkaConnect.Sink{
             for (int i = 0; i < SinkConnectorAnalysis.MaxConnectorCount; i++)
             {
                 Console.WriteLine("New Connector");
-                SinkConnector sinkConnector = new SinkConnector("dbserver1.task5.sheets","kafka-connector");
+                SinkConnectorAnalysis sinkConnector = new SinkConnectorAnalysis("dbserver1.task5.Sheets","kafka-connector");
                 tasks.Add(Task.Run(sinkConnector.BeginConsumption));
             }
             await Task.WhenAll(tasks);
+            Console.WriteLine($"MaxAge : {MaxAge}, MinAge:{MinAge}, AverageAge:{AverageAge}");
         }
     }
 }

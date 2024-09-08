@@ -108,4 +108,10 @@ namespace KafkaConnect.Models
         public float? FY_2022_23 { get; set; }
         public float? FY_2023_24 { get; set; }
     }
+
+    public class Report{
+        public int AverageAge;
+        public int MaxAge;
+        public int MinAge;
+    }
 }
