@@ -1,5 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace KafkaConnect.Models{
     class KafkaConnectModelValue{
