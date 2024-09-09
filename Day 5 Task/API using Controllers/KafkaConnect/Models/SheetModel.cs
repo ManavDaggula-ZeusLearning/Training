@@ -90,6 +90,9 @@ namespace KafkaConnect.Models
     }
 
     public class SheetMongoModel{
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }  
         public required string Sheet_Id {get; set;} 
         public int Row_Id {get; set;}
         public string Email_Id { get; set; }
@@ -110,8 +113,12 @@ namespace KafkaConnect.Models
     }
 
     public class Report{
-        public int AverageAge;
-        public int MaxAge;
-        public int MinAge;
+        [BsonId]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string? Id { get; set; }
+        public float AverageAge;
+        public int MaxAge=int.MinValue;
+        public int MinAge = int.MaxValue;
+        public int TotalRecordCount;
     }
 }
