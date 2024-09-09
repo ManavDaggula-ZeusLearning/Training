@@ -20,8 +20,8 @@ namespace KafkaConnect.Sink{
         // stats for age aggregates
         static int TotalAge=0;
         static int MaxAge=int.MinValue;
-        static int MinAge=int.MaxValue;
         static float AverageAge = 0;
+        static int MinAge=int.MaxValue;
         static int TotalRecordCount=0;
 
         public IMongoCollection<SheetMongoModel> SheetCollection;
@@ -106,6 +106,7 @@ namespace KafkaConnect.Sink{
                                         }
                                         TotalRecordCount++;
                                         TotalAge+=yearGap;
+                                        TotalAge+=yearGap;
                                         if(MaxAge<yearGap){
                                             MaxAge=yearGap;
                                         }
@@ -127,6 +128,8 @@ namespace KafkaConnect.Sink{
                                     // Console.WriteLine("update");
                                     var afterData = JsonSerializer.Deserialize<SheetMessage>(jelement.after);
                                     var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
+                                    // if(afterData!=null && beforeData!=null)
+                                    // var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
                                     if(afterData!=null && beforeData!=null)
                                     {
                                         var afterModel = afterData.ToMongoModel();
@@ -160,6 +163,17 @@ namespace KafkaConnect.Sink{
                                     if(keyElement!=null && beforeData!=null){
                                         var beforeModel = beforeData.ToMongoModel();
                                         int yearGap = 0;
+                                        if(beforeModel.Date_of_Birth!=null){
+                                            yearGap = DateTime.Now.Year - ((DateTime)beforeModel.Date_of_Birth).Year;
+                                        }
+                                        TotalAge-=yearGap;
+                                        TotalRecordCount--;
+                                        AverageAge = (float)TotalAge/TotalRecordCount;
+                                    // var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
+                                    // Report prevReport = Reports.AsQueryable().Where(x=>true).FirstOrDefault();
+                                    if(keyElement!=null && beforeData!=null){
+                                        // var beforeModel = beforeData.ToMongoModel();
+                                        // int yearGap = 0;
                                         if(beforeModel.Date_of_Birth!=null){
                                             yearGap = DateTime.Now.Year - ((DateTime)beforeModel.Date_of_Birth).Year;
                                         }
@@ -208,7 +222,7 @@ namespace KafkaConnect.Sink{
             for (int i = 0; i < SinkConnectorAnalysis.MaxConnectorCount; i++)
             {
                 Console.WriteLine("New Connector");
-                SinkConnectorAnalysis sinkConnector = new SinkConnectorAnalysis("dbserver1.task5.Sheets","kafka-connector");
+                SinkConnectorAnalysis sinkConnector = new SinkConnectorAnalysis("dbserver1.task5.sheets","kafka-connector");
                 tasks.Add(Task.Run(sinkConnector.BeginConsumption));
             }
             await Task.WhenAll(tasks);
