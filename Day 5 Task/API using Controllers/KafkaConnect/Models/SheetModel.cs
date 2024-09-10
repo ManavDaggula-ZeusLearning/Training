@@ -48,6 +48,11 @@ namespace KafkaConnect.Models
                 Telephone_no = Telephone_no
             };
         }
+        public SheetMongoModel ToMongoModel(string id){
+            var s = ToMongoModel();
+            s.Id = id;
+            return s;
+        }
         private DateOnly? ToDateOnlyConverter(long? unixTimestampSeconds){
             if(unixTimestampSeconds==null){return null;}
             else{
@@ -120,5 +125,6 @@ namespace KafkaConnect.Models
         public int MaxAge=int.MinValue;
         public int MinAge = int.MaxValue;
         public int TotalRecordCount;
+        public int TotalAge;
     }
 }

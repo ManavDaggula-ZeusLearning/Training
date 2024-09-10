@@ -53,6 +53,7 @@ namespace KafkaConnect.Sink{
             MinAge = prevReport.MinAge;
             AverageAge = prevReport.AverageAge;
             TotalRecordCount = prevReport.TotalRecordCount;
+            TotalAge = prevReport.TotalAge;
             Console.WriteLine($"MaxAge:{MaxAge} MinAge:{MinAge} AverageAge:{AverageAge} Count:{TotalRecordCount}");
             // Task.Run(BeginConsumption);
 
@@ -60,6 +61,9 @@ namespace KafkaConnect.Sink{
 
         public async Task BeginConsumption()
         {
+            Console.WriteLine("Begining consumption");
+            // await Task.Delay(1000*5);
+            Console.WriteLine("Started");
             ConsumerConfig config = new ConsumerConfig
             {
                 // Fixed properties
@@ -106,7 +110,6 @@ namespace KafkaConnect.Sink{
                                         }
                                         TotalRecordCount++;
                                         TotalAge+=yearGap;
-                                        TotalAge+=yearGap;
                                         if(MaxAge<yearGap){
                                             MaxAge=yearGap;
                                         }
@@ -116,7 +119,7 @@ namespace KafkaConnect.Sink{
                                         AverageAge = (float)TotalAge/TotalRecordCount;
                                         // Console.WriteLine(AverageAge);
                                         await SheetCollection.InsertOneAsync(s);
-                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id};
+                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id, TotalAge=TotalAge};
                                         await Reports.FindOneAndReplaceAsync(x=>x.Id==prevReport.Id,newReport);
                                         prevReport = newReport;
                                     }
@@ -138,9 +141,14 @@ namespace KafkaConnect.Sink{
                                         // Report prevReport = Reports.AsQueryable().Where(x=>true).FirstOrDefault();
                                         // Console.WriteLine($"MaxAge : {prevReport.MaxAge}, MinAge:{prevReport.MinAge}, AverageAge:{prevReport.AverageAge}");
                                         var filter = Builders<SheetMongoModel>.Filter.Where(item => item.Email_Id==afterData.Email_Id && item.Sheet_Id==afterData.Sheet_Id);
-                                        await SheetCollection.ReplaceOneAsync(filter,afterData.ToMongoModel());
+                                        var sheetData = await (await SheetCollection.FindAsync(filter)).FirstOrDefaultAsync();
+                                        var newSheet = afterData.ToMongoModel(sheetData.Id);
+                                        await SheetCollection.ReplaceOneAsync(filter,newSheet);
                                         if(afterModel.Date_of_Birth!=null){
                                             yearGap += DateTime.Now.Year - ((DateTime)afterModel.Date_of_Birth).Year;
+                                        }
+                                        else{
+                                            TotalRecordCount--;
                                         }
                                         if(beforeModel.Date_of_Birth!=null){
                                             yearGap -= DateTime.Now.Year - ((DateTime)beforeModel.Date_of_Birth).Year;
@@ -148,7 +156,7 @@ namespace KafkaConnect.Sink{
                                         TotalAge+=yearGap;
                                         AverageAge = (float)TotalAge/TotalRecordCount;
                                         // await Reports.ReplaceOneAsync(x=>x.AverageAge==prevReport.AverageAge, new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge});
-                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id};
+                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id, TotalAge=TotalAge};
                                         await Reports.FindOneAndReplaceAsync(x=>x.Id==prevReport.Id,newReport);
                                         prevReport = newReport;
                                     }
@@ -160,6 +168,17 @@ namespace KafkaConnect.Sink{
                                     var keyElement = JsonSerializer.Deserialize<KafkaConnectModelKey>(keyString);
                                     var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
                                     Report prevReport = Reports.AsQueryable().Where(x=>true).FirstOrDefault();
+                                    // if(keyElement!=null && beforeData!=null){
+                                    //     var beforeModel = beforeData.ToMongoModel();
+                                    //     int yearGap = 0;
+                                    //     if(beforeModel.Date_of_Birth!=null){
+                                    //         yearGap = DateTime.Now.Year - ((DateTime)beforeModel.Date_of_Birth).Year;
+                                    //     }
+                                    //     TotalAge-=yearGap;
+                                    //     TotalRecordCount--;
+                                    //     AverageAge = (float)TotalAge/TotalRecordCount;
+                                    // var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
+                                    // Report prevReport = Reports.AsQueryable().Where(x=>true).FirstOrDefault();
                                     if(keyElement!=null && beforeData!=null){
                                         var beforeModel = beforeData.ToMongoModel();
                                         int yearGap = 0;
@@ -169,17 +188,7 @@ namespace KafkaConnect.Sink{
                                         TotalAge-=yearGap;
                                         TotalRecordCount--;
                                         AverageAge = (float)TotalAge/TotalRecordCount;
-                                    // var beforeData = JsonSerializer.Deserialize<SheetMessage>(jelement.before);
-                                    // Report prevReport = Reports.AsQueryable().Where(x=>true).FirstOrDefault();
-                                    if(keyElement!=null && beforeData!=null){
-                                        // var beforeModel = beforeData.ToMongoModel();
-                                        // int yearGap = 0;
-                                        if(beforeModel.Date_of_Birth!=null){
-                                            yearGap = DateTime.Now.Year - ((DateTime)beforeModel.Date_of_Birth).Year;
-                                        }
-                                        TotalAge-=yearGap;
-                                        TotalRecordCount--;
-                                        AverageAge = (float)TotalAge/TotalRecordCount;
+                                        Console.WriteLine(yearGap + " " + TotalAge + " " + AverageAge);
                                         var filter = Builders<SheetMongoModel>.Filter.Where(item => item.Email_Id==keyElement.Email_Id && item.Sheet_Id==keyElement.Sheet_Id);
                                         await SheetCollection.DeleteOneAsync(filter);
                                         DateTime? oldest = SheetCollection.Find(x=>x.Date_of_Birth!=null).SortBy(x=>x.Date_of_Birth).FirstOrDefault().Date_of_Birth;
@@ -187,12 +196,12 @@ namespace KafkaConnect.Sink{
                                         if(oldest!=null){
                                             MaxAge = DateTime.Now.Year - ((DateTime)oldest).Year;
                                         }
-                                        var youngest = SheetCollection.AsQueryable().Where(x=>x.Date_of_Birth!=null).OrderByDescending(x=>x.Date_of_Birth).FirstOrDefault().Date_of_Birth;
+                                        var youngest = SheetCollection.Find(x=>x.Date_of_Birth!=null).SortByDescending(x=>x.Date_of_Birth).FirstOrDefault().Date_of_Birth;
                                         if(youngest!=null){
                                             MinAge = DateTime.Now.Year - ((DateTime)youngest).Year;
                                         }
                                         // await Reports.ReplaceOneAsync(x=>x.AverageAge==prevReport.AverageAge, new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge});
-                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id};
+                                        Report newReport = new Report{AverageAge=AverageAge, MaxAge=MaxAge, MinAge=MinAge, TotalRecordCount=TotalRecordCount, Id=prevReport.Id, TotalAge=TotalAge};
                                         await Reports.FindOneAndReplaceAsync(x=>x.Id==prevReport.Id,newReport);
                                         prevReport = newReport;
 
@@ -226,7 +235,7 @@ namespace KafkaConnect.Sink{
                 tasks.Add(Task.Run(sinkConnector.BeginConsumption));
             }
             await Task.WhenAll(tasks);
-            Console.WriteLine($"MaxAge : {MaxAge}, MinAge:{MinAge}, AverageAge:{AverageAge}");
+            Console.WriteLine($"MaxAge : {MaxAge}, MinAge:{MinAge}, AverageAge:{AverageAge} TotalCount:{TotalRecordCount}");
         }
     }
 }
