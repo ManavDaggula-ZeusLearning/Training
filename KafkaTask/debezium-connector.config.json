@@ -10,7 +10,7 @@
       "database.server.name": "dbserver1",
       "database.port": "3306",
       "key.converter.schemas.enable": "false",
-      "database.hostname": "172.21.128.1",
+      "database.hostname": "172.31.16.1",
       "database.password": "root",
       "database.allowPublicKeyRetrieval":"true",
       "value.converter.schemas.enable": "false",

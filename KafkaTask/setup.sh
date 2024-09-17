@@ -21,6 +21,7 @@ docker run -d --rm --name connect \
   -e CONFIG_STORAGE_TOPIC=my_connect_configs \
   -e OFFSET_STORAGE_TOPIC=my_connect_offsets \
   -e STATUS_STORAGE_TOPIC=my_connect_statuses \
+  --volume ./mongodb-kafka-connect-mongodb-1.13.0:/kafka/connect/mongodb-kafka-connect-mongodb-1.13.0 \
   --link kafka:kafka \
   quay.io/debezium/connect:1.9
 
