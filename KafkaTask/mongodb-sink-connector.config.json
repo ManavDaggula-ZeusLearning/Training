@@ -7,8 +7,7 @@
       "key.converter": "org.apache.kafka.connect.storage.StringConverter",
       "value.converter": "org.apache.kafka.connect.json.JsonConverter",
       "value.converter.schemas.enable": false,
-      "database": "kafkadb",
-      "collection": "__topic__"
+      "database": "kafkadb"
     }
   }
   
