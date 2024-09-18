@@ -28,7 +28,8 @@ docker run -d --rm --name connect \
 # KSQLDB
 docker run -d --rm --name ksqldb\
   -p 8088:8088 \
-  -e KSQL_BOOTSTRAP_SERVERS=172.17.0.3:9092 \
+  -e KSQL_BOOTSTRAP_SERVERS=172.17.0.4:9092 \
+  --volume ./ksql-queries.sql:/ksql-queries.sql \
   confluentinc/ksqldb-server:0.29.0
 
 # Kafka UI

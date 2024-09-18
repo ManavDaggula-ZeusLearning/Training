@@ -1,0 +1,20 @@
+{
+  "name": "mongo-sink-connector-1",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "topics": "CLASS_ENRICHED, ENROLLMENT_TABLE, USER_TABLE",
+    "connection.uri": "mongodb://172.17.0.2:27017",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "database": "kafkadb",
+    "delete.on.null.values": true,
+    "document.id.strategy": "com.mongodb.kafka.connect.sink.processor.id.strategy.ProvidedInKeyStrategy",
+    "document.id.strategy.key.projection": "_id",
+    "document.id.strategy.unknown.key.id": true,
+    "transforms": "hk",
+    "transforms.hk.type": "org.apache.kafka.connect.transforms.HoistField$Key",
+    "transforms.hk.field": "_id",
+    "document.id.strategy.overwrite.existing": true
+  }
+}
