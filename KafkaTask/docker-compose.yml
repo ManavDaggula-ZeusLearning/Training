@@ -57,3 +57,10 @@ services:
       - "8080:8080"
     environment:
       - DYNAMIC_CONFIG_ENABLED=true
+  
+  mongodb:
+    image: mongodb/mongodb-community-server
+    hostname: mongodb
+    container_name: mongodb
+    ports:
+      - "27017:27017"

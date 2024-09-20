@@ -3,7 +3,7 @@
   "config": {
     "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
     "topics": "LOGIN",
-    "connection.uri": "mongodb://172.17.0.2:27017",
+    "connection.uri": "mongodb://mongodb:27017",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter",
     "value.converter": "org.apache.kafka.connect.json.JsonConverter",
     "value.converter.schemas.enable": false,
