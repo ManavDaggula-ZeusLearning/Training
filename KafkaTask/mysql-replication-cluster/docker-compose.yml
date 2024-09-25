@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  mysql-master:
+    image: mysql:8.0.37
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: my_database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - master-data:/var/lib/mysql
+    networks:
+      - mysql-network
+    command: --log-bin=mysql-bin --binlog-format=ROW --server-id=1
+
+  mysql-slave:
+    image: mysql:8.0.37
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: my_database
+      MYSQL_USER: user
+      MYSQL_PASSWORD: user_password
+    ports:
+      - "3308:3306"
+    volumes:
+      - slave-data:/var/lib/mysql
+    networks:
+      - mysql-network
+    command: --server-id=2
+
+volumes:
+  master-data:
+  slave-data:
+
+networks:
+  mysql-network:
