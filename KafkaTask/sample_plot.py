@@ -19,9 +19,9 @@ for label, group in df.groupby('label'):
     plt.plot(group['x'], group['y'], marker='o', label=label)
 
 # Adding titles and labels
-plt.title('Line Graph of X and Y by Label')
-plt.xlabel('X')
-plt.ylabel('Y')
+plt.title('Lag w.r.t. Number of rows')
+plt.xlabel('Number of Rows')
+plt.ylabel('Lag in Seconds')
 plt.legend(title='Label')
 plt.grid()
 
