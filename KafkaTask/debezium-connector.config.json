@@ -10,16 +10,15 @@
       "database.server.name": "dbserver1",
       "database.port": "3306",
       "key.converter.schemas.enable": "false",
-      "database.hostname": "172.29.0.1",
+      "database.hostname": "mysql",
       "database.password": "root",
       "database.allowPublicKeyRetrieval":"true",
       "value.converter.schemas.enable": "false",
       "value.converter": "org.apache.kafka.connect.json.JsonConverter",
       "key.converter": "org.apache.kafka.connect.json.JsonConverter",
       "database.include.list": "kafkadb",
-      "topic.creation.default.partitions":5,
+      "topic.creation.default.partitions":1,
       "topic.creation.default.replication.factor": 1,
-      "topic.creation.kafkadb.partitions":5,
-      "snapshot.max.threads":5
+      "topic.creation.kafkadb.partitions":1
   }
 }

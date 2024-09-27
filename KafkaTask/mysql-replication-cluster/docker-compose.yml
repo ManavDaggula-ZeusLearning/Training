@@ -3,6 +3,7 @@ version: '3.8'
 services:
   mysql-master:
     image: mysql:8.0.37
+    container_name: mysql-master
     environment:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: my_database
@@ -18,6 +19,7 @@ services:
 
   mysql-slave:
     image: mysql:8.0.37
+    container_name: mysql-slave
     environment:
       MYSQL_ROOT_PASSWORD: root_password
       MYSQL_DATABASE: my_database
